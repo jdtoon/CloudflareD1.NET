@@ -26,7 +26,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj" />
+    <!-- Use ProjectReference locally, but it will be converted to PackageReference in the .nupkg -->
+    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj">
+      <SetTargetFramework>TargetFramework=netstandard2.1</SetTargetFramework>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
