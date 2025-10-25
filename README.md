@@ -300,8 +300,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📮 Support
 
-- 📫 Open an issue on [GitHub Issues](https://github.com/yourusername/CloudflareD1.NET/issues)
-- 💬 Start a discussion on [GitHub Discussions](https://github.com/yourusername/CloudflareD1.NET/discussions)
+- 📫 Open an issue on [GitHub Issues](https://github.com/jdtoon/CloudflareD1.NET/issues)
+- 💬 Start a discussion on [GitHub Discussions](https://github.com/jdtoon/CloudflareD1.NET/discussions)
 
 ## 🔗 Links
 
@@ -312,3 +312,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️ by the .NET and Cloudflare communities
+

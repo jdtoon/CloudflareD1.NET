@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -13,8 +13,8 @@
     <Product>CloudflareD1.NET</Product>
     <Description>A complete .NET adapter for Cloudflare D1 database. Provides seamless integration with Cloudflare's serverless SQLite database, supporting both local SQLite development and remote D1 production deployments. Features include query execution, batch operations, transactions, time travel queries, and full database management capabilities.</Description>
     <PackageTags>cloudflare;d1;database;sqlite;serverless;cloudflare-d1;edge;workers</PackageTags>
-    <PackageProjectUrl>https://github.com/yourusername/CloudflareD1.NET</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/yourusername/CloudflareD1.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -42,3 +42,4 @@
   </ItemGroup>
 
 </Project>
+

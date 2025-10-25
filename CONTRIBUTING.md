@@ -192,9 +192,9 @@ Format:
 
 ## Getting Help
 
-- Check the [documentation](https://yourusername.github.io/CloudflareD1.NET/)
-- Search [existing issues](https://github.com/yourusername/CloudflareD1.NET/issues)
-- Ask in [GitHub Discussions](https://github.com/yourusername/CloudflareD1.NET/discussions)
+- Check the [documentation](https://jdtoon.github.io/CloudflareD1.NET/)
+- Search [existing issues](https://github.com/jdtoon/CloudflareD1.NET/issues)
+- Ask in [GitHub Discussions](https://github.com/jdtoon/CloudflareD1.NET/discussions)
 
 ## License
 
@@ -208,3 +208,4 @@ Contributors will be recognized in:
 - The documentation site
 
 Thank you for contributing to CloudflareD1.NET! 🎉
+

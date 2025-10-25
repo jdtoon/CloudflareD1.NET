@@ -21,41 +21,8 @@ const sidebars = {
       items: [
         'getting-started/installation',
         'getting-started/quick-start',
-        'getting-started/configuration',
       ],
     },
-    {
-      type: 'category',
-      label: 'Usage',
-      items: [
-        'usage/local-mode',
-        'usage/remote-mode',
-        'usage/dependency-injection',
-        'usage/query-execution',
-        'usage/batch-operations',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'API Reference',
-      items: [
-        'api/d1client',
-        'api/d1options',
-        'api/models',
-        'api/exceptions',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Advanced',
-      items: [
-        'advanced/time-travel',
-        'advanced/database-management',
-        'advanced/error-handling',
-      ],
-    },
-    'examples',
-    'faq',
   ],
 };
 

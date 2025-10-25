@@ -82,5 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Production-ready for both local development and Cloudflare D1 deployments
 - Compatible with .NET Core 3.0+, .NET 5+, .NET 6+, .NET 8+
 
-[Unreleased]: https://github.com/yourusername/CloudflareD1.NET/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/CloudflareD1.NET/releases/tag/v1.0.0
+[Unreleased]: https://github.com/jdtoon/CloudflareD1.NET/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jdtoon/CloudflareD1.NET/releases/tag/v1.0.0
+

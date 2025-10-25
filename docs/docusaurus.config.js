@@ -13,14 +13,14 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://yourusername.github.io',
+  url: 'https://jdtoon.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/CloudflareD1.NET/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'yourusername', // Usually your GitHub org/user name.
+  organizationName: 'jdtoon', // Usually your GitHub org/user name.
   projectName: 'CloudflareD1.NET', // Usually your repo name.
 
   onBrokenLinks: 'throw',
@@ -43,13 +43,13 @@ const config = {
           sidebarPath: './sidebars.js',
           // Please change this to your repo.
           editUrl:
-            'https://github.com/yourusername/CloudflareD1.NET/tree/main/docs/',
+            'https://github.com/jdtoon/CloudflareD1.NET/tree/main/docs/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://github.com/yourusername/CloudflareD1.NET/tree/main/docs/',
+            'https://github.com/jdtoon/CloudflareD1.NET/tree/main/docs/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -78,7 +78,7 @@ const config = {
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/yourusername/CloudflareD1.NET',
+            href: 'https://github.com/jdtoon/CloudflareD1.NET',
             label: 'GitHub',
             position: 'right',
           },
@@ -105,11 +105,11 @@ const config = {
             items: [
               {
                 label: 'GitHub Discussions',
-                href: 'https://github.com/yourusername/CloudflareD1.NET/discussions',
+                href: 'https://github.com/jdtoon/CloudflareD1.NET/discussions',
               },
               {
                 label: 'Issues',
-                href: 'https://github.com/yourusername/CloudflareD1.NET/issues',
+                href: 'https://github.com/jdtoon/CloudflareD1.NET/issues',
               },
             ],
           },
@@ -122,7 +122,7 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/yourusername/CloudflareD1.NET',
+                href: 'https://github.com/jdtoon/CloudflareD1.NET',
               },
             ],
           },
@@ -138,3 +138,4 @@ const config = {
 };
 
 export default config;
+

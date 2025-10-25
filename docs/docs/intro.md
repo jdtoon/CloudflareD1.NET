@@ -103,11 +103,12 @@ Ready to get started? Check out these resources:
 
 ## Support & Community
 
-- 📖 [Full Documentation](https://yourusername.github.io/CloudflareD1.NET/)
-- 💬 [GitHub Discussions](https://github.com/yourusername/CloudflareD1.NET/discussions)
-- 🐛 [Report Issues](https://github.com/yourusername/CloudflareD1.NET/issues)
+- 📖 [Full Documentation](https://jdtoon.github.io/CloudflareD1.NET/)
+- 💬 [GitHub Discussions](https://github.com/jdtoon/CloudflareD1.NET/discussions)
+- 🐛 [Report Issues](https://github.com/jdtoon/CloudflareD1.NET/issues)
 - 📦 [NuGet Package](https://www.nuget.org/packages/CloudflareD1.NET/)
 
 ## License
 
-CloudflareD1.NET is [MIT licensed](https://github.com/yourusername/CloudflareD1.NET/blob/main/LICENSE).
+CloudflareD1.NET is [MIT licensed](https://github.com/jdtoon/CloudflareD1.NET/blob/main/LICENSE).
+
