@@ -1,0 +1,67 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F38020;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F6821F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#512BD4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B3FF2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="150" fill="url(#orangeGrad)" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="200" fill="url(#purpleGrad)" opacity="0.1"/>
+
+  <!-- Logo hexagon with glow -->
+  <g transform="translate(250, 315)">
+    <!-- Glow effect -->
+    <circle cx="0" cy="0" r="150" fill="url(#orangeGrad)" opacity="0.2"/>
+
+    <!-- Main hexagon -->
+    <path d="M0 -120 L104 -60 L104 60 L0 120 L-104 60 L-104 -60 Z" fill="url(#orangeGrad)"/>
+
+    <!-- Inner hexagon -->
+    <path d="M0 -100 L87 -50 L87 50 L0 100 L-87 50 L-87 -50 Z" fill="url(#purpleGrad)" opacity="0.9"/>
+
+    <!-- Cloud -->
+    <g transform="translate(0, -15)">
+      <ellipse cx="0" cy="0" rx="45" ry="25" fill="white"/>
+      <circle cx="-30" cy="0" r="22" fill="white"/>
+      <circle cx="30" cy="0" r="18" fill="white"/>
+      <circle cx="-12" cy="-12" r="18" fill="white"/>
+      <circle cx="12" cy="-12" r="15" fill="white"/>
+    </g>
+
+    <!-- D1 text -->
+    <text x="0" y="-5" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#512BD4" text-anchor="middle">D1</text>
+
+    <!-- .NET text -->
+    <text x="0" y="50" font-family="Arial, sans-serif" font-size="42" font-weight="bold" fill="white" text-anchor="middle">.NET</text>
+  </g>
+
+  <!-- Title -->
+  <text x="500" y="250" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white">CloudflareD1.NET</text>
+
+  <!-- Subtitle -->
+  <text x="500" y="320" font-family="Arial, sans-serif" font-size="36" fill="#A0AEC0">.NET adapter for Cloudflare D1 database</text>
+
+  <!-- Features -->
+  <g transform="translate(500, 380)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="28" fill="white">✓ Local SQLite development mode</text>
+    <text x="0" y="45" font-family="Arial, sans-serif" font-size="28" fill="white">✓ Full Cloudflare D1 API support</text>
+    <text x="0" y="90" font-family="Arial, sans-serif" font-size="28" fill="white">✓ ASP.NET Core integration</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="580" font-family="Arial, sans-serif" font-size="24" fill="#718096" text-anchor="middle">github.com/jdtoon/CloudflareD1.NET</text>
+</svg>

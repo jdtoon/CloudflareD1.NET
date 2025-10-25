@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cloudflare orange background -->
+  <rect width="64" height="64" rx="12" fill="#F38020"/>
+
+  <!-- .NET purple hexagon -->
+  <path d="M32 12 L50 22 L50 42 L32 52 L14 42 L14 22 Z" fill="#512BD4" opacity="0.9"/>
+
+  <!-- White cloud -->
+  <g transform="translate(32, 28)">
+    <ellipse cx="0" cy="0" rx="12" ry="7" fill="white"/>
+    <circle cx="-8" cy="0" r="6" fill="white"/>
+    <circle cx="8" cy="0" r="5" fill="white"/>
+    <circle cx="-3" cy="-3" r="5" fill="white"/>
+    <circle cx="3" cy="-3" r="4" fill="white"/>
+  </g>
+
+  <!-- D1 text -->
+  <text x="32" y="33" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#512BD4" text-anchor="middle">D1</text>
+
+  <!-- .NET text -->
+  <text x="32" y="48" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">.NET</text>
+</svg>

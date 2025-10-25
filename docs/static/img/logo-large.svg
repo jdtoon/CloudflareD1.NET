@@ -1,0 +1,44 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F38020;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F6821F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#512BD4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B3FF2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main circle background -->
+  <circle cx="100" cy="100" r="95" fill="url(#bgGradient)"/>
+
+  <!-- .NET hexagon -->
+  <path d="M100 30 L160 65 L160 135 L100 170 L40 135 L40 65 Z" fill="url(#hexGradient)" opacity="0.9"/>
+
+  <!-- Inner hexagon border -->
+  <path d="M100 40 L150 70 L150 130 L100 160 L50 130 L50 70 Z" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+
+  <!-- Cloudflare cloud shape in the center -->
+  <g transform="translate(100, 85)">
+    <!-- Main cloud body -->
+    <ellipse cx="0" cy="0" rx="35" ry="20" fill="white"/>
+    <circle cx="-25" cy="0" r="18" fill="white"/>
+    <circle cx="25" cy="0" r="15" fill="white"/>
+    <circle cx="-10" cy="-8" r="15" fill="white"/>
+    <circle cx="10" cy="-8" r="12" fill="white"/>
+  </g>
+
+  <!-- D1 text on cloud -->
+  <text x="100" y="95" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#512BD4" text-anchor="middle">D1</text>
+
+  <!-- .NET text at bottom -->
+  <text x="100" y="145" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">.NET</text>
+
+  <!-- Decorative dots -->
+  <circle cx="70" cy="50" r="3" fill="white" opacity="0.6"/>
+  <circle cx="130" cy="50" r="3" fill="white" opacity="0.6"/>
+  <circle cx="70" cy="150" r="3" fill="white" opacity="0.6"/>
+  <circle cx="130" cy="150" r="3" fill="white" opacity="0.6"/>
+</svg>

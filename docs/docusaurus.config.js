@@ -10,7 +10,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'CloudflareD1.NET',
   tagline: 'Complete .NET adapter for Cloudflare D1 database',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   // Set the production url of your site here
   url: 'https://jdtoon.github.io',
@@ -57,7 +57,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/docusaurus-social-card.svg',
       navbar: {
         title: 'CloudflareD1.NET',
         logo: {

@@ -1,0 +1,40 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F38020;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F6821F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#512BD4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7B3FF2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Logo Icon -->
+  <g transform="translate(60, 60)">
+    <!-- Orange circle background -->
+    <circle cx="0" cy="0" r="50" fill="url(#orangeGradient)"/>
+
+    <!-- Purple hexagon -->
+    <path d="M0 -35 L30 -17.5 L30 17.5 L0 35 L-30 17.5 L-30 -17.5 Z" fill="url(#purpleGradient)" opacity="0.9"/>
+
+    <!-- White cloud -->
+    <g transform="translate(0, -8)">
+      <ellipse cx="0" cy="0" rx="18" ry="10" fill="white"/>
+      <circle cx="-12" cy="0" r="9" fill="white"/>
+      <circle cx="12" cy="0" r="7" fill="white"/>
+      <circle cx="-5" cy="-4" r="7" fill="white"/>
+      <circle cx="5" cy="-4" r="6" fill="white"/>
+    </g>
+
+    <!-- D1 text on cloud -->
+    <text x="0" y="-3" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#512BD4" text-anchor="middle">D1</text>
+
+    <!-- .NET text -->
+    <text x="0" y="22" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">.NET</text>
+  </g>
+
+  <!-- Text -->
+  <text x="130" y="55" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#1a202c">CloudflareD1.NET</text>
+  <text x="130" y="82" font-family="Arial, sans-serif" font-size="16" fill="#718096">.NET adapter for Cloudflare D1 database</text>
+</svg>
