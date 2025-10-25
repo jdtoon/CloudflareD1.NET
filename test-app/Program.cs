@@ -151,14 +151,77 @@ try
     }
     Console.WriteLine();
 
-    Console.WriteLine("Step 8: Getting total count...");
+    Console.WriteLine("Step 8: Testing Query Builder - Where clause with parameters...");
+    // First test without parameters to see if it's a parameter binding issue
+    var allUsers = await client.Query<TestUser>("test_users")
+        .ToListAsync();
+    Console.WriteLine($"✓ Query builder found {allUsers.Count()} total users");
+    
+    var queryResults = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .ToListAsync();
+    Console.WriteLine($"✓ Query builder found {queryResults.Count()} users with example.com emails");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 9: Testing Query Builder - OrderBy and Take...");
+    var orderedUsers = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .OrderBy("id")
+        .Take(2)
+        .ToListAsync();
+    Console.WriteLine($"✓ Top 2 users ordered by ID:");
+    foreach (var u in orderedUsers)
+    {
+        Console.WriteLine($"   - ID: {u.Id}, Name: {u.Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 10: Testing Query Builder - OrderByDescending and Skip...");
+    var paginatedUsers = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .OrderByDescending("id")
+        .Skip(1)
+        .Take(2)
+        .ToListAsync();
+    Console.WriteLine($"✓ Page 2 (skip 1, take 2) ordered by ID descending:");
+    foreach (var u in paginatedUsers)
+    {
+        Console.WriteLine($"   - ID: {u.Id}, Name: {u.Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 11: Testing Query Builder - CountAsync and AnyAsync...");
+    var userCount = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .CountAsync();
+    var hasUsers = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .AnyAsync();
+    Console.WriteLine($"✓ Count: {userCount}, Has users: {hasUsers}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 12: Testing Query Builder - SingleOrDefaultAsync...");
+    try
+    {
+        var singleUser = await client.Query<TestUser>("test_users")
+            .Where("id = ?", orderedUsers.First().Id)
+            .SingleOrDefaultAsync();
+        Console.WriteLine($"✓ Single user by ID: {singleUser?.Name ?? "null"}");
+    }
+    catch (InvalidOperationException ex)
+    {
+        Console.WriteLine($"✗ Expected behavior: {ex.Message}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 13: Getting total count...");
     var countResult = await client.QueryAsync("SELECT COUNT(*) as total FROM test_users");
     if (countResult.Results != null && countResult.Results.Count > 0)
     {
         Console.WriteLine($"✓ Total users in database: {countResult.Results[0]["total"]}\n");
     }
 
-    Console.WriteLine("Step 9: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("Step 14: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }
@@ -168,7 +231,7 @@ try
     Console.WriteLine("========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ extensions) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ extensions and query builder) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {

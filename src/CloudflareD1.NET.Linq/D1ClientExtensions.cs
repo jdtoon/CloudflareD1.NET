@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CloudflareD1.NET;
 using CloudflareD1.NET.Linq.Mapping;
+using CloudflareD1.NET.Linq.Query;
 
 namespace CloudflareD1.NET.Linq
 {
@@ -15,6 +16,22 @@ namespace CloudflareD1.NET.Linq
     public static class D1ClientExtensions
     {
         private static readonly IEntityMapper DefaultMapper = new DefaultEntityMapper();
+
+        /// <summary>
+        /// Creates a fluent query builder for the specified table and entity type.
+        /// </summary>
+        /// <typeparam name="T">The entity type to query.</typeparam>
+        /// <param name="client">The D1Client instance.</param>
+        /// <param name="tableName">The name of the table to query.</param>
+        /// <param name="mapper">Optional custom entity mapper. Uses DefaultEntityMapper if not provided.</param>
+        /// <returns>A query builder for constructing and executing queries.</returns>
+        public static IQueryBuilder<T> Query<T>(
+            this ID1Client client,
+            string tableName,
+            IEntityMapper? mapper = null) where T : class, new()
+        {
+            return new QueryBuilder<T>(client, tableName, mapper);
+        }
 
         /// <summary>
         /// Executes a SQL query and maps the results to a collection of entities of type T.
@@ -110,7 +127,7 @@ namespace CloudflareD1.NET.Linq
         /// <summary>
         /// Converts D1 query results (which can be List of objects or JsonElement) to dictionaries.
         /// </summary>
-        private static IEnumerable<Dictionary<string, object?>> ConvertResultsToRows(object? results)
+        internal static IEnumerable<Dictionary<string, object?>> ConvertResultsToRows(object? results)
         {
             if (results == null)
                 return Enumerable.Empty<Dictionary<string, object?>>();
