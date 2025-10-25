@@ -103,14 +103,14 @@ namespace CloudflareD1.NET.Providers
             }
 
             var url = $"accounts/{_options.AccountId}/d1/database/{_options.DatabaseId}/query";
-            
+
             // D1 API expects a single object with sql and optional params (as array), not an array of statements
             // For batch operations, SQL statements should be joined with semicolons
             object payload;
             if (statements.Count() == 1)
             {
                 var stmt = statements.First();
-                
+
                 // Convert params to array if it's an object
                 object? paramsArray = null;
                 if (stmt.Params != null)
@@ -137,7 +137,7 @@ namespace CloudflareD1.NET.Providers
                         paramsArray = new[] { stmt.Params };
                     }
                 }
-                
+
                 payload = new { sql = stmt.Sql, @params = paramsArray };
             }
             else

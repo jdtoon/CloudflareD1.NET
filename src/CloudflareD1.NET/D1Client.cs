@@ -49,7 +49,7 @@ namespace CloudflareD1.NET
             // Initialize appropriate provider based on mode
             if (_options.UseLocalMode)
             {
-                _logger.LogInformation("Initializing D1 client in local SQLite mode with database at {DatabasePath}", 
+                _logger.LogInformation("Initializing D1 client in local SQLite mode with database at {DatabasePath}",
                     _options.LocalDatabasePath);
 
                 var localLogger = new LoggerFactory().CreateLogger<LocalSqliteProvider>();
