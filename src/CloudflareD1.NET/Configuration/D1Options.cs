@@ -13,7 +13,7 @@ namespace CloudflareD1.NET.Configuration
         public string? AccountId { get; set; }
 
         /// <summary>
-        /// Gets or sets the Cloudflare API Token for authentication. 
+        /// Gets or sets the Cloudflare API Token for authentication.
         /// Recommended authentication method. Can be Account-level or with D1 permissions.
         /// </summary>
         public string? ApiToken { get; set; }

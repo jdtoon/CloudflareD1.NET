@@ -207,7 +207,7 @@ namespace CloudflareD1.NET.Providers
                 foreach (var statement in statements)
                 {
                     var isQuery = statement.Sql.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase);
-                    
+
                     D1QueryResult result;
                     if (isQuery)
                     {
@@ -217,7 +217,7 @@ namespace CloudflareD1.NET.Providers
                     {
                         result = await ExecuteInTransactionAsync(statement.Sql, statement.Params, transaction, cancellationToken).ConfigureAwait(false);
                     }
-                    
+
                     results.Add(result);
                 }
 

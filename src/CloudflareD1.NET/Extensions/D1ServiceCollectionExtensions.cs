@@ -49,7 +49,7 @@ namespace CloudflareD1.NET.Extensions
             {
                 var options = sp.GetRequiredService<IOptions<D1Options>>();
                 var logger = sp.GetRequiredService<ILogger<D1Client>>();
-                
+
                 // Try to use HttpClientFactory if available, otherwise null
                 HttpClient? httpClient = null;
                 try
@@ -64,7 +64,7 @@ namespace CloudflareD1.NET.Extensions
                 {
                     // HttpClientFactory not available, will create HttpClient internally
                 }
-                
+
                 return new D1Client(options, logger, httpClient);
             });
 
@@ -87,7 +87,7 @@ namespace CloudflareD1.NET.Extensions
         /// //   "UseLocalMode": true,
         /// //   "LocalDatabasePath": "local.db"
         /// // }
-        /// 
+        ///
         /// services.AddCloudflareD1(configuration.GetSection("CloudflareD1"));
         /// </code>
         /// </example>
@@ -111,7 +111,7 @@ namespace CloudflareD1.NET.Extensions
             {
                 var options = sp.GetRequiredService<IOptions<D1Options>>();
                 var logger = sp.GetRequiredService<ILogger<D1Client>>();
-                
+
                 // Try to use HttpClientFactory if available, otherwise null
                 HttpClient? httpClient = null;
                 try
@@ -126,7 +126,7 @@ namespace CloudflareD1.NET.Extensions
                 {
                     // HttpClientFactory not available, will create HttpClient internally
                 }
-                
+
                 return new D1Client(options, logger, httpClient);
             });
 

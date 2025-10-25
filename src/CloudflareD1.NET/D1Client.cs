@@ -49,9 +49,9 @@ namespace CloudflareD1.NET
             // Initialize appropriate provider based on mode
             if (_options.UseLocalMode)
             {
-                _logger.LogInformation("Initializing D1 client in local SQLite mode with database at {Path}", 
+                _logger.LogInformation("Initializing D1 client in local SQLite mode with database at {Path}",
                     _options.LocalDatabasePath);
-                
+
                 var localLogger = new LoggerFactory().CreateLogger<LocalSqliteProvider>();
                 _localProvider = new LocalSqliteProvider(options, localLogger);
             }
@@ -59,7 +59,7 @@ namespace CloudflareD1.NET
             {
                 _logger.LogInformation("Initializing D1 client in remote Cloudflare mode for account {AccountId}, database {DatabaseId}",
                     _options.AccountId, _options.DatabaseId);
-                
+
                 var remoteLogger = new LoggerFactory().CreateLogger<CloudflareD1Provider>();
                 _remoteProvider = new CloudflareD1Provider(options, remoteLogger, httpClient);
             }
@@ -77,7 +77,7 @@ namespace CloudflareD1.NET
                 throw new ArgumentException("SQL query cannot be null or empty.", nameof(sql));
             }
 
-            _logger.LogDebug("Executing query in {Mode} mode: {Sql}", 
+            _logger.LogDebug("Executing query in {Mode} mode: {Sql}",
                 _options.UseLocalMode ? "local" : "remote", sql);
 
             try

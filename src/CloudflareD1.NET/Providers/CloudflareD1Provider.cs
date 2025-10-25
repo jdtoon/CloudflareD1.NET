@@ -122,13 +122,13 @@ namespace CloudflareD1.NET.Providers
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("D1 API request failed with status {StatusCode}: {Content}", 
+                    _logger.LogError("D1 API request failed with status {StatusCode}: {Content}",
                         (int)response.StatusCode, responseContent);
 
                     D1ApiResponse<D1QueryResult[]>? errorResponse = null;
                     try
                     {
-                        errorResponse = JsonSerializer.Deserialize<D1ApiResponse<D1QueryResult[]>>(responseContent, 
+                        errorResponse = JsonSerializer.Deserialize<D1ApiResponse<D1QueryResult[]>>(responseContent,
                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     }
                     catch { }

@@ -49,7 +49,7 @@ namespace CloudflareD1.NET.Exceptions
         /// <param name="message">The error message.</param>
         /// <param name="errors">The errors returned by the API.</param>
         /// <param name="statusCode">The HTTP status code.</param>
-        public D1ApiException(string message, List<D1Error>? errors = null, int? statusCode = null) 
+        public D1ApiException(string message, List<D1Error>? errors = null, int? statusCode = null)
             : base(message)
         {
             Errors = errors;
@@ -121,7 +121,7 @@ namespace CloudflareD1.NET.Exceptions
         /// </summary>
         /// <param name="message">The error message.</param>
         /// <param name="innerException">The inner exception.</param>
-        public D1ConfigurationException(string message, Exception innerException) 
+        public D1ConfigurationException(string message, Exception innerException)
             : base(message, innerException) { }
     }
 
