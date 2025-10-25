@@ -20,4 +20,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\CloudflareD1.NET.Linq\CloudflareD1.NET.Linq.csproj" />
+  </ItemGroup>
+
 </Project>

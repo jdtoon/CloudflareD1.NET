@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>CloudflareD1.NET.Linq</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Junaid Desai</Authors>
+    <Company>CloudflareD1.NET</Company>
+    <Product>CloudflareD1.NET.Linq</Product>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction, entity mapping, and fluent API for building SQL queries with LINQ expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper</PackageTags>
+    <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

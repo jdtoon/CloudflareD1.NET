@@ -1,12 +1,21 @@
 # CloudflareD1.NET
 
 [![NuGet](https://img.shields.io/nuget/v/CloudflareD1.NET.svg)](https://www.nuget.org/packages/CloudflareD1.NET/)
+[![NuGet - Linq](https://img.shields.io/nuget/v/CloudflareD1.NET.Linq.svg?label=Linq)](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A complete .NET adapter for **Cloudflare D1** - the serverless SQL database running on Cloudflare's edge network. This library provides seamless integration with Cloudflare's D1 database, supporting both **local SQLite development** and **remote D1 production deployments**.
 
+## 📦 Packages
+
+| Package | Description | Install |
+|---------|-------------|---------|
+| **CloudflareD1.NET** | Core package with raw SQL support | `dotnet add package CloudflareD1.NET` |
+| **CloudflareD1.NET.Linq** | LINQ queries and object mapping | `dotnet add package CloudflareD1.NET.Linq` |
+
 ## ✨ Features
 
+### Core Package (CloudflareD1.NET)
 - 🚀 **Full D1 API Support** - Complete implementation of Cloudflare D1 REST API
 - 🏠 **Local Development Mode** - Use local SQLite for development without any setup
 - 🔄 **Seamless Switching** - Easy toggle between local and remote modes
@@ -20,12 +29,24 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - ⚡ **Async/Await** - Modern async patterns throughout
 - 🧪 **Well Tested** - Comprehensive test coverage
 
+### LINQ Package (CloudflareD1.NET.Linq)
+- 🎯 **Type-Safe Queries** - `QueryAsync<T>()` with automatic entity mapping
+- � **Automatic Mapping** - Snake_case columns to PascalCase properties  
+- 💪 **Strongly Typed** - Compile-time type checking for queries
+- ⚡ **High Performance** - Reflection caching for minimal overhead
+- 🎨 **Custom Mappers** - Implement `IEntityMapper` for custom logic
+- 📋 **LINQ Methods** - QueryFirstOrDefaultAsync, QuerySingleAsync, etc.
+
 ## 📦 Installation
 
-Install via NuGet Package Manager:
-
+### Core Package
 ```bash
 dotnet add package CloudflareD1.NET
+```
+
+### With LINQ Support  
+```bash
+dotnet add package CloudflareD1.NET.Linq
 ```
 
 Or via Package Manager Console:
