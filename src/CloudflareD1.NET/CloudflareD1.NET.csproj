@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>CloudflareD1.NET</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Junaid Desai</Authors>
+    <Company>CloudflareD1.NET</Company>
+    <Product>CloudflareD1.NET</Product>
+    <Description>A complete .NET adapter for Cloudflare D1 database. Provides seamless integration with Cloudflare's serverless SQLite database, supporting both local SQLite development and remote D1 production deployments. Features include query execution, batch operations, transactions, time travel queries, and full database management capabilities.</Description>
+    <PackageTags>cloudflare;d1;database;sqlite;serverless;cloudflare-d1;edge;workers</PackageTags>
+    <PackageProjectUrl>https://github.com/yourusername/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yourusername/CloudflareD1.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.10" />
+    <PackageReference Include="System.Text.Json" Version="9.0.10" />
+  </ItemGroup>
+
+</Project>
