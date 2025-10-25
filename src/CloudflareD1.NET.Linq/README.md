@@ -1,0 +1,363 @@
+# CloudflareD1.NET.Linq
+
+LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction, automatic entity mapping, and fluent API for building SQL queries.
+
+## Installation
+
+```bash
+dotnet add package CloudflareD1.NET.Linq
+```
+
+**Note:** This package automatically includes `CloudflareD1.NET` as a dependency.
+
+## Features
+
+- ✅ **Fluent query builder** - Chain methods like `.Where()`, `.OrderBy()`, `.Take()`, `.Skip()`
+- ✅ **Generic query methods** - `QueryAsync<T>()`, `QueryFirstOrDefaultAsync<T>()`, etc.
+- ✅ **Automatic entity mapping** - Maps query results to strongly-typed objects
+- ✅ **Snake_case to PascalCase conversion** - Automatically maps database columns to C# properties
+- ✅ **Parameterized queries** - Safe from SQL injection with `?` placeholders
+- ✅ **Pagination support** - Easy `Take()` and `Skip()` for paging
+- ✅ **Aggregate functions** - `CountAsync()`, `AnyAsync()`
+- ✅ **Nullable type support** - Handles nullable properties correctly
+- ✅ **Custom mappers** - Implement `IEntityMapper` for custom mapping logic
+- ✅ **Performance optimized** - Uses reflection caching for fast mapping
+
+## Quick Start
+
+### 1. Define Your Entities
+
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Email { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public bool IsActive { get; set; }
+}
+```
+
+### 2. Use the Fluent Query Builder
+
+```csharp
+using CloudflareD1.NET.Linq;
+
+// Simple query with filtering
+var activeUsers = await client.Query<User>("users")
+    .Where("is_active = ?", true)
+    .OrderBy("name")
+    .ToListAsync();
+
+// Pagination
+var page2Users = await client.Query<User>("users")
+    .OrderBy("created_at")
+    .Skip(20)
+    .Take(10)
+    .ToListAsync();
+
+// Complex filtering
+var recentUsers = await client.Query<User>("users")
+    .Where("created_at > ?", DateTime.UtcNow.AddDays(-7))
+    .Where("is_active = ?", true)
+    .OrderByDescending("created_at")
+    .Take(50)
+    .ToListAsync();
+
+// Aggregates
+var userCount = await client.Query<User>("users")
+    .Where("email LIKE ?", "%@example.com")
+    .CountAsync();
+
+var hasUsers = await client.Query<User>("users")
+    .Where("is_active = ?", true)
+    .AnyAsync();
+
+// Single result
+var user = await client.Query<User>("users")
+    .Where("id = ?", 123)
+    .SingleOrDefaultAsync();
+```
+
+### 3. Direct SQL Queries with Type Mapping
+
+```csharp
+// Query all users
+var users = await client.QueryAsync<User>("SELECT * FROM users");
+
+// Query with named parameters
+var activeUsers = await client.QueryAsync<User>(
+    "SELECT * FROM users WHERE is_active = @active",
+    new { active = true }
+);
+
+// Get single user
+var user = await client.QueryFirstOrDefaultAsync<User>(
+    "SELECT * FROM users WHERE id = @id",
+    new { id = 123 }
+);
+```
+
+## Query Builder API
+
+### Filtering
+
+```csharp
+// Single WHERE clause with positional parameters
+.Where("age > ?", 18)
+
+// Multiple WHERE clauses (combined with AND)
+.Where("age > ?", 18)
+.Where("country = ?", "US")
+
+// LIKE queries
+.Where("email LIKE ?", "%@example.com")
+
+// Complex conditions
+.Where("(age > ? OR premium = ?) AND country = ?", 18, true, "US")
+```
+
+### Sorting
+
+```csharp
+// Single column ascending
+.OrderBy("name")
+
+// Single column descending
+.OrderByDescending("created_at")
+
+// Multiple columns
+.OrderBy("country")
+.ThenBy("city")
+.ThenByDescending("created_at")
+```
+
+### Pagination
+
+```csharp
+// Skip first 20, take next 10
+.Skip(20)
+.Take(10)
+
+// First page (10 per page)
+.Take(10)
+
+// Second page
+.Skip(10)
+.Take(10)
+
+// Typical pagination pattern
+int page = 2;
+int pageSize = 10;
+var results = await client.Query<User>("users")
+    .OrderBy("id")
+    .Skip((page - 1) * pageSize)
+    .Take(pageSize)
+    .ToListAsync();
+```
+
+### Execution Methods
+
+```csharp
+// Get all matching results
+var list = await query.ToListAsync();
+
+// Get first result or null
+var first = await query.FirstOrDefaultAsync();
+
+// Get exactly one result (throws if 0 or >1)
+var single = await query.SingleAsync();
+
+// Get exactly one result or null (throws if >1)
+var singleOrNull = await query.SingleOrDefaultAsync();
+
+// Get count of matching records
+var count = await query.CountAsync();
+
+// Check if any records match
+var exists = await query.AnyAsync();
+```
+
+## Advanced Usage
+
+### Custom Entity Mapper
+
+Create a custom mapper for special mapping logic:
+
+```csharp
+public class CustomUserMapper : IEntityMapper
+{
+    public T Map<T>(Dictionary<string, object?> row)
+    {
+        if (typeof(T) == typeof(User))
+        {
+            var user = new User
+            {
+                Id = Convert.ToInt32(row["user_id"]),
+                Name = row["full_name"]?.ToString() ?? "",
+                Email = row["email_address"]?.ToString()
+            };
+            return (T)(object)user;
+        }
+        throw new NotSupportedException($"Type {typeof(T)} not supported");
+    }
+
+    public IEnumerable<T> MapMany<T>(IEnumerable<Dictionary<string, object?>> rows)
+    {
+        return rows.Select(Map<T>);
+    }
+}
+
+// Use custom mapper
+var users = await client.QueryAsync<User>(
+    "SELECT * FROM users",
+    parameters: null,
+    mapper: new CustomUserMapper()
+);
+
+// Or with query builder
+var users = await client.Query<User>("users", new CustomUserMapper())
+    .Where("is_active = ?", true)
+    .ToListAsync();
+```
+
+### Type Conversions
+
+The default mapper automatically handles:
+
+- **Primitives**: `int`, `long`, `decimal`, `float`, `double`, `bool`, `byte`, `short`
+- **Strings**: Direct assignment
+- **DateTime**: Parsed from strings or numeric timestamps
+- **Guid**: Parsed from strings
+- **Enums**: Parsed from strings or integers
+- **Nullable types**: All of the above with `?` suffix
+- **SQLite booleans**: Converts `0`/`1` to `false`/`true`
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public decimal Price { get; set; }
+    public DateTime? LastUpdated { get; set; }  // Nullable
+    public ProductStatus Status { get; set; }   // Enum
+    public bool IsActive { get; set; }          // SQLite stores as 0/1
+}
+
+public enum ProductStatus
+{
+    Draft,
+    Published,
+    Archived
+}
+```
+
+### Column Name Mapping
+
+The default mapper automatically converts snake_case column names to PascalCase properties:
+
+- `user_id` → `UserId`
+- `email_address` → `EmailAddress`
+- `created_at` → `CreatedAt`
+- `is_active` → `IsActive`
+
+```csharp
+// Database columns: user_id, full_name, email_address, created_at
+public class User
+{
+    public int UserId { get; set; }        // Maps from user_id
+    public string FullName { get; set; }   // Maps from full_name
+    public string EmailAddress { get; set; } // Maps from email_address
+    public DateTime CreatedAt { get; set; }  // Maps from created_at
+}
+```
+
+## Performance
+
+- **Reflection caching**: Property info is cached using `ConcurrentDictionary`
+- **Mapping cache**: Column-to-property mappings are cached per type
+- **Minimal overhead**: <1ms for 1000 rows on typical hardware
+- **Lazy execution**: Queries are only executed when you call an execution method
+
+### Performance Tips
+
+1. **Reuse mappers**: Create one mapper instance and reuse it
+2. **Use `Take()` for limits**: Reduces data transfer and processing
+3. **Project only needed columns**: `SELECT id, name` instead of `SELECT *`
+4. **Use `CountAsync()` for counts**: More efficient than `.ToListAsync().Count()`
+5. **Use `AnyAsync()` for existence checks**: More efficient than checking count
+
+## Examples
+
+### Pagination with Total Count
+
+```csharp
+var query = client.Query<Product>("products")
+    .Where("category = ?", "Electronics");
+
+var total = await query.CountAsync();
+var page1 = await query.Skip(0).Take(20).ToListAsync();
+
+Console.WriteLine($"Showing {page1.Count()} of {total} products");
+```
+
+### Search with Multiple Filters
+
+```csharp
+var searchTerm = "%laptop%";
+var minPrice = 500m;
+var maxPrice = 2000m;
+
+var results = await client.Query<Product>("products")
+    .Where("name LIKE ?", searchTerm)
+    .Where("price >= ?", minPrice)
+    .Where("price <= ?", maxPrice)
+    .Where("is_active = ?", true)
+    .OrderBy("price")
+    .ToListAsync();
+```
+
+### Complex Joins (using direct SQL)
+
+```csharp
+var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
+    SELECT 
+        o.id as order_id,
+        o.total as order_total,
+        c.id as customer_id,
+        c.name as customer_name
+    FROM orders o
+    INNER JOIN customers c ON o.customer_id = c.id
+    WHERE o.created_at > @since
+    ORDER BY o.created_at DESC
+    ",
+    new { since = DateTime.UtcNow.AddDays(-30) }
+);
+```
+
+## Coming Soon
+
+- 🚧 **Expression tree support** - True LINQ with `.Where(u => u.Age > 18)`
+- 🚧 **Include() for joins** - Automatic join and nested object mapping
+- 🚧 **Select() for projections** - Project to anonymous types
+- 🚧 **GroupBy() support** - Aggregate queries with grouping
+
+## Related Packages
+
+- **CloudflareD1.NET** - Core D1 client ([NuGet](https://www.nuget.org/packages/CloudflareD1.NET))
+- **CloudflareD1.NET.Migrations** - Schema migrations (coming soon)
+- **CloudflareD1.NET.Testing** - Testing helpers (coming soon)
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+- 📦 [NuGet Package](https://www.nuget.org/packages/CloudflareD1.NET.Linq)
+- 🐛 [Issue Tracker](https://github.com/jdtoon/CloudflareD1.NET/issues)
+- 📖 [Documentation](https://github.com/jdtoon/CloudflareD1.NET)

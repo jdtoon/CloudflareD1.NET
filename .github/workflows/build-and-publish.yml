@@ -10,7 +10,8 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'src/CloudflareD1.NET/CloudflareD1.NET.csproj'
+  CORE_PROJECT_PATH: 'src/CloudflareD1.NET/CloudflareD1.NET.csproj'
+  LINQ_PROJECT_PATH: 'src/CloudflareD1.NET.Linq/CloudflareD1.NET.Linq.csproj'
 
 jobs:
   build-and-test:
@@ -33,9 +34,11 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
 
-    - name: Pack NuGet package
+    - name: Pack NuGet packages
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
-      run: dotnet pack ${{ env.PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
+      run: |
+        dotnet pack ${{ env.CORE_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
+        dotnet pack ${{ env.LINQ_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
 
     - name: Upload artifacts
       if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
