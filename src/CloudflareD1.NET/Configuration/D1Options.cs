@@ -52,9 +52,9 @@ namespace CloudflareD1.NET.Configuration
 
         /// <summary>
         /// Gets or sets the Cloudflare API base URL.
-        /// Default is "https://api.cloudflare.com/client/v4".
+        /// Default is "https://api.cloudflare.com/client/v4/".
         /// </summary>
-        public string ApiBaseUrl { get; set; } = "https://api.cloudflare.com/client/v4";
+        public string ApiBaseUrl { get; set; } = "https://api.cloudflare.com/client/v4/";
 
         /// <summary>
         /// Gets or sets the HTTP request timeout in seconds.

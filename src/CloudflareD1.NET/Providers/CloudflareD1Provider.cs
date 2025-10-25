@@ -102,8 +102,51 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId and DatabaseId must be configured for remote operations.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database/{_options.DatabaseId}/query";
-            var payload = statements.Select(s => new { sql = s.Sql, @params = s.Params }).ToList();
+            var url = $"accounts/{_options.AccountId}/d1/database/{_options.DatabaseId}/query";
+            
+            // D1 API expects a single object with sql and optional params (as array), not an array of statements
+            // For batch operations, SQL statements should be joined with semicolons
+            object payload;
+            if (statements.Count() == 1)
+            {
+                var stmt = statements.First();
+                
+                // Convert params to array if it's an object
+                object? paramsArray = null;
+                if (stmt.Params != null)
+                {
+                    if (stmt.Params is System.Collections.IEnumerable enumerable && !(stmt.Params is string))
+                    {
+                        // Already an enumerable, convert to list
+                        var list = new List<object?>();
+                        foreach (var item in enumerable)
+                        {
+                            list.Add(item);
+                        }
+                        paramsArray = list;
+                    }
+                    else if (stmt.Params.GetType().IsClass && stmt.Params.GetType() != typeof(string))
+                    {
+                        // Convert object properties to array of values
+                        var properties = stmt.Params.GetType().GetProperties();
+                        paramsArray = properties.Select(p => p.GetValue(stmt.Params)).ToArray();
+                    }
+                    else
+                    {
+                        // Single value, wrap in array
+                        paramsArray = new[] { stmt.Params };
+                    }
+                }
+                
+                payload = new { sql = stmt.Sql, @params = paramsArray };
+            }
+            else
+            {
+                // Batch multiple statements into a single SQL string with semicolons
+                var batchSql = string.Join(";\n", statements.Select(s => s.Sql.TrimEnd(';')));
+                // Note: Batch queries lose individual parameter binding
+                payload = new { sql = batchSql };
+            }
 
             var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
             {
@@ -112,6 +155,7 @@ namespace CloudflareD1.NET.Providers
             });
 
             _logger.LogDebug("Executing D1 query: {Url}", url);
+            _logger.LogDebug("Request payload: {Payload}", json);
 
             try
             {
@@ -119,6 +163,9 @@ namespace CloudflareD1.NET.Providers
                 using var response = await _httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
 
                 var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                _logger.LogDebug("Response status: {StatusCode}, Content: {Content}",
+                    (int)response.StatusCode, responseContent);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -176,7 +223,7 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId must be configured for database management operations.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database?page={page}&per_page={perPage}";
+            var url = $"accounts/{_options.AccountId}/d1/database?page={page}&per_page={perPage}";
 
             try
             {
@@ -214,7 +261,7 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId must be configured for database management operations.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database/{databaseId}";
+            var url = $"accounts/{_options.AccountId}/d1/database/{databaseId}";
 
             try
             {
@@ -252,7 +299,7 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId must be configured for database management operations.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database";
+            var url = $"accounts/{_options.AccountId}/d1/database";
             var request = new CreateDatabaseRequest { Name = name };
             var json = JsonSerializer.Serialize(request);
 
@@ -293,7 +340,7 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId must be configured for database management operations.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database/{databaseId}";
+            var url = $"accounts/{_options.AccountId}/d1/database/{databaseId}";
 
             try
             {
@@ -326,7 +373,7 @@ namespace CloudflareD1.NET.Providers
                 throw new D1ConfigurationException("AccountId and DatabaseId must be configured for time travel queries.");
             }
 
-            var url = $"/accounts/{_options.AccountId}/d1/database/{_options.DatabaseId}/query";
+            var url = $"accounts/{_options.AccountId}/d1/database/{_options.DatabaseId}/query";
             var statement = new D1Statement { Sql = sql, Params = parameters };
             var payload = new[] { new { sql = statement.Sql, @params = statement.Params } };
 
