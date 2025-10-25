@@ -23,6 +23,16 @@ const sidebars = {
         'getting-started/quick-start',
       ],
     },
+    {
+      type: 'category',
+      label: 'LINQ Package',
+      items: [
+        'linq/intro',
+        'linq/installation',
+        'linq/query-builder',
+        'linq/entity-mapping',
+      ],
+    },
   ],
 };
 
