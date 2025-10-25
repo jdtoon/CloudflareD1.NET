@@ -156,7 +156,7 @@ try
     var allUsers = await client.Query<TestUser>("test_users")
         .ToListAsync();
     Console.WriteLine($"✓ Query builder found {allUsers.Count()} total users");
-
+    
     var queryResults = await client.Query<TestUser>("test_users")
         .Where("email LIKE ?", "%@example.com")
         .ToListAsync();

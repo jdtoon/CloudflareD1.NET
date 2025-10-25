@@ -126,7 +126,7 @@ namespace CloudflareD1.NET.Linq.Query
         {
             var sql = BuildSql();
             var parameters = _parameters.ToArray();
-
+            
             // Use QueryAsync for SELECT statements, not ExecuteAsync
             var result = await _client.QueryAsync(sql, parameters);
 
@@ -245,7 +245,7 @@ namespace CloudflareD1.NET.Linq.Query
             }
 
             var countValue = firstRow["count"];
-
+            
             // Handle JsonElement from System.Text.Json
             if (countValue is JsonElement jsonElement)
             {

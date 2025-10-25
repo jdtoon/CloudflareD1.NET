@@ -26,8 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Use PackageReference instead of ProjectReference so the dependency is included in the NuGet package -->
-    <PackageReference Include="CloudflareD1.NET" Version="1.0.1" />
+    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj" />
   </ItemGroup>
 
   <ItemGroup>
