@@ -98,8 +98,6 @@ Ready to get started? Check out these resources:
 
 - [Installation Guide](getting-started/installation) - Install the NuGet package
 - [Quick Start](getting-started/quick-start) - Get up and running in minutes
-- [Configuration](getting-started/configuration) - Learn about all configuration options
-- [API Reference](api/d1client) - Detailed API documentation
 
 ## Support & Community
 

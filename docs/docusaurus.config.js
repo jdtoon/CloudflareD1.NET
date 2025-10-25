@@ -45,12 +45,7 @@ const config = {
           editUrl:
             'https://github.com/jdtoon/CloudflareD1.NET/tree/main/docs/',
         },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/jdtoon/CloudflareD1.NET/tree/main/docs/',
-        },
+        blog: false, // Disable blog
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -76,7 +71,6 @@ const config = {
             position: 'left',
             label: 'Documentation',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
           {
             href: 'https://github.com/jdtoon/CloudflareD1.NET',
             label: 'GitHub',
@@ -93,10 +87,6 @@ const config = {
               {
                 label: 'Getting Started',
                 to: '/docs/intro',
-              },
-              {
-                label: 'API Reference',
-                to: '/docs/api',
               },
             ],
           },

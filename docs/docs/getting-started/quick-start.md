@@ -207,6 +207,4 @@ builder.Services.AddCloudflareD1(
 
 ## Next Steps
 
-- [Configuration Guide](configuration) - Learn all configuration options
-- [Usage Guide](../usage/query-execution) - Master query execution
-- [API Reference](../api/d1client) - Explore the full API
+Check out the [sample applications](https://github.com/jdtoon/CloudflareD1.NET/tree/main/samples) on GitHub for more complete examples.

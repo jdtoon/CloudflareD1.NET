@@ -56,4 +56,3 @@ dotnet add package Microsoft.Extensions.Configuration.Json
 Now that you have CloudflareD1.NET installed, proceed to:
 
 - [Quick Start Guide](quick-start) - Build your first application
-- [Configuration](configuration) - Learn about configuration options
