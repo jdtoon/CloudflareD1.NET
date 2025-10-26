@@ -362,12 +362,31 @@ namespace CloudflareD1.NET.Linq.Query
             }
 
             var firstRow = result.Results.FirstOrDefault();
-            if (firstRow == null || !firstRow.ContainsKey("count"))
+            if (firstRow == null)
             {
                 return 0;
             }
 
-            var countValue = firstRow["count"];
+            // Try various possible key names for the count column
+            object? countValue = null;
+            if (firstRow.ContainsKey("count"))
+            {
+                countValue = firstRow["count"];
+            }
+            else if (firstRow.ContainsKey("COUNT(*)"))
+            {
+                countValue = firstRow["COUNT(*)"];
+            }
+            else if (firstRow.Count > 0)
+            {
+                // If no specific key found, try the first value
+                countValue = firstRow.Values.FirstOrDefault();
+            }
+
+            if (countValue == null)
+            {
+                return 0;
+            }
 
             // Handle JsonElement from System.Text.Json
             if (countValue is JsonElement jsonElement)

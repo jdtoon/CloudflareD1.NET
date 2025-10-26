@@ -34,6 +34,38 @@ namespace CloudflareD1.NET.Linq
         }
 
         /// <summary>
+        /// Creates an IQueryable for the specified table with deferred execution.
+        /// The query will not execute until you enumerate the results or call a terminal operation like ToListAsync().
+        /// </summary>
+        /// <typeparam name="T">The entity type.</typeparam>
+        /// <param name="client">The D1 client.</param>
+        /// <param name="tableName">The table name.</param>
+        /// <param name="mapper">Optional custom entity mapper.</param>
+        /// <returns>An IQueryable that can be composed with LINQ operators.</returns>
+        /// <example>
+        /// <code>
+        /// // Create queryable - no query sent yet
+        /// IQueryable&lt;User&gt; query = client.AsQueryable&lt;User&gt;("users");
+        /// 
+        /// // Compose query - still no query sent
+        /// var adults = query
+        ///     .Where(u => u.Age >= 18)
+        ///     .OrderBy(u => u.Name)
+        ///     .Select(u => new { u.Id, u.Name });
+        /// 
+        /// // Now execute - query is sent to D1
+        /// var results = await ((D1Queryable&lt;User&gt;)adults).ToListAsync();
+        /// </code>
+        /// </example>
+        public static IQueryable<T> AsQueryable<T>(this ID1Client client, string tableName, IEntityMapper? mapper = null)
+            where T : class, new()
+        {
+            var queryBuilder = new QueryBuilder<T>(client, tableName, mapper);
+            var provider = new D1QueryProvider(client, tableName, mapper);
+            return new D1Queryable<T>(queryBuilder, provider);
+        }
+
+        /// <summary>
         /// Executes a SQL query and maps the results to a collection of entities of type T.
         /// </summary>
         /// <typeparam name="T">The entity type to map results to.</typeparam>

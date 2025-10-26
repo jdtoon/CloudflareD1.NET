@@ -391,11 +391,11 @@ try
     Console.WriteLine("Step 28: Select() with computed property - math operation...");
     var usersWithCalculation = await client.Query<TestUser>("test_users")
         .Where(u => u.Age > 0)
-        .Select(u => new UserWithCalculation { 
-            Id = u.Id, 
-            Name = u.Name, 
+        .Select(u => new UserWithCalculation {
+            Id = u.Id,
+            Name = u.Name,
             Age = u.Age,
-            YearsUntil65 = 65 - u.Age 
+            YearsUntil65 = 65 - u.Age
         })
         .Take(3)
         .ToListAsync();
@@ -409,8 +409,8 @@ try
     Console.WriteLine("Step 29: Select() with multiple computed properties...");
     var usersWithMultiple = await client.Query<TestUser>("test_users")
         .Where(u => u.Email != null)
-        .Select(u => new UserWithMultipleComputed { 
-            Id = u.Id, 
+        .Select(u => new UserWithMultipleComputed {
+            Id = u.Id,
             Name = u.Name,
             Age = u.Age,
             IsAdult = u.Age >= 18,
@@ -425,6 +425,131 @@ try
         Console.WriteLine($"  - {user.Name} (Age {user.Age}): Adult={user.IsAdult}, Minor={user.IsMinor}, Senior={user.IsSenior}");
     }
     Console.WriteLine();
+
+    // ============================================================
+    // NEW: IQueryable<T> Tests (v1.3.0)
+    // ============================================================
+    Console.WriteLine("========================================");
+    Console.WriteLine("🆕 IQueryable<T> Tests (v1.3.0)");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 31: Basic IQueryable - Deferred Execution...");
+    IQueryable<TestUser> queryable = client.AsQueryable<TestUser>("test_users");
+    Console.WriteLine("✓ IQueryable created (query NOT executed yet - deferred execution)");
+    Console.WriteLine($"  Provider Type: {queryable.Provider.GetType().Name}");
+    Console.WriteLine($"  Expression Type: {queryable.Expression.Type.Name}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 32: IQueryable with Where - Still Deferred...");
+    var adults = queryable.Where(u => u.Age >= 18);
+    Console.WriteLine("✓ Where clause added (still not executed)");
+    Console.WriteLine($"  Expression now includes Where predicate");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 33: IQueryable Execution with ToListAsync...");
+    var adultList = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)adults).ToListAsync();
+    Console.WriteLine($"✓ Query executed! Retrieved {adultList.Count()} adult users");
+    foreach (var user in adultList.Take(3))
+    {
+        Console.WriteLine($"  - {user.Name}, Age {user.Age}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 34: IQueryable with Multiple Where Clauses...");
+    var youngAdults = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 18)
+        .Where(u => u.Age < 30);
+    var youngAdultList = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)youngAdults).ToListAsync();
+    Console.WriteLine($"✓ Multiple WHERE clauses combined with AND: {youngAdultList.Count()} users (18-29)");
+    foreach (var user in youngAdultList.Take(2))
+    {
+        Console.WriteLine($"  - {user.Name}, Age {user.Age}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 35: IQueryable with OrderBy...");
+    var sortedByName = client.AsQueryable<TestUser>("test_users")
+        .OrderBy(u => u.Name)
+        .Take(5);
+    var sortedList = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)sortedByName).ToListAsync();
+    Console.WriteLine($"✓ Ordered by Name: {sortedList.Count()} users");
+    foreach (var user in sortedList)
+    {
+        Console.WriteLine($"  - {user.Name}, Age {user.Age}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 36: IQueryable with OrderByDescending...");
+    var sortedByAgeDesc = client.AsQueryable<TestUser>("test_users")
+        .OrderByDescending(u => u.Age)
+        .Take(5);
+    var sortedAgeList = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)sortedByAgeDesc).ToListAsync();
+    Console.WriteLine($"✓ Ordered by Age (descending): {sortedAgeList.Count()} users");
+    foreach (var user in sortedAgeList)
+    {
+        Console.WriteLine($"  - {user.Name}, Age {user.Age}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 37: IQueryable with Pagination (Skip + Take)...");
+    var pagedQuery = client.AsQueryable<TestUser>("test_users")
+        .OrderBy(u => u.Id)
+        .Skip(2)
+        .Take(3);
+    var pagedResults = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)pagedQuery).ToListAsync();
+    Console.WriteLine($"✓ Pagination (Skip 2, Take 3): {pagedResults.Count()} users");
+    foreach (var user in pagedResults)
+    {
+        Console.WriteLine($"  - ID {user.Id}: {user.Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 38: IQueryable Complex Query - Where + OrderBy + Pagination...");
+    var complexQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age > 20)
+        .OrderBy(u => u.Name)
+        .Skip(1)
+        .Take(5);
+    var complexResults = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)complexQuery).ToListAsync();
+    Console.WriteLine($"✓ Complex query (Age > 20, ordered by Name, paginated): {complexResults.Count()} users");
+    foreach (var user in complexResults.Take(3))
+    {
+        Console.WriteLine($"  - {user.Name}, Age {user.Age}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 39: IQueryable CountAsync...");
+    var countQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 18);
+    var adultCount = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)countQuery).CountAsync();
+    Console.WriteLine($"✓ COUNT query executed: {adultCount} adult users");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 40: IQueryable FirstOrDefaultAsync...");
+    var firstQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 18)
+        .OrderBy(u => u.Name);
+    var firstAdult = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)firstQuery).FirstOrDefaultAsync();
+    if (firstAdult != null)
+    {
+        Console.WriteLine($"✓ First adult user: {firstAdult.Name}, Age {firstAdult.Age}");
+    }
+    else
+    {
+        Console.WriteLine("✓ No adult users found");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 41: IQueryable AnyAsync...");
+    var anyQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 65);
+    var hasSeniors = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)anyQuery).AnyAsync();
+    Console.WriteLine($"✓ Has senior users (65+): {hasSeniors}");
+    Console.WriteLine();
+
+    Console.WriteLine("========================================");
+    Console.WriteLine("✅ IQueryable<T> Tests Completed!");
+    Console.WriteLine("========================================");
 
     Console.WriteLine("Step 30: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(

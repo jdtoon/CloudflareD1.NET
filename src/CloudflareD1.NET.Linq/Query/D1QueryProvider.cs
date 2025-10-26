@@ -31,34 +31,60 @@ namespace CloudflareD1.NET.Linq.Query
                 throw new ArgumentNullException(nameof(expression));
 
             Type elementType = expression.Type.GetGenericArguments()[0];
+            
+            // Use reflection to call CreateQueryInternal with the element type
+            var method = GetType().GetMethod(nameof(CreateQueryInternal), 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var genericMethod = method!.MakeGenericMethod(elementType);
+            
             try
             {
-                return (IQueryable)Activator.CreateInstance(
-                    typeof(D1Queryable<>).MakeGenericType(elementType),
-                    new object[] { CreateQueryBuilder(elementType), this, expression })!;
+                return (IQueryable)genericMethod.Invoke(this, new object[] { expression })!;
             }
-            catch (System.Reflection.TargetInvocationException tie)
+            catch (System.Reflection.TargetInvocationException ex)
             {
-                throw tie.InnerException!;
+                throw ex.InnerException ?? ex;
             }
         }
 
         /// <inheritdoc />
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
 
-            // Create QueryBuilder using reflection since we can't add where constraint
-            var queryBuilderType = typeof(QueryBuilder<>).MakeGenericType(typeof(TElement));
-            var queryBuilder = Activator.CreateInstance(queryBuilderType, _client, _tableName, _mapper);
+            // Use reflection to call the constrained CreateQueryInternal method
+            var method = GetType().GetMethod(nameof(CreateQueryInternal), 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var genericMethod = method!.MakeGenericMethod(typeof(TElement));
+            
+            try
+            {
+                return (IQueryable<TElement>)genericMethod.Invoke(this, new object[] { expression })!;
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                throw ex.InnerException ?? ex;
+            }
+        }
 
-            // Apply expression tree to query builder (if needed)
-            // For now, just create the queryable wrapper
+        /// <summary>
+        /// Internal method with proper constraints for creating queries.
+        /// </summary>
+        internal IQueryable<TElement> CreateQueryInternal<TElement>(Expression expression) where TElement : class, new()
+        {
+            // Create QueryBuilder
+            var queryBuilder = new QueryBuilder<TElement>(_client, _tableName, _mapper);
 
-            return (IQueryable<TElement>)Activator.CreateInstance(
-                typeof(D1Queryable<>).MakeGenericType(typeof(TElement)),
-                queryBuilder, this, expression)!;
+            // Apply expression tree to query builder
+            var appliedBuilder = ApplyExpression(queryBuilder, expression);
+            
+            if (appliedBuilder == null)
+            {
+                throw new InvalidOperationException("ApplyExpression returned null");
+            }
+
+            return new D1Queryable<TElement>(appliedBuilder, this, expression);
         }
 
         /// <inheritdoc />
@@ -121,14 +147,27 @@ namespace CloudflareD1.NET.Linq.Query
                         if (methodCall.Arguments.Count >= 2 && methodCall.Arguments[1] is UnaryExpression orderUnary &&
                             orderUnary.Operand is LambdaExpression orderLambda)
                         {
-                            // Extract the key selector
+                            // Extract the key selector type
                             var keySelectorType = orderLambda.Type.GetGenericArguments()[1];
-                            var orderByMethod = typeof(QueryBuilder<TElement>).GetMethod(methodCall.Method.Name,
-                                new[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(typeof(TElement), keySelectorType)) });
-
-                            if (orderByMethod != null)
+                            
+                            // Find the generic OrderBy method on QueryBuilder<TElement>
+                            var methods = typeof(QueryBuilder<TElement>).GetMethods()
+                                .Where(m => m.Name == methodCall.Method.Name && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)
+                                .ToArray();
+                            
+                            if (methods.Length > 0)
                             {
-                                builder = (QueryBuilder<TElement>)orderByMethod.Invoke(builder, new object[] { orderLambda })!;
+                                var orderByMethod = methods[0].MakeGenericMethod(keySelectorType);
+                                var result = orderByMethod.Invoke(builder, new object[] { orderLambda });
+                                if (result == null)
+                                {
+                                    throw new InvalidOperationException($"OrderBy method invocation returned null for method {methodCall.Method.Name}");
+                                }
+                                builder = (QueryBuilder<TElement>)result;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException($"Could not find OrderBy method for type {keySelectorType.Name}");
                             }
                         }
                         break;
@@ -139,12 +178,25 @@ namespace CloudflareD1.NET.Linq.Query
                             descUnary.Operand is LambdaExpression descLambda)
                         {
                             var keySelectorType = descLambda.Type.GetGenericArguments()[1];
-                            var orderByDescMethod = typeof(QueryBuilder<TElement>).GetMethod(methodCall.Method.Name,
-                                new[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(typeof(TElement), keySelectorType)) });
-
-                            if (orderByDescMethod != null)
+                            
+                            // Find the generic OrderByDescending method on QueryBuilder<TElement>
+                            var methods = typeof(QueryBuilder<TElement>).GetMethods()
+                                .Where(m => m.Name == methodCall.Method.Name && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)
+                                .ToArray();
+                            
+                            if (methods.Length > 0)
                             {
-                                builder = (QueryBuilder<TElement>)orderByDescMethod.Invoke(builder, new object[] { descLambda })!;
+                                var orderByDescMethod = methods[0].MakeGenericMethod(keySelectorType);
+                                var result = orderByDescMethod.Invoke(builder, new object[] { descLambda });
+                                if (result == null)
+                                {
+                                    throw new InvalidOperationException($"OrderByDescending method invocation returned null for method {methodCall.Method.Name}");
+                                }
+                                builder = (QueryBuilder<TElement>)result;
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException($"Could not find OrderByDescending method for type {keySelectorType.Name}");
                             }
                         }
                         break;

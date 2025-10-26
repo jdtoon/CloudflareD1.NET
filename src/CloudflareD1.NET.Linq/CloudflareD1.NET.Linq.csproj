@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.2.1</Version>
+    <Version>1.3.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.2.1: Computed Properties in Select() - Added support for computed properties in projections (e.g., IsAdult = u.Age >= 18, Total = u.Price * u.Quantity). SelectExpressionVisitor now captures parameters from computed expressions. DefaultEntityMapper enhanced to convert SQLite's 0/1 to Boolean. Supports boolean expressions, math operations (+ - * /), comparisons (&lt; &gt; &lt;= &gt;= == !=), and string methods (ToUpper, ToLower). 6 new unit tests (109 total). Fully backward compatible.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.3.0: IQueryable&lt;T&gt; Support - Added full IQueryable&lt;T&gt; implementation with deferred execution. New AsQueryable&lt;T&gt;() extension method creates composable queries. Supports Where, OrderBy, OrderByDescending, ThenBy, ThenByDescending, Take, Skip. D1QueryProvider translates expression trees to SQL. Includes ToListAsync, CountAsync, FirstOrDefaultAsync, SingleAsync, AnyAsync terminal operations. 11 new unit tests (120 total). Fully backward compatible with existing Query&lt;T&gt;() builder.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

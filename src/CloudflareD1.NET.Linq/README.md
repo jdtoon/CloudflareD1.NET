@@ -12,6 +12,7 @@ dotnet add package CloudflareD1.NET.Linq
 
 ## Features
 
+- ✅ **IQueryable<T> support** - Standard LINQ query syntax with deferred execution (NEW in v1.3.0)
 - ✅ **Fluent query builder** - Chain methods like `.Where()`, `.OrderBy()`, `.Take()`, `.Skip()`
 - ✅ **Generic query methods** - `QueryAsync<T>()`, `QueryFirstOrDefaultAsync<T>()`, etc.
 - ✅ **Automatic entity mapping** - Maps query results to strongly-typed objects
@@ -79,7 +80,70 @@ var user = await client.Query<User>("users")
     .SingleOrDefaultAsync();
 ```
 
-### 3. Direct SQL Queries with Type Mapping
+### 3. IQueryable<T> with Deferred Execution (NEW in v1.3.0)
+
+Use standard LINQ query syntax with `AsQueryable<T>()` for deferred execution:
+
+```csharp
+using CloudflareD1.NET.Linq;
+using CloudflareD1.NET.Linq.Query;
+
+// Create IQueryable - query is NOT executed yet
+IQueryable<User> queryable = client.AsQueryable<User>("users");
+
+// Compose query - still not executed (deferred execution)
+var adults = queryable
+    .Where(u => u.Age >= 18)
+    .OrderBy(u => u.Name);
+
+// NOW the query executes when we enumerate
+var results = await ((D1Queryable<User>)adults).ToListAsync();
+
+// Multiple Where clauses (combined with AND)
+var youngAdults = client.AsQueryable<User>("users")
+    .Where(u => u.Age >= 18)
+    .Where(u => u.Age < 30);
+var youngAdultList = await ((D1Queryable<User>)youngAdults).ToListAsync();
+
+// Pagination with IQueryable
+var pagedQuery = client.AsQueryable<User>("users")
+    .OrderBy(u => u.Id)
+    .Skip(10)
+    .Take(5);
+var pagedResults = await ((D1Queryable<User>)pagedQuery).ToListAsync();
+
+// Complex query composition
+var complexQuery = client.AsQueryable<User>("users")
+    .Where(u => u.Age > 20)
+    .OrderBy(u => u.Name)
+    .Skip(5)
+    .Take(10);
+var complexResults = await ((D1Queryable<User>)complexQuery).ToListAsync();
+
+// Count with filtering
+var countQuery = client.AsQueryable<User>("users")
+    .Where(u => u.IsActive);
+var activeCount = await ((D1Queryable<User>)countQuery).CountAsync();
+
+// FirstOrDefaultAsync
+var firstQuery = client.AsQueryable<User>("users")
+    .Where(u => u.IsActive)
+    .OrderBy(u => u.Name);
+var firstUser = await ((D1Queryable<User>)firstQuery).FirstOrDefaultAsync();
+
+// AnyAsync
+var anyQuery = client.AsQueryable<User>("users")
+    .Where(u => u.Age >= 65);
+var hasSeniors = await ((D1Queryable<User>)anyQuery).AnyAsync();
+```
+
+**Key Benefits of IQueryable:**
+- **Deferred Execution** - Query only runs when you enumerate (ToListAsync, CountAsync, etc.)
+- **Composable** - Build queries incrementally and reuse query fragments
+- **Standard LINQ** - Use familiar LINQ methods: Where, OrderBy, OrderByDescending, Take, Skip
+- **Testable** - Easy to unit test query composition logic
+
+### 4. Direct SQL Queries with Type Mapping
 
 ```csharp
 // Query all users

@@ -81,8 +81,8 @@ namespace CloudflareD1.NET.Tests
             first.IsAdult.Should().BeTrue();
 
             mockClient.Verify(x => x.QueryAsync(
-                It.Is<string>(sql => sql.Contains("id AS Id") && 
-                                     sql.Contains("name AS Name") && 
+                It.Is<string>(sql => sql.Contains("id AS Id") &&
+                                     sql.Contains("name AS Name") &&
                                      sql.Contains("(age >= ?) AS IsAdult") &&
                                      sql.Contains("FROM users")),
                 It.Is<object[]>(p => p != null && p.Length == 1 && (int)p[0] == 18),
@@ -128,7 +128,7 @@ namespace CloudflareD1.NET.Tests
             first.Total.Should().Be(100.50m);
 
             mockClient.Verify(x => x.QueryAsync(
-                It.Is<string>(sql => sql.Contains("id AS Id") && 
+                It.Is<string>(sql => sql.Contains("id AS Id") &&
                                      sql.Contains("(price * quantity) AS Total") &&
                                      sql.Contains("FROM users")),
                 null,
