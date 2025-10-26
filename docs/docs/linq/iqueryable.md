@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # IQueryable&lt;T&gt; Support
 
-CloudflareD1.NET.Linq v1.3.0 introduces full **IQueryable<T>** support with deferred execution, allowing you to use standard LINQ query syntax with composable, testable queries.
+CloudflareD1.NET.Linq v1.3.0 introduces full **IQueryable&lt;T&gt;** support with deferred execution, allowing you to use standard LINQ query syntax with composable, testable queries.
 
 ## Overview
 
@@ -544,6 +544,6 @@ For advanced scenarios not yet supported by IQueryable, use the `Query<T>()` bui
 
 ## See Also
 
-- [Query Builder](./query-builder.md) - Alternative Query<T>() approach
+- [Query Builder](./query-builder.md) - Alternative `Query<T>()` approach
 - [Expression Trees](./expression-trees.md) - How lambda expressions work
 - [Entity Mapping](./entity-mapping.md) - Automatic object mapping

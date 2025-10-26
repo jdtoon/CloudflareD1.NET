@@ -47,7 +47,7 @@ var results = await ((D1Queryable<User>)adults).ToListAsync();
 **Key Benefits:**
 - ✅ **Deferred execution** - Query only runs when enumerated
 - ✅ **Composable** - Build queries incrementally and reuse query fragments
-- ✅ **Standard LINQ** - Use familiar IQueryable<T> patterns
+- ✅ **Standard LINQ** - Use familiar IQueryable&lt;T&gt; patterns
 - ✅ **Testable** - Easy to unit test query composition logic
 
 ### v1.2.1 - Computed Properties in Select()
