@@ -74,6 +74,27 @@ namespace CloudflareD1.NET.Linq.Query
                 _skipCount);
         }
 
+        /// <summary>
+        /// Groups the query results by a key selector (SQL GROUP BY).
+        /// </summary>
+        /// <typeparam name="TKey">The type of the grouping key.</typeparam>
+        /// <param name="keySelector">Expression to select the grouping key.</param>
+        /// <returns>A group query builder for aggregations and projections.</returns>
+        public IGroupByQueryBuilder<T, TKey> GroupBy<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector == null)
+                throw new ArgumentNullException(nameof(keySelector));
+
+            return new GroupByQueryBuilder<T, TKey>(
+                _client,
+                _tableName,
+                _mapper,
+                keySelector,
+                _whereClauses,
+                _parameters,
+                _orderByClauses);
+        }
+
         /// <inheritdoc />
         public IQueryBuilder<T> Where(string whereClause, params object[] parameters)
         {

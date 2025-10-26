@@ -91,6 +91,14 @@ namespace CloudflareD1.NET.Linq.Query
         IProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<T, TResult>> selector) where TResult : class, new();
 
         /// <summary>
+        /// Groups the query results by a key selector (SQL GROUP BY).
+        /// </summary>
+        /// <typeparam name="TKey">The type of the grouping key.</typeparam>
+        /// <param name="keySelector">Expression to select the grouping key.</param>
+        /// <returns>A group query builder for aggregations and projections.</returns>
+        IGroupByQueryBuilder<T, TKey> GroupBy<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
         /// Limits the number of results returned (SQL LIMIT).
         /// </summary>
         /// <param name="count">The maximum number of results to return.</param>
