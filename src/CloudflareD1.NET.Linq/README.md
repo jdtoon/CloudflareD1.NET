@@ -12,7 +12,10 @@ dotnet add package CloudflareD1.NET.Linq
 
 ## Features
 
-- ✅ **GroupBy & Aggregations** - Group results with Count, Sum, Average, Min, Max (NEW in v1.5.0)
+- ✅ **Join Operations** - INNER JOIN and LEFT JOIN support (v1.6.0)
+- ✅ **GroupBy & Having** - Group results with aggregate filters (v1.5.0+)
+- ✅ **Distinct()** - Remove duplicate rows (NEW in v1.7.0)
+- ✅ **Contains()/IN clause** - Filter with collections (NEW in v1.7.0)
 - ✅ **IQueryable<T> support** - Standard LINQ query syntax with deferred execution (v1.3.0+)
 - ✅ **Select() projections** - Project to DTOs with computed properties (v1.4.0+)
 - ✅ **Fluent query builder** - Chain methods like `.Where()`, `.OrderBy()`, `.Take()`, `.Skip()`
@@ -801,10 +804,67 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 - ✅ **Lambda expressions** - Full IntelliSense and compile-time checking
 - ✅ **OrderBy expressions** - `.OrderBy(u => u.Name)`, `.ThenBy(u => u.CreatedAt)`
 
+### v1.5.0 - GroupBy & Aggregations
+- ✅ **GroupBy support** - Group results by properties
+- ✅ **Aggregate functions** - Count, Sum, Average, Min, Max in projections
+
+### v1.5.1 - Having Clause
+- ✅ **Having() support** - Filter grouped results after aggregation
+- ✅ **Aggregate predicates** - Use Count(), Sum(), Average(), Min(), Max() in conditions
+
+### v1.6.0 - Join Operations
+- ✅ **Join() support** - INNER JOIN across multiple tables
+- ✅ **LeftJoin() support** - LEFT JOIN with NULL handling
+- ✅ **Multi-table projections** - Combine columns from joined tables
+
+### v1.7.0 - Advanced Query Features (Current)
+- ✅ **Distinct()** - Remove duplicate rows from results
+- ✅ **Contains()/IN clause** - Filter with collection membership
+
+## Distinct() - Remove Duplicates
+
+Use `Distinct()` to eliminate duplicate rows from query results:
+
+```csharp
+// Get distinct categories
+var categories = await client.Query<Product>("products")
+    .Select(p => new Product { Category = p.Category })
+    .Distinct()
+    .ToListAsync();
+// SQL: SELECT DISTINCT category FROM products
+
+// Distinct with filtering
+var distinctActiveUsers = await client.Query<User>("users")
+    .Where("is_active = ?", 1)
+    .Distinct()
+    .ToListAsync();
+// SQL: SELECT DISTINCT * FROM users WHERE is_active = ?
+```
+
+## Contains()/IN Clause - Collection Filtering
+
+Use `Contains()` to filter rows based on collection membership:
+
+```csharp
+// Filter by array of values
+var targetCategories = new[] { "Electronics", "Books" };
+var products = await client.AsQueryable<Product>("products")
+    .Where(p => targetCategories.Contains(p.Category))
+    .ToListAsync();
+// SQL: SELECT * FROM products WHERE category IN (?, ?)
+
+// Combine with other conditions
+var expensiveElectronics = await client.AsQueryable<Product>("products")
+    .Where(p => targetCategories.Contains(p.Category))
+    .Where(p => p.Price > 100m)
+    .ToListAsync();
+// SQL: SELECT * FROM products WHERE category IN (?, ?) AND price > ?
+```
+
 ## Coming Soon
 
+- 🚧 **Set operations** - UNION, INTERSECT, EXCEPT
 - 🚧 **Multi-column GroupBy** - Group by multiple properties
-- 🚧 **RIGHT JOIN support** - Complete all SQL join types
 - 🚧 **Subquery support** - Nested queries in WHERE clauses
 - 🚧 **Union/Intersect/Except** - Set operations
 

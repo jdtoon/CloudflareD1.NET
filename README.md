@@ -31,9 +31,11 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 
 ### LINQ Package (CloudflareD1.NET.Linq)
 - ✨ **IQueryable<T> Support** - Standard LINQ with deferred execution (v1.3.0+)
-- 🔗 **Join Operations** - INNER JOIN and LEFT JOIN support (NEW in v1.6.0)
-- 📊 **GroupBy & Having** - Group results with aggregate filters (NEW in v1.5.0+)
+- 🔗 **Join Operations** - INNER JOIN and LEFT JOIN support (v1.6.0)
+- 📊 **GroupBy & Having** - Group results with aggregate filters (v1.5.0+)
 - 🎯 **Select() Projections** - Project to DTOs with computed properties (v1.4.0)
+- 🔍 **Distinct()** - Remove duplicate rows (NEW in v1.7.0)
+- 📋 **Contains()/IN Clause** - Collection filtering support (NEW in v1.7.0)
 - 🎯 **Type-Safe Queries** - `QueryAsync<T>()` with automatic entity mapping
 - 🗺️ **Automatic Mapping** - Snake_case columns to PascalCase properties  
 - 💪 **Strongly Typed** - Compile-time type checking for queries

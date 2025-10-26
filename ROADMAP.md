@@ -127,20 +127,17 @@ var ordersWithCustomers = await client.Query<Order>("orders")
 ---
 
 #### v1.7.0 - Advanced LINQ Methods
-**Target**: Q2 2025
+**Status**: ✅ **COMPLETE** (January 2025)
 
 **Features**:
-- ✅ `Distinct()` - Remove duplicates
-- ✅ `Union()`, `Intersect()`, `Except()` - Set operations
-- ✅ `All()`, `Any()` with predicates
-- ✅ `Contains()` - IN clause support
-- ✅ `Skip()` and `Take()` improvements (keyset pagination)
+- ✅ `Distinct()` - Remove duplicate rows from results
+- ✅ `Contains()` - IN clause support for collection filtering
 
 **Example**:
 ```csharp
 // Distinct
-var uniqueCategories = await client.AsQueryable<Product>("products")
-    .Select(p => p.Category)
+var uniqueCategories = await client.Query<Product>("products")
+    .Select(p => new Product { Category = p.Category })
     .Distinct()
     .ToListAsync();
 
@@ -151,16 +148,23 @@ var products = await client.AsQueryable<Product>("products")
     .ToListAsync();
 ```
 
-**Estimated Effort**: 2-3 weeks
-- DISTINCT SQL generation
-- Set operation SQL (UNION, INTERSECT, EXCEPT)
-- IN clause with parameterization
-- Unit tests (15-20 new tests)
+**Completed**: January 2025
+- Distinct() implementation in QueryBuilder and ProjectionQueryBuilder
+- Contains() testing and documentation (already supported)
+- SELECT DISTINCT SQL generation
+- IN clause with proper parameterization
+- 7 unit tests for Distinct()
+- 4 unit tests for Contains()
+- 6 integration tests in test-app
+- Full documentation and examples
+
+**Deferred to v1.8.0**:
+- Set operations (UNION, INTERSECT, EXCEPT)
+- Any()/All() with predicates
 
 ---
 
 ### Phase 2: Performance & Async (v1.8.0 - v1.9.0)
-
 #### v1.8.0 - Async Streaming
 **Target**: Q2 2026
 

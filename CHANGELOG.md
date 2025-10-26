@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2025-01-26
+
+### Added - CloudflareD1.NET.Linq
+
+#### Distinct() Method
+- **Distinct() support**: Remove duplicate rows from query results
+- **SELECT DISTINCT**: Generates `SELECT DISTINCT` SQL clause
+- **Fluent chaining**: Compatible with Where(), OrderBy(), Take(), Skip()
+- **Projection support**: Works with Select() for distinct projected results
+- **IQueryBuilder<T>**: Added Distinct() to fluent query interface
+- **IProjectionQueryBuilder<TResult>**: Added Distinct() to projection interface
+
+#### Contains()/IN Clause Support
+- **Collection.Contains()**: Already supported, now documented and tested
+- **IN clause generation**: Translates `collection.Contains(property)` to SQL `IN (?...)`
+- **Multiple data types**: Support for string, int, Guid, and other types
+- **Empty collection handling**: Generates `IN ()` for empty collections
+- **SqlExpressionVisitor**: Existing support in expression visitor
+- **Parameterized queries**: Proper parameter binding for IN clause values
+
+#### Documentation
+- Updated README.md with Distinct() and Contains() examples
+- Updated LINQ README with comprehensive usage examples
+- Updated ROADMAP.md to mark v1.7.0 complete
+- Integration test examples in test-app (6 new test steps)
+
+#### Testing
+- 7 new unit tests for Distinct()
+- 4 new unit tests for Contains()/IN clause
+- 6 integration test examples in test-app (Steps 71-76)
+- Full test coverage for Distinct with Where, OrderBy, Select, Take
+- Full test coverage for Contains with string/int arrays, empty collections
+
+### Technical Details
+- Modified files: IQueryBuilder.cs, QueryBuilder.cs, IProjectionQueryBuilder.cs, ProjectionQueryBuilder.cs
+- New test files: DistinctTests.cs, ContainsTests.cs
+- Total new code: ~400 lines (including tests)
+- Backward compatible: No breaking changes to existing APIs
+- 164 total tests passing (+11 from v1.6.0)
+
+---
+
 ## [1.6.0] - 2025-01-26
 
 ### Added - CloudflareD1.NET.Linq
