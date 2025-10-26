@@ -284,13 +284,13 @@ namespace CloudflareD1.NET.Tests.Linq
             Assert.Contains("GROUP BY", capturedSql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("HAVING", capturedSql, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("ORDER BY", capturedSql, StringComparison.OrdinalIgnoreCase);
-            
+
             // Verify correct order: WHERE ... GROUP BY ... HAVING ... ORDER BY
             var whereIndex = capturedSql!.IndexOf("WHERE", StringComparison.OrdinalIgnoreCase);
             var groupByIndex = capturedSql.IndexOf("GROUP BY", StringComparison.OrdinalIgnoreCase);
             var havingIndex = capturedSql.IndexOf("HAVING", StringComparison.OrdinalIgnoreCase);
             var orderByIndex = capturedSql.IndexOf("ORDER BY", StringComparison.OrdinalIgnoreCase);
-            
+
             Assert.True(whereIndex < groupByIndex);
             Assert.True(groupByIndex < havingIndex);
             Assert.True(havingIndex < orderByIndex);

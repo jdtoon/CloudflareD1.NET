@@ -75,6 +75,62 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <summary>
+        /// Performs an inner join with another table.
+        /// </summary>
+        public IJoinQueryBuilder<T, TInner, TKey> Join<TInner, TKey>(
+            IQueryBuilder<TInner> inner,
+            Expression<Func<T, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector)
+            where TInner : class, new()
+        {
+            if (inner == null)
+                throw new ArgumentNullException(nameof(inner));
+            if (outerKeySelector == null)
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            if (innerKeySelector == null)
+                throw new ArgumentNullException(nameof(innerKeySelector));
+
+            return new JoinQueryBuilder<T, TInner, TKey>(
+                _client,
+                _tableName,
+                inner,
+                _mapper,
+                outerKeySelector,
+                innerKeySelector,
+                JoinType.Inner,
+                _whereClauses,
+                _parameters);
+        }
+
+        /// <summary>
+        /// Performs a left outer join with another table.
+        /// </summary>
+        public IJoinQueryBuilder<T, TInner, TKey> LeftJoin<TInner, TKey>(
+            IQueryBuilder<TInner> inner,
+            Expression<Func<T, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector)
+            where TInner : class, new()
+        {
+            if (inner == null)
+                throw new ArgumentNullException(nameof(inner));
+            if (outerKeySelector == null)
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            if (innerKeySelector == null)
+                throw new ArgumentNullException(nameof(innerKeySelector));
+
+            return new JoinQueryBuilder<T, TInner, TKey>(
+                _client,
+                _tableName,
+                inner,
+                _mapper,
+                outerKeySelector,
+                innerKeySelector,
+                JoinType.Left,
+                _whereClauses,
+                _parameters);
+        }
+
+        /// <summary>
         /// Groups the query results by a key selector (SQL GROUP BY).
         /// </summary>
         /// <typeparam name="TKey">The type of the grouping key.</typeparam>

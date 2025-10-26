@@ -91,6 +91,36 @@ namespace CloudflareD1.NET.Linq.Query
         IProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<T, TResult>> selector) where TResult : class, new();
 
         /// <summary>
+        /// Performs an inner join with another table.
+        /// </summary>
+        /// <typeparam name="TInner">The type of the inner (right) entity to join.</typeparam>
+        /// <typeparam name="TKey">The type of the join key.</typeparam>
+        /// <param name="inner">The inner query builder.</param>
+        /// <param name="outerKeySelector">Expression to select the key from the outer entity.</param>
+        /// <param name="innerKeySelector">Expression to select the key from the inner entity.</param>
+        /// <returns>A join query builder for projection.</returns>
+        IJoinQueryBuilder<T, TInner, TKey> Join<TInner, TKey>(
+            IQueryBuilder<TInner> inner,
+            Expression<Func<T, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector)
+            where TInner : class, new();
+
+        /// <summary>
+        /// Performs a left outer join with another table.
+        /// </summary>
+        /// <typeparam name="TInner">The type of the inner (right) entity to join.</typeparam>
+        /// <typeparam name="TKey">The type of the join key.</typeparam>
+        /// <param name="inner">The inner query builder.</param>
+        /// <param name="outerKeySelector">Expression to select the key from the outer entity.</param>
+        /// <param name="innerKeySelector">Expression to select the key from the inner entity.</param>
+        /// <returns>A join query builder for projection.</returns>
+        IJoinQueryBuilder<T, TInner, TKey> LeftJoin<TInner, TKey>(
+            IQueryBuilder<TInner> inner,
+            Expression<Func<T, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector)
+            where TInner : class, new();
+
+        /// <summary>
         /// Groups the query results by a key selector (SQL GROUP BY).
         /// </summary>
         /// <typeparam name="TKey">The type of the grouping key.</typeparam>
