@@ -18,6 +18,44 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
+### v1.5.0 - GroupBy &amp; Aggregations
+
+Group query results and perform aggregate calculations:
+
+```csharp
+// Group by category with multiple aggregates
+var salesByCategory = await client.Query<Product>("products")
+    .GroupBy(p => p.Category)
+    .Select(g => new CategoryStats
+    {
+        Category = g.Key,
+        ProductCount = g.Count(),
+        TotalRevenue = g.Sum(p => p.Price * p.Quantity),
+        AveragePrice = g.Average(p => p.Price),
+        MinPrice = g.Min(p => p.Price),
+        MaxPrice = g.Max(p => p.Price)
+    })
+    .OrderByDescending("total_revenue")
+    .Take(10)
+    .ToListAsync();
+```
+
+**Supported Aggregates:**
+- ✅ **Count()** - Count items in each group
+- ✅ **Sum()** - Sum of values with complex expressions
+- ✅ **Average()** - Average value calculation
+- ✅ **Min() / Max()** - Minimum and maximum values
+- ✅ **Complex expressions** - `g.Sum(p => p.Price * p.Quantity)`
+
+**Key Features:**
+- ✅ **Single key grouping** - Group by any property
+- ✅ **Multiple aggregates** - Combine multiple aggregate functions
+- ✅ **WHERE integration** - Filter before grouping
+- ✅ **ORDER BY support** - Sort grouped results
+- ✅ **Pagination** - Use Take() and Skip() with groups
+
+[Learn more about GroupBy &rarr;](groupby.md)
+
 ### v1.3.0 - IQueryable&lt;T&gt; with Deferred Execution
 
 Standard LINQ query syntax with deferred execution:
