@@ -86,10 +86,95 @@ namespace CloudflareD1.NET.Linq.Query
 
         private string TranslateHavingPredicate(Expression<Func<ID1Grouping<TKey, TSource>, bool>> predicate)
         {
-            // For now, throw - full Having() translation needs more work
+            // The body of the predicate is typically a binary expression like: g.Count() > 10
+            if (predicate.Body is BinaryExpression binaryExpr)
+            {
+                return TranslateHavingBinaryExpression(binaryExpr);
+            }
+
             throw new NotSupportedException(
-                "Having() with complex predicates is not yet fully implemented. " +
-                "Use Select() to project groups and filter client-side for now.");
+                $"Unsupported Having predicate expression type: {predicate.Body.GetType().Name}. " +
+                "Only binary comparison expressions with aggregates are supported (e.g., g.Count() > 10).");
+        }
+
+        private string TranslateHavingBinaryExpression(BinaryExpression expression)
+        {
+            var left = TranslateHavingExpression(expression.Left);
+            var right = TranslateHavingExpression(expression.Right);
+            var @operator = GetSqlOperator(expression.NodeType);
+
+            return $"{left} {@operator} {right}";
+        }
+
+        private string TranslateHavingExpression(Expression expression)
+        {
+            // Handle method calls like g.Count(), g.Sum(), etc.
+            if (expression is MethodCallExpression methodCall)
+            {
+                // Use AggregateExpressionVisitor to translate aggregate methods
+                // We create a temporary StringBuilder to capture the SQL
+                var sql = new StringBuilder();
+                var visitor = new AggregateExpressionVisitor(sql, _mapper, typeof(TSource));
+                visitor.Visit(methodCall);
+                return sql.ToString();
+            }
+
+            // Handle constants
+            if (expression is ConstantExpression constantExpr)
+            {
+                return FormatConstantValue(constantExpr.Value);
+            }
+
+            // Handle member access (for g.Key)
+            if (expression is MemberExpression memberExpr)
+            {
+                if (memberExpr.Member.Name == "Key")
+                {
+                    // Return the first group by column
+                    // (for composite keys, we'd need more logic)
+                    var keyColumnName = _mapper.GetColumnName(_keySelector.Body is MemberExpression member
+                        ? member.Member.Name
+                        : "key");
+                    return keyColumnName;
+                }
+            }
+
+            throw new NotSupportedException(
+                $"Unsupported expression in Having clause: {expression.GetType().Name}");
+        }
+
+        private static string GetSqlOperator(ExpressionType nodeType)
+        {
+            return nodeType switch
+            {
+                ExpressionType.GreaterThan => ">",
+                ExpressionType.GreaterThanOrEqual => ">=",
+                ExpressionType.LessThan => "<",
+                ExpressionType.LessThanOrEqual => "<=",
+                ExpressionType.Equal => "=",
+                ExpressionType.NotEqual => "!=",
+                ExpressionType.AndAlso => "AND",
+                ExpressionType.OrElse => "OR",
+                _ => throw new NotSupportedException($"Operator {nodeType} is not supported in Having clause")
+            };
+        }
+
+        private static string FormatConstantValue(object? value)
+        {
+            if (value == null)
+                return "NULL";
+
+            if (value is string str)
+                return $"'{str.Replace("'", "''")}'";
+
+            if (value is bool b)
+                return b ? "1" : "0";
+
+            if (value is DateTime dt)
+                return $"'{dt:yyyy-MM-dd HH:mm:ss}'";
+
+            // Numbers, decimals, etc.
+            return value.ToString() ?? "NULL";
         }
     }
 
