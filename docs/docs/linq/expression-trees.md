@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Expression Tree LINQ
 
-Starting with v1.1.0, CloudflareD1.NET.Linq supports expression tree-based queries using lambda expressions. **v1.2.0 adds Select() projection** for column selection and result transformation.
+Starting with v1.1.0, CloudflareD1.NET.Linq supports expression tree-based queries using lambda expressions. **v1.2.0 adds Select() projection** for column selection and result transformation. **v1.2.1 adds computed properties** in Select() for dynamic value generation.
 
 ## Why Use Expression Trees?
 
@@ -305,6 +305,80 @@ var count = await client.Query<User>("users")
     .CountAsync();
 ```
 
+### Computed Properties in Select() (v1.2.1+)
+
+Generate new values dynamically using expressions:
+
+```csharp
+// Boolean computed properties
+public class UserWithFlags
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool IsAdult { get; set; }
+    public bool IsMinor { get; set; }
+    public bool IsSenior { get; set; }
+}
+
+var usersWithFlags = await client.Query<User>("users")
+    .Select(u => new UserWithFlags {
+        Id = u.Id,
+        Name = u.Name,
+        Age = u.Age,
+        IsAdult = u.Age >= 18,
+        IsMinor = u.Age < 18,
+        IsSenior = u.Age >= 65
+    })
+    .ToListAsync();
+// Generates: SELECT id AS Id, name AS Name, age AS Age, 
+//   (age >= ?) AS IsAdult, (age < ?) AS IsMinor, (age >= ?) AS IsSenior FROM users
+```
+
+```csharp
+// Math operations
+public class OrderSummary
+{
+    public int Id { get; set; }
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+    public decimal Total { get; set; }
+    public decimal Discount { get; set; }
+}
+
+var orders = await client.Query<Order>("orders")
+    .Select(o => new OrderSummary {
+        Id = o.Id,
+        Price = o.Price,
+        Quantity = o.Quantity,
+        Total = o.Price * o.Quantity,
+        Discount = o.Price * 0.1m
+    })
+    .ToListAsync();
+// Generates: SELECT id AS Id, price AS Price, quantity AS Quantity,
+//   (price * quantity) AS Total, (price * ?) AS Discount FROM orders
+```
+
+```csharp
+// String methods
+var formattedUsers = await client.Query<User>("users")
+    .Select(u => new {
+        u.Id,
+        UpperName = u.Name.ToUpper(),
+        LowerEmail = u.Email.ToLower()
+    })
+    .ToListAsync();
+// Generates: SELECT id, UPPER(name) AS UpperName, LOWER(email) AS LowerEmail FROM users
+```
+
+**Supported Operations:**
+- **Comparisons**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- **Math**: `+`, `-`, `*`, `/`
+- **Boolean logic**: `&&` (AND), `||` (OR), `!` (NOT)
+- **String methods**: `ToUpper()`, `ToLower()`, `Contains()`, `StartsWith()`, `EndsWith()`
+
+**Note:** SQLite returns boolean expressions as integers (0/1), which are automatically converted to `bool` by the entity mapper.
+
 ### Benefits of Projection
 
 - **Reduced data transfer** - Only selected columns are returned
@@ -448,7 +522,9 @@ Expression trees support most common LINQ patterns, but have some limitations:
 - `GroupBy()` grouping
 - Subqueries
 - `IN` operator with expression lists (use string syntax)
-- Computed properties in Select() (e.g., `Select(u => new { u.Name, Adult = u.Age >= 18 })`)
+
+**Partially Supported:**
+- **Computed properties in Select()** (v1.2.1+) - Supports basic expressions: `Select(u => new { u.Name, Adult = u.Age >= 18, Total = u.Price * u.Quantity })`. Complex nested expressions may require raw SQL.
 
 **Workarounds:**
 - For complex SQL, use string-based Where clauses

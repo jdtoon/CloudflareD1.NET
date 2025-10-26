@@ -13,6 +13,7 @@ namespace CloudflareD1.NET.Linq.Query
     {
         private readonly IEntityMapper _mapper;
         private readonly List<(string Column, string? Alias)> _columns;
+        private readonly List<object> _parameters;
 
         /// <summary>
         /// Initializes a new instance of the SelectExpressionVisitor class.
@@ -22,6 +23,7 @@ namespace CloudflareD1.NET.Linq.Query
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _columns = new List<(string, string?)>();
+            _parameters = new List<object>();
         }
 
         /// <summary>
@@ -32,9 +34,16 @@ namespace CloudflareD1.NET.Linq.Query
         public List<(string Column, string? Alias)> GetColumns(Expression expression)
         {
             _columns.Clear();
+            _parameters.Clear();
             Visit(expression);
             return _columns;
         }
+
+        /// <summary>
+        /// Gets the parameters collected during expression parsing.
+        /// </summary>
+        /// <returns>Array of parameter values.</returns>
+        public object[] GetParameters() => _parameters.ToArray();
 
         /// <summary>
         /// Visits a MemberInit expression (anonymous type initialization).
@@ -47,7 +56,7 @@ namespace CloudflareD1.NET.Linq.Query
                 if (binding is MemberAssignment assignment)
                 {
                     var alias = assignment.Member.Name;
-                    
+
                     // Check if this is a simple property access or computed property
                     if (assignment.Expression is MemberExpression memberExpr)
                     {
@@ -62,6 +71,8 @@ namespace CloudflareD1.NET.Linq.Query
                         var sqlVisitor = new SqlExpressionVisitor(_mapper);
                         var sqlExpression = sqlVisitor.Translate(assignment.Expression);
                         _columns.Add((sqlExpression, alias));
+                        // Capture parameters from computed expression
+                        _parameters.AddRange(sqlVisitor.GetParameters());
                     }
                 }
             }
@@ -95,6 +106,8 @@ namespace CloudflareD1.NET.Linq.Query
                         var sqlVisitor = new SqlExpressionVisitor(_mapper);
                         var sqlExpression = sqlVisitor.Translate(argument);
                         _columns.Add((sqlExpression, alias));
+                        // Capture parameters from computed expression
+                        _parameters.AddRange(sqlVisitor.GetParameters());
                     }
                 }
             }
@@ -104,7 +117,7 @@ namespace CloudflareD1.NET.Linq.Query
                 for (int i = 0; i < node.Arguments.Count; i++)
                 {
                     var argument = node.Arguments[i];
-                    
+
                     if (argument is MemberExpression memberExpr)
                     {
                         var columnName = _mapper.GetColumnName(memberExpr.Member.Name);

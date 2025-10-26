@@ -178,6 +178,69 @@ var count = await query.CountAsync();
 var exists = await query.AnyAsync();
 ```
 
+### Select() Projection with Computed Properties (v1.2.1+)
+
+Select specific columns and compute new values on-the-fly:
+
+```csharp
+// DTO class for projection
+public class UserSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public bool IsAdult { get; set; }
+    public int YearsUntil65 { get; set; }
+}
+
+// Boolean computed properties
+var adults = await client.Query<User>("users")
+    .Select(u => new UserSummary { 
+        Id = u.Id, 
+        Name = u.Name,
+        IsAdult = u.Age >= 18,
+        YearsUntil65 = 65 - u.Age
+    })
+    .ToListAsync();
+
+// Math operations
+var orderSummary = await client.Query<Order>("orders")
+    .Select(o => new {
+        o.Id,
+        Total = o.Price * o.Quantity,
+        Discount = o.Price * 0.1m,
+        FinalPrice = (o.Price * o.Quantity) - (o.Price * 0.1m)
+    })
+    .ToListAsync();
+
+// Comparisons and boolean logic
+var userFlags = await client.Query<User>("users")
+    .Select(u => new {
+        u.Id,
+        u.Name,
+        u.Age,
+        IsAdult = u.Age >= 18,
+        IsMinor = u.Age < 18,
+        IsSenior = u.Age >= 65,
+        IsExpensive = u.MonthlyFee > 100
+    })
+    .ToListAsync();
+
+// String methods
+var formattedUsers = await client.Query<User>("users")
+    .Select(u => new {
+        u.Id,
+        UpperName = u.Name.ToUpper(),
+        LowerEmail = u.Email.ToLower()
+    })
+    .ToListAsync();
+```
+
+**Supported Operations:**
+- **Comparisons**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- **Math**: `+`, `-`, `*`, `/`
+- **Boolean logic**: `&&` (AND), `||` (OR), `!` (NOT)
+- **String methods**: `ToUpper()`, `ToLower()`, `Contains()`, `StartsWith()`, `EndsWith()`
+
 ## Advanced Usage
 
 ### Custom Entity Mapper
@@ -336,6 +399,12 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 ```
 
 ## What's New
+
+### v1.2.1 - Computed Properties in Select()
+- ✅ **Computed properties** - Use expressions in projections: `.Select(u => new { u.Name, IsAdult = u.Age >= 18 })`
+- ✅ **Math operations** - Calculate values: `Total = u.Price * u.Quantity`, `Discount = u.Price * 0.1m`
+- ✅ **Boolean expressions** - Create flags: `IsExpensive = u.Price > 100`, `IsMinor = u.Age < 18`
+- ✅ **String methods** - Transform text: `UpperName = u.Name.ToUpper()`
 
 ### v1.2.0 - Select() Projection
 - ✅ **Select() projection** - Select specific columns: `.Select(u => new { u.Id, u.Name })`

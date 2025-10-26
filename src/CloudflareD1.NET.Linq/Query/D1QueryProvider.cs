@@ -52,7 +52,7 @@ namespace CloudflareD1.NET.Linq.Query
             // Create QueryBuilder using reflection since we can't add where constraint
             var queryBuilderType = typeof(QueryBuilder<>).MakeGenericType(typeof(TElement));
             var queryBuilder = Activator.CreateInstance(queryBuilderType, _client, _tableName, _mapper);
-            
+
             // Apply expression tree to query builder (if needed)
             // For now, just create the queryable wrapper
 
@@ -125,7 +125,7 @@ namespace CloudflareD1.NET.Linq.Query
                             var keySelectorType = orderLambda.Type.GetGenericArguments()[1];
                             var orderByMethod = typeof(QueryBuilder<TElement>).GetMethod(methodCall.Method.Name,
                                 new[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(typeof(TElement), keySelectorType)) });
-                            
+
                             if (orderByMethod != null)
                             {
                                 builder = (QueryBuilder<TElement>)orderByMethod.Invoke(builder, new object[] { orderLambda })!;
@@ -141,7 +141,7 @@ namespace CloudflareD1.NET.Linq.Query
                             var keySelectorType = descLambda.Type.GetGenericArguments()[1];
                             var orderByDescMethod = typeof(QueryBuilder<TElement>).GetMethod(methodCall.Method.Name,
                                 new[] { typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(typeof(TElement), keySelectorType)) });
-                            
+
                             if (orderByDescMethod != null)
                             {
                                 builder = (QueryBuilder<TElement>)orderByDescMethod.Invoke(builder, new object[] { descLambda })!;

@@ -18,6 +18,29 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
+### v1.2.1 - Computed Properties in Select()
+
+Generate new values dynamically using expressions:
+
+```csharp
+var usersWithFlags = await client.Query<User>("users")
+    .Select(u => new {
+        u.Id,
+        u.Name,
+        u.Age,
+        IsAdult = u.Age >= 18,
+        YearsUntil65 = 65 - u.Age,
+        Total = u.Price * u.Quantity
+    })
+    .ToListAsync();
+```
+
+**Supported Operations:**
+- ✅ **Boolean expressions** - `u.Age >= 18`, `u.Price > 100`
+- ✅ **Math operations** - `u.Price * u.Quantity`, `65 - u.Age`
+- ✅ **Comparisons** - `>`, `<`, `>=`, `<=`, `==`, `!=`
+- ✅ **String methods** - `u.Name.ToUpper()`, `u.Email.ToLower()`
+
 ### v1.2.0 - Select() Projection
 
 Select specific columns and transform results:

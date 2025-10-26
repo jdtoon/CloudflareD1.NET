@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction with expression trees, Select() projection, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper;expression-trees;projection</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.2.0: Select() Projection Support - Added Select&lt;TResult&gt;(lambda) for projecting query results to DTOs and anonymous types. Select specific columns to reduce data transfer and improve performance. Includes SelectExpressionVisitor, IProjectionQueryBuilder&lt;T&gt;, and ProjectionQueryBuilder&lt;T&gt;. Fully integrated with Where/OrderBy/Take/Skip. 8 new unit tests (103 total). All features maintain backward compatibility.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.2.1: Computed Properties in Select() - Added support for computed properties in projections (e.g., IsAdult = u.Age >= 18, Total = u.Price * u.Quantity). SelectExpressionVisitor now captures parameters from computed expressions. DefaultEntityMapper enhanced to convert SQLite's 0/1 to Boolean. Supports boolean expressions, math operations (+ - * /), comparisons (&lt; &gt; &lt;= &gt;= == !=), and string methods (ToUpper, ToLower). 6 new unit tests (109 total). Fully backward compatible.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

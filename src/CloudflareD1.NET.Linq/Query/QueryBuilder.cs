@@ -54,6 +54,13 @@ namespace CloudflareD1.NET.Linq.Query
 
             var visitor = new SelectExpressionVisitor(_mapper);
             var columns = visitor.GetColumns(selector.Body);
+            var selectParameters = visitor.GetParameters();
+
+            // Merge select parameters with WHERE clause parameters
+            // Select parameters come first (in SELECT clause), then WHERE parameters
+            var allParameters = new List<object>();
+            allParameters.AddRange(selectParameters);
+            allParameters.AddRange(_parameters);
 
             return new ProjectionQueryBuilder<TResult>(
                 _client,
@@ -61,7 +68,7 @@ namespace CloudflareD1.NET.Linq.Query
                 _mapper,
                 columns,
                 _whereClauses,
-                _parameters,
+                allParameters,
                 _orderByClauses,
                 _takeCount,
                 _skipCount);

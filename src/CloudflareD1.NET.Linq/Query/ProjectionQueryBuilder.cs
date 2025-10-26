@@ -43,7 +43,7 @@ namespace CloudflareD1.NET.Linq.Query
             _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _selectColumns = selectColumns ?? throw new ArgumentNullException(nameof(selectColumns));
-            
+
             // Clone the collections to avoid mutation
             _whereClauses = new List<string>(whereClauses ?? new List<string>());
             _parameters = new List<object>(parameters ?? new List<object>());

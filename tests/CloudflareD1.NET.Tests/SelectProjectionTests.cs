@@ -44,7 +44,7 @@ namespace CloudflareD1.NET.Tests
                     new Dictionary<string, object?> { { "Id", 2 }, { "Name", "Jane" } }
                 }
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("SELECT") && sql.Contains("id") && sql.Contains("name")),
                 null,
@@ -75,7 +75,7 @@ namespace CloudflareD1.NET.Tests
                     new Dictionary<string, object?> { { "Id", 1 }, { "Name", "John" } }
                 }
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("WHERE") && sql.Contains("age >= ?")),
                 It.IsAny<object>(),
@@ -104,7 +104,7 @@ namespace CloudflareD1.NET.Tests
                 Success = true,
                 Results = new List<Dictionary<string, object?>>()
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("ORDER BY")),
                 null,
@@ -136,7 +136,7 @@ namespace CloudflareD1.NET.Tests
                 Success = true,
                 Results = new List<Dictionary<string, object?>>()
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("LIMIT") && sql.Contains("OFFSET")),
                 null,
@@ -172,7 +172,7 @@ namespace CloudflareD1.NET.Tests
                     new Dictionary<string, object?> { { "Id", 1 }, { "Name", "John" } }
                 }
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
                      .ReturnsAsync(queryResult);
 
@@ -202,7 +202,7 @@ namespace CloudflareD1.NET.Tests
                     new Dictionary<string, object?> { { "count", 42 } }
                 }
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("COUNT(*)")),
                 null,
@@ -233,7 +233,7 @@ namespace CloudflareD1.NET.Tests
                     new Dictionary<string, object?> { { "Id", 1 }, { "Name", "John" } }
                 }
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
                      .ReturnsAsync(queryResult);
 
@@ -258,7 +258,7 @@ namespace CloudflareD1.NET.Tests
                 Success = true,
                 Results = new List<Dictionary<string, object?>>()
             };
-            
+
             mockClient.Setup(c => c.QueryAsync(
                 It.Is<string>(sql => sql.Contains("WHERE") && sql.Contains("is_active = ?")),
                 It.IsAny<object>(),

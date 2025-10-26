@@ -205,6 +205,10 @@ namespace CloudflareD1.NET.Linq.Mapping
                     return ConvertValue(stringValue, targetType);
 
                 case JsonValueKind.Number:
+                    // Handle boolean from SQLite (0/1)
+                    if (targetType == typeof(bool) || targetType == typeof(bool?))
+                        return element.GetInt32() != 0;
+
                     if (targetType == typeof(int) || targetType == typeof(int?))
                         return element.GetInt32();
                     if (targetType == typeof(long) || targetType == typeof(long?))

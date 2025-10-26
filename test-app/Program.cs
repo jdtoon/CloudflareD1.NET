@@ -75,11 +75,14 @@ using var client = new D1Client(options, logger);
 try
 {
     Console.WriteLine("Step 1: Creating test table...");
+    // Drop existing table to add age column
+    await client.ExecuteAsync("DROP TABLE IF EXISTS test_users");
     await client.ExecuteAsync(@"
-        CREATE TABLE IF NOT EXISTS test_users (
+        CREATE TABLE test_users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT UNIQUE,
+            age INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     ");
@@ -87,8 +90,8 @@ try
 
     Console.WriteLine("Step 2: Inserting test data...");
     var insertResult = await client.ExecuteAsync(
-        "INSERT INTO test_users (name, email) VALUES (@name, @email)",
-        new { name = "Test User", email = $"test{DateTime.UtcNow.Ticks}@example.com" }
+        "INSERT INTO test_users (name, email, age) VALUES (@name, @email, @age)",
+        new { name = "Test User", email = $"test{DateTime.UtcNow.Ticks}@example.com", age = 25 }
     );
     Console.WriteLine($"✓ Inserted user with ID: {insertResult.Meta?.LastRowId}\n");
 
@@ -119,11 +122,11 @@ try
     {
         new D1Statement
         {
-            Sql = $"INSERT INTO test_users (name, email) VALUES ('Batch User 1', '{email1}')"
+            Sql = $"INSERT INTO test_users (name, email, age) VALUES ('Batch User 1', '{email1}', 30)"
         },
         new D1Statement
         {
-            Sql = $"INSERT INTO test_users (name, email) VALUES ('Batch User 2', '{email2}')"
+            Sql = $"INSERT INTO test_users (name, email, age) VALUES ('Batch User 2', '{email2}', 17)"
         },
     };
 
@@ -372,7 +375,58 @@ try
     Console.WriteLine($"✓ Count with projection: {projectionCount}");
     Console.WriteLine();
 
-    Console.WriteLine("Step 27: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("Step 27: Select() with computed property - boolean expression...");
+    var usersWithAdultFlag = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null)
+        .Select(u => new UserWithComputedProps { Id = u.Id, Name = u.Name, Age = u.Age, IsAdult = u.Age >= 18 })
+        .Take(5)
+        .ToListAsync();
+    Console.WriteLine($"✓ Selected {usersWithAdultFlag.Count()} users with computed IsAdult property");
+    foreach (var user in usersWithAdultFlag.Take(3))
+    {
+        Console.WriteLine($"  - {user.Name}: Age {user.Age} → IsAdult = {user.IsAdult}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 28: Select() with computed property - math operation...");
+    var usersWithCalculation = await client.Query<TestUser>("test_users")
+        .Where(u => u.Age > 0)
+        .Select(u => new UserWithCalculation { 
+            Id = u.Id, 
+            Name = u.Name, 
+            Age = u.Age,
+            YearsUntil65 = 65 - u.Age 
+        })
+        .Take(3)
+        .ToListAsync();
+    Console.WriteLine($"✓ Selected {usersWithCalculation.Count()} users with computed YearsUntil65");
+    foreach (var user in usersWithCalculation)
+    {
+        Console.WriteLine($"  - {user.Name}: Age {user.Age} → {user.YearsUntil65} years until 65");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 29: Select() with multiple computed properties...");
+    var usersWithMultiple = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null)
+        .Select(u => new UserWithMultipleComputed { 
+            Id = u.Id, 
+            Name = u.Name,
+            Age = u.Age,
+            IsAdult = u.Age >= 18,
+            IsMinor = u.Age < 18,
+            IsSenior = u.Age >= 65
+        })
+        .Take(3)
+        .ToListAsync();
+    Console.WriteLine($"✓ Selected {usersWithMultiple.Count()} users with multiple computed properties");
+    foreach (var user in usersWithMultiple.Take(2))
+    {
+        Console.WriteLine($"  - {user.Name} (Age {user.Age}): Adult={user.IsAdult}, Minor={user.IsMinor}, Senior={user.IsSenior}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 30: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }
@@ -382,7 +436,7 @@ try
     Console.WriteLine("========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression tree support) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees and computed properties) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {
@@ -405,6 +459,7 @@ public class TestUser
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Email { get; set; }
+    public int Age { get; set; }
     public string? CreatedAt { get; set; }
 }
 
@@ -413,4 +468,31 @@ public class UserSummary
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+}
+
+// DTO for computed property tests
+public class UserWithComputedProps
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Age { get; set; }
+    public bool IsAdult { get; set; }
+}
+
+public class UserWithCalculation
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Age { get; set; }
+    public int YearsUntil65 { get; set; }
+}
+
+public class UserWithMultipleComputed
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int Age { get; set; }
+    public bool IsAdult { get; set; }
+    public bool IsMinor { get; set; }
+    public bool IsSenior { get; set; }
 }
