@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CloudflareD1.NET.Linq.Mapping;
 using CloudflareD1.NET.Models;
@@ -220,7 +221,7 @@ namespace CloudflareD1.NET.Linq.Query
             _takeCount = 1;
 
             var results = await ToListAsync();
-            
+
             _takeCount = originalTake;
             return results.FirstOrDefault();
         }
@@ -255,6 +256,10 @@ namespace CloudflareD1.NET.Linq.Query
                 var firstRow = result.Results[0];
                 if (firstRow.TryGetValue("count", out var countValue))
                 {
+                    if (countValue is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Number)
+                    {
+                        return jsonElement.GetInt32();
+                    }
                     return Convert.ToInt32(countValue);
                 }
             }
@@ -363,31 +368,72 @@ namespace CloudflareD1.NET.Linq.Query
         {
             // Extract column selections from the lambda expression
             // For: (outer, inner) => new Result { Prop1 = outer.Prop1, Prop2 = inner.Prop2 }
-            if (_selector is LambdaExpression lambda && lambda.Body is NewExpression newExpr)
+            
+            if (_selector is LambdaExpression lambda)
             {
-                var parts = new List<string>();
-
-                for (int i = 0; i < newExpr.Arguments.Count; i++)
+                // Handle MemberInitExpression (object initializer syntax)
+                if (lambda.Body is MemberInitExpression memberInit)
                 {
-                    var arg = newExpr.Arguments[i];
-                    var member = newExpr.Members?[i];
-                    var columnAlias = member != null ? _mapper.GetColumnName(member.Name) : $"column{i}";
+                    var parts = new List<string>();
 
-                    if (arg is MemberExpression memberExpr)
+                    foreach (var binding in memberInit.Bindings)
                     {
-                        // Determine which table this property belongs to
-                        var tableName = GetTableForParameter(memberExpr.Expression);
-                        var columnName = _mapper.GetColumnName(memberExpr.Member.Name);
-                        parts.Add($"{tableName}.{columnName} AS {columnAlias}");
+                        if (binding is MemberAssignment assignment)
+                        {
+                            var propertyName = assignment.Member.Name;
+                            var columnAlias = _mapper.GetColumnName(propertyName);
+
+                            if (assignment.Expression is MemberExpression memberExpr)
+                            {
+                                // Determine which table this property belongs to
+                                var tableName = GetTableForParameter(memberExpr.Expression);
+                                var columnName = _mapper.GetColumnName(memberExpr.Member.Name);
+                                parts.Add($"{tableName}.{columnName} AS {columnAlias}");
+                            }
+                            else if (assignment.Expression is ConstantExpression constExpr)
+                            {
+                                // Constant value
+                                parts.Add($"{FormatConstant(constExpr.Value)} AS {columnAlias}");
+                            }
+                        }
                     }
-                    else if (arg is ConstantExpression constExpr)
+
+                    if (parts.Count > 0)
                     {
-                        // Constant value
-                        parts.Add($"{FormatConstant(constExpr.Value)} AS {columnAlias}");
+                        return string.Join(", ", parts);
                     }
                 }
+                // Handle NewExpression (constructor syntax)
+                else if (lambda.Body is NewExpression newExpr)
+                {
+                    var parts = new List<string>();
 
-                return string.Join(", ", parts);
+                    for (int i = 0; i < newExpr.Arguments.Count; i++)
+                    {
+                        var arg = newExpr.Arguments[i];
+                        var member = newExpr.Members?[i];
+                        // Use snake_case for the alias so the mapper can find it
+                        var columnAlias = member != null ? _mapper.GetColumnName(member.Name) : $"column{i}";
+
+                        if (arg is MemberExpression memberExpr)
+                        {
+                            // Determine which table this property belongs to
+                            var tableName = GetTableForParameter(memberExpr.Expression);
+                            var columnName = _mapper.GetColumnName(memberExpr.Member.Name);
+                            parts.Add($"{tableName}.{columnName} AS {columnAlias}");
+                        }
+                        else if (arg is ConstantExpression constExpr)
+                        {
+                            // Constant value
+                            parts.Add($"{FormatConstant(constExpr.Value)} AS {columnAlias}");
+                        }
+                    }
+
+                    if (parts.Count > 0)
+                    {
+                        return string.Join(", ", parts);
+                    }
+                }
             }
 
             // Fallback: select all columns from both tables

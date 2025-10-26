@@ -772,7 +772,200 @@ try
     Console.WriteLine("✅ GroupBy & Aggregations Tests Completed!");
     Console.WriteLine("========================================\n");
 
-    Console.WriteLine("Step 57: Cleaning up test data (optional - comment out if you want to keep)...");
+    // ========================================
+    // HAVING() CLAUSE TESTS (v1.5.1)
+    // ========================================
+    Console.WriteLine("========================================");
+    Console.WriteLine("🧪 Testing Having() Clause (v1.5.1)");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 58: Having() with Count > threshold - Filter groups with more than 1 user...");
+    var largeAgeGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email.EndsWith("@demo.com"))
+        .GroupBy(u => u.Age)
+        .Having(g => g.Count() > 1)
+        .Select(g => new AgeGroup
+        {
+            Age = g.Key,
+            UserCount = g.Count()
+        })
+        .ToListAsync();
+
+    Console.WriteLine($"Age groups with more than 1 user:");
+    foreach (var group in largeAgeGroups)
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} users");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 59: Having() with Sum - Groups where total age > 50...");
+    var ageSumGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email.EndsWith("@demo.com"))
+        .GroupBy(u => u.Age)
+        .Having(g => g.Sum(u => u.Age) > 50)
+        .Select(g => new AgeGroupWithAggregates
+        {
+            Age = g.Key,
+            TotalAge = g.Sum(u => u.Age),
+            UserCount = g.Count()
+        })
+        .ToListAsync();
+
+    Console.WriteLine($"Age groups with total age > 50:");
+    foreach (var group in ageSumGroups)
+    {
+        Console.WriteLine($"  Age {group.Age}: Total={group.TotalAge}, Count={group.UserCount}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 60: Having() with Average - Groups with average age >= 30...");
+    var avgAgeGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email.EndsWith("@demo.com"))
+        .GroupBy(u => u.Age)
+        .Having(g => g.Average(u => u.Age) >= 30)
+        .Select(g => new AgeGroupWithStats
+        {
+            Age = g.Key,
+            AverageAge = g.Average(u => u.Age),
+            UserCount = g.Count()
+        })
+        .ToListAsync();
+
+    Console.WriteLine($"Age groups with average age >= 30:");
+    foreach (var group in avgAgeGroups)
+    {
+        Console.WriteLine($"  Age {group.Age}: Avg={group.AverageAge}, Count={group.UserCount}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("========================================");
+    Console.WriteLine("✅ Having() Clause Tests Completed!");
+    Console.WriteLine("========================================\n");
+
+    // ========================================
+    // JOIN TESTS (v1.6.0)
+    // ========================================
+    Console.WriteLine("========================================");
+    Console.WriteLine("🧪 Testing Join Operations (v1.6.0)");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 61: Creating orders table for join tests...");
+    await client.ExecuteAsync(@"
+        CREATE TABLE IF NOT EXISTS test_orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            total REAL NOT NULL,
+            order_date TEXT NOT NULL
+        )
+    ");
+    Console.WriteLine("✓ Orders table created\n");
+
+    Console.WriteLine("Step 62: Inserting test orders...");
+    await client.ExecuteAsync(@"
+        INSERT INTO test_orders (user_id, total, order_date)
+        SELECT id, 99.99, datetime('now') FROM test_users WHERE email LIKE '%@demo.com' LIMIT 3
+    ");
+    await client.ExecuteAsync(@"
+        INSERT INTO test_orders (user_id, total, order_date)
+        SELECT id, 49.99, datetime('now') FROM test_users WHERE email LIKE '%@demo.com' LIMIT 2
+    ");
+    Console.WriteLine("✓ Test orders inserted\n");
+
+    Console.WriteLine("Step 63: INNER JOIN - Orders with customer names...");
+    
+    var ordersWithCustomers = await client.Query<Order>("test_orders")
+        .Join(
+            client.Query<TestUser>("test_users"),
+            order => order.UserId,
+            user => user.Id)
+        .Select((order, user) => new OrderWithCustomer
+        {
+            OrderId = order.Id,
+            Total = order.Total,
+            CustomerName = user.Name,
+            CustomerEmail = user.Email
+        })
+        .ToListAsync();
+
+    Console.WriteLine($"Found {ordersWithCustomers.Count()} orders with customer info:");
+    foreach (var order in ordersWithCustomers.Take(5))
+    {
+        Console.WriteLine($"  Order #{order.OrderId}: ${order.Total} - {order.CustomerName} ({order.CustomerEmail})");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 64: LEFT JOIN - All users with their orders (including users without orders)...");
+    var usersWithOrders = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email.EndsWith("@demo.com"))
+        .LeftJoin(
+            client.Query<Order>("test_orders"),
+            user => user.Id,
+            order => order.UserId)
+        .Select((user, order) => new UserWithOrderInfo
+        {
+            UserName = user.Name,
+            UserEmail = user.Email,
+            OrderId = order.Id,
+            OrderTotal = order.Total
+        })
+        .ToListAsync();
+
+    Console.WriteLine($"Found {usersWithOrders.Count()} user-order combinations:");
+    foreach (var item in usersWithOrders.Take(5))
+    {
+        var orderInfo = item.OrderId > 0 ? $"Order #{item.OrderId}: ${item.OrderTotal}" : "No orders";
+        Console.WriteLine($"  {item.UserName}: {orderInfo}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 65: JOIN with WHERE - Orders over $50 with customer names...");
+    var highValueOrders = await client.Query<Order>("test_orders")
+        .Join(
+            client.Query<TestUser>("test_users"),
+            order => order.UserId,
+            user => user.Id)
+        .Select((order, user) => new OrderWithCustomer
+        {
+            OrderId = order.Id,
+            Total = order.Total,
+            CustomerName = user.Name,
+            CustomerEmail = user.Email
+        })
+        .Where(result => result.Total > 50)
+        .OrderByDescending("total")
+        .ToListAsync();
+
+    Console.WriteLine($"High value orders (> $50):");
+    foreach (var order in highValueOrders)
+    {
+        Console.WriteLine($"  Order #{order.OrderId}: ${order.Total} - {order.CustomerName}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 66: JOIN with COUNT - Count orders per customer...");
+    var orderCount = await client.Query<Order>("test_orders")
+        .Join(
+            client.Query<TestUser>("test_users"),
+            order => order.UserId,
+            user => user.Id)
+        .Select((order, user) => new OrderWithCustomer
+        {
+            OrderId = order.Id,
+            CustomerName = user.Name
+        })
+        .CountAsync();
+
+    Console.WriteLine($"Total joined order-customer records: {orderCount}\n");
+
+    Console.WriteLine("========================================");
+    Console.WriteLine("✅ Join Operations Tests Completed!");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 67: Cleaning up test data...");
+    await client.ExecuteAsync("DROP TABLE IF EXISTS test_orders");
+    Console.WriteLine("✓ Dropped test_orders table");
+    
+    Console.WriteLine("Step 68: Deleting test users...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern OR email LIKE @pattern2",
         new { pattern = "%@example.com", pattern2 = "%@demo.com" }
@@ -880,5 +1073,29 @@ public class FullAgeStats
     public double AverageAge { get; set; }
     public int MinAge { get; set; }
     public int MaxAge { get; set; }
+}
+
+public class Order
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public double Total { get; set; }
+    public string OrderDate { get; set; } = string.Empty;
+}
+
+public class OrderWithCustomer
+{
+    public int OrderId { get; set; }
+    public double Total { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+}
+
+public class UserWithOrderInfo
+{
+    public string UserName { get; set; } = string.Empty;
+    public string UserEmail { get; set; } = string.Empty;
+    public int OrderId { get; set; }
+    public double OrderTotal { get; set; }
 }
 
