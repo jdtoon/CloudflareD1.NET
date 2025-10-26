@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.4.0: Select() Projection Support - Added full Select() support for IQueryable&lt;T&gt; with projection to DTOs and computed properties. New D1ProjectionQueryable&lt;TResult&gt; wraps projection results. D1QueryProvider handles expression tree translation for Select(). Supports chaining with Where, OrderBy, Take, Skip before projection. Computed properties enable calculations like IsAdult = Age >= 18. All projection terminal operations supported: ToListAsync, FirstOrDefaultAsync, CountAsync, AnyAsync. 10 new Select() unit tests (132 total). 6 integration test examples. Fully backward compatible.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.5.0: GroupBy &amp; Aggregations - Added full GroupBy() support with aggregate functions. New IGroupByQueryBuilder&lt;TSource, TKey&gt; and IGroupByProjectionQueryBuilder&lt;TResult&gt; interfaces. Supports Count(), Sum(), Average(), Min(), Max() with complex expressions like Sum(p => p.Price * p.Quantity). AggregateExpressionVisitor translates aggregate expressions to SQL. Full integration with WHERE, ORDER BY, LIMIT clauses. SQL GROUP BY generation with proper aggregate handling. 11 new unit tests + 8 integration tests. Comprehensive documentation and examples. Fully backward compatible.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

@@ -12,8 +12,9 @@ dotnet add package CloudflareD1.NET.Linq
 
 ## Features
 
+- ✅ **GroupBy & Aggregations** - Group results with Count, Sum, Average, Min, Max (NEW in v1.5.0)
 - ✅ **IQueryable<T> support** - Standard LINQ query syntax with deferred execution (v1.3.0+)
-- ✅ **Select() projections** - Project to DTOs with computed properties (NEW in v1.4.0)
+- ✅ **Select() projections** - Project to DTOs with computed properties (v1.4.0+)
 - ✅ **Fluent query builder** - Chain methods like `.Where()`, `.OrderBy()`, `.Take()`, `.Skip()`
 - ✅ **Generic query methods** - `QueryAsync<T>()`, `QueryFirstOrDefaultAsync<T>()`, etc.
 - ✅ **Automatic entity mapping** - Maps query results to strongly-typed objects
@@ -356,6 +357,80 @@ var formattedUsers = await client.Query<User>("users")
 - **Boolean logic**: `&&` (AND), `||` (OR), `!` (NOT)
 - **String methods**: `ToUpper()`, `ToLower()`, `Contains()`, `StartsWith()`, `EndsWith()`
 
+### GroupBy & Aggregations (NEW in v1.5.0)
+
+Group query results and perform aggregate calculations:
+
+```csharp
+// Group by single column with Count()
+var usersByAge = await client.Query<User>("users")
+    .GroupBy(u => u.Age)
+    .Select(g => new AgeGroup
+    {
+        Age = g.Key,
+        UserCount = g.Count()
+    })
+    .ToListAsync();
+
+// Multiple aggregates
+var salesByCategory = await client.Query<Product>("products")
+    .GroupBy(p => p.Category)
+    .Select(g => new CategoryStats
+    {
+        Category = g.Key,
+        ProductCount = g.Count(),
+        TotalPrice = g.Sum(p => p.Price),
+        AveragePrice = g.Average(p => p.Price),
+        MinPrice = g.Min(p => p.Price),
+        MaxPrice = g.Max(p => p.Price)
+    })
+    .ToListAsync();
+
+// GroupBy with Where (filters before grouping)
+var activeUsersByAge = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .GroupBy(u => u.Age)
+    .Select(g => new { Age = g.Key, Count = g.Count() })
+    .ToListAsync();
+
+// GroupBy with OrderBy and Take
+var topCategories = await client.Query<Product>("products")
+    .GroupBy(p => p.Category)
+    .Select(g => new CategoryCount
+    {
+        Category = g.Key,
+        Count = g.Count()
+    })
+    .OrderByDescending("count")
+    .Take(10)
+    .ToListAsync();
+
+// Complex aggregate expressions
+var orderTotals = await client.Query<Order>("orders")
+    .GroupBy(o => o.CustomerId)
+    .Select(g => new CustomerTotal
+    {
+        CustomerId = g.Key,
+        TotalValue = g.Sum(o => o.Price * o.Quantity)  // Math in aggregates
+    })
+    .ToListAsync();
+```
+
+**Supported Aggregate Functions:**
+- `Count()` - Count of items in group
+- `Sum(x => x.Property)` - Sum of values
+- `Average(x => x.Property)` - Average of values
+- `Min(x => x.Property)` - Minimum value
+- `Max(x => x.Property)` - Maximum value
+
+**Generates SQL:**
+```sql
+SELECT category, COUNT(*) AS product_count, 
+       SUM(price) AS total_price, AVG(price) AS average_price
+FROM products
+GROUP BY category
+```
+
 ## Advanced Usage
 
 ### Custom Entity Mapper
@@ -534,7 +609,7 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 ## Coming Soon
 
 - 🚧 **Include() for joins** - Automatic join and nested object mapping
-- 🚧 **GroupBy() support** - Aggregate queries with grouping
+- 🚧 **Having() clause** - Filter grouped results after aggregation
 - 🚧 **IQueryable<T>** - Full deferred execution support
 
 ## Related Packages

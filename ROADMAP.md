@@ -12,11 +12,12 @@
   - Database management
 
 #### LINQ Package (CloudflareD1.NET.Linq)
-- **v1.4.0** - IQueryable with Select() projections ✅ **CURRENT**
-  - IQueryable<T> with deferred execution
-  - Select() projections with computed properties
-  - Full expression tree support
-  - All terminal operations (ToListAsync, CountAsync, etc.)
+- **v1.5.0** - GroupBy & Aggregations ✅ **CURRENT**
+  - GroupBy() with single key support
+  - Aggregate functions: Count, Sum, Average, Min, Max
+  - Complex aggregate expressions (e.g., Sum(p => p.Price * p.Quantity))
+  - WHERE, ORDER BY, LIMIT integration with GROUP BY
+  - Full expression tree support for aggregations
 
 ---
 
@@ -24,21 +25,24 @@
 
 ### Phase 1: Advanced Query Operations (v1.5.0 - v1.7.0)
 
-#### v1.5.0 - Aggregation & GroupBy (Next Up! 🎯)
-**Target**: Q4 2025
+#### v1.5.0 - Aggregation & GroupBy ✅ **COMPLETE**
+**Released**: December 2024
 
 **Features**:
-- ✅ Basic aggregations: `Sum()`, `Average()`, `Min()`, `Max()`
+- ✅ Basic aggregations: `Sum()`, `Average()`, `Min()`, `Max()`, `Count()`
 - ✅ `GroupBy()` with single key
 - ✅ Group aggregations: `group.Sum(x => x.Amount)`
-- ✅ `Having()` clause support
+- ✅ Complex expressions in aggregates: `g.Sum(p => p.Price * p.Quantity)`
 - ✅ Multiple aggregations per group
+- ✅ Integration with WHERE, ORDER BY, LIMIT
+- 🚧 `Having()` clause support (stubbed for future)
 
 **Example**:
 ```csharp
-var salesByCategory = await client.AsQueryable<Product>("products")
+var salesByCategory = await client.Query<Product>("products")
     .GroupBy(p => p.Category)
-    .Select(g => new {
+    .Select(g => new CategoryStats
+    {
         Category = g.Key,
         TotalSales = g.Sum(p => p.Price * p.Quantity),
         AveragePrice = g.Average(p => p.Price),
@@ -47,16 +51,17 @@ var salesByCategory = await client.AsQueryable<Product>("products")
     .ToListAsync();
 ```
 
-**Estimated Effort**: 2-3 weeks
-- D1GroupByQueryable<TSource, TKey> implementation
-- SQL GROUP BY translation
-- Aggregate function support
-- Unit tests (15-20 new tests)
+**Completed**: December 2024
+- GroupByQueryBuilder implementation
+- AggregateExpressionVisitor for SQL translation
+- SQL GROUP BY generation with aggregate functions
+- 11 unit tests + 8 integration tests
+- Full documentation and examples
 
 ---
 
-#### v1.6.0 - Join Support
-**Target**: Q1 2026
+#### v1.6.0 - Join Support (Next Up! 🎯)
+**Target**: Q1 2025
 
 **Features**:
 - ✅ `Join()` - Inner join with two tables
