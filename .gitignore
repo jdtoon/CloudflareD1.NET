@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# NuGet package testing app (not part of main solution)
+samples/NuGetTest/
+
 # User-specific files
 *.rsuser
 *.suo
