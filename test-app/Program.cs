@@ -972,7 +972,76 @@ try
     );
     Console.WriteLine($"✓ Deleted {deleteResult.Meta?.Changes} test row(s)\n");
 
-    Console.WriteLine("========================================");
+    // Test Distinct() (v1.7.0)
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("🧪 Testing Distinct() (v1.7.0)");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 71: Query distinct ages...");
+    var distinctAges = await client.Query<TestUser>("test_users")
+        .Distinct()
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {distinctAges.Count()} distinct user records");
+
+    Console.WriteLine("\nStep 72: Query distinct ages with OrderBy...");
+    var distinctAgesOrdered = await client.Query<TestUser>("test_users")
+        .Distinct()
+        .OrderBy("age")
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {distinctAgesOrdered.Count()} distinct users, ordered by age");
+    foreach (var user in distinctAgesOrdered.Take(3))
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 73: Query distinct ages with Where...");
+    var distinctActiveUsers = await client.Query<TestUser>("test_users")
+        .Where("is_active = ?", 1)
+        .Distinct()
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {distinctActiveUsers.Count()} distinct active users\n");
+
+    // Test Contains()/IN clause (v1.7.0)
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("🧪 Testing Contains()/IN Clause (v1.7.0)");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 74: Query users with specific ages using IN clause...");
+    var targetAges = new[] { 25, 30, 32 };
+    var usersWithAges = await client.AsQueryable<TestUser>("test_users")
+        .Where(u => targetAges.Contains(u.Age))
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {usersWithAges.Count()} users with ages 25, 30, or 32");
+    foreach (var user in usersWithAges)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 75: Query users with specific names using IN clause...");
+    var targetNames = new[] { "Alice", "Bob", "Charlie" };
+    var usersWithNames = await client.AsQueryable<TestUser>("test_users")
+        .Where(u => targetNames.Contains(u.Name))
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {usersWithNames.Count()} users named Alice, Bob, or Charlie");
+    foreach (var user in usersWithNames)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 76: Query with Contains() and OrderBy...");
+    var usersWithAgesOrdered = await client.AsQueryable<TestUser>("test_users")
+        .Where(u => targetAges.Contains(u.Age))
+        .OrderBy(u => u.Name)
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {usersWithAgesOrdered.Count()} users, ordered by name");
+    foreach (var user in usersWithAgesOrdered)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\n✅ Distinct() and Contains() Tests Completed!");
+
+    Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
     Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees and computed properties) is working correctly with Cloudflare D1!");
