@@ -22,5 +22,12 @@ namespace CloudflareD1.NET.Linq.Mapping
         /// <param name="rows">Collection of dictionaries containing column names and their values.</param>
         /// <returns>Collection of T instances with properties populated from the row data.</returns>
         IEnumerable<T> MapMany<T>(IEnumerable<Dictionary<string, object?>> rows) where T : new();
+
+        /// <summary>
+        /// Converts a property name to a database column name.
+        /// </summary>
+        /// <param name="propertyName">The property name to convert.</param>
+        /// <returns>The corresponding database column name.</returns>
+        string GetColumnName(string propertyName);
     }
 }

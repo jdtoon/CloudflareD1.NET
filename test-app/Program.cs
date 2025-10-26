@@ -288,7 +288,52 @@ try
         Console.WriteLine($"✓ Total users in database: {countResult.Results[0]["total"]}\n");
     }
 
-    Console.WriteLine("Step 19: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("Step 19: Testing expression-based Where with lambda...");
+    var lambdaUsers = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("@example.com"))
+        .ToListAsync();
+    Console.WriteLine($"✓ Lambda Where clause found {lambdaUsers.Count()} users");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 20: Testing expression-based OrderBy with lambda...");
+    var lambdaOrdered = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null)
+        .OrderBy(u => u.Name)
+        .ThenByDescending(u => u.Id)
+        .Take(3)
+        .ToListAsync();
+    Console.WriteLine($"✓ Lambda OrderBy found {lambdaOrdered.Count()} users");
+    foreach (var u in lambdaOrdered)
+    {
+        Console.WriteLine($"   - Name: {u.Name}, ID: {u.Id}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 21: Testing complex expression with AND/OR logic...");
+    var complexUsers = await client.Query<TestUser>("test_users")
+        .Where(u => (u.Id > 0 && u.Id < 999999) || u.Name.Contains("Test"))
+        .ToListAsync();
+    Console.WriteLine($"✓ Complex expression found {complexUsers.Count()} users");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 22: Comparing string-based vs expression-based results...");
+    var stringBased = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .OrderBy("name")
+        .Take(5)
+        .ToListAsync();
+
+    var expressionBased = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("@example.com"))
+        .OrderBy(u => u.Name)
+        .Take(5)
+        .ToListAsync();
+
+    Console.WriteLine($"✓ String-based: {stringBased.Count()} users, Expression-based: {expressionBased.Count()} users");
+    Console.WriteLine($"✓ Results match: {stringBased.Count() == expressionBased.Count()}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 23: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }
@@ -298,7 +343,7 @@ try
     Console.WriteLine("========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ extensions and query builder) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression tree support) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {

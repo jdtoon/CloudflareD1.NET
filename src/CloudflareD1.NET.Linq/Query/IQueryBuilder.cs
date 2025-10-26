@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace CloudflareD1.NET.Linq.Query
@@ -19,11 +20,25 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> Where(string whereClause, params object[] parameters);
 
         /// <summary>
+        /// Adds a WHERE clause using a lambda expression predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate expression to filter results.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
         /// Adds an ORDER BY clause to the query in ascending order.
         /// </summary>
         /// <param name="column">The column name to order by.</param>
         /// <returns>The query builder for method chaining.</returns>
         IQueryBuilder<T> OrderBy(string column);
+
+        /// <summary>
+        /// Orders results by a property selected via lambda expression.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
         /// Adds an ORDER BY clause to the query in descending order.
@@ -33,6 +48,13 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> OrderByDescending(string column);
 
         /// <summary>
+        /// Orders results by a property selected via lambda expression in descending order.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
         /// Adds an additional ORDER BY clause (after OrderBy/OrderByDescending) in ascending order.
         /// </summary>
         /// <param name="column">The column name to order by.</param>
@@ -40,11 +62,25 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> ThenBy(string column);
 
         /// <summary>
+        /// Then orders results by a property selected via lambda expression.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
         /// Adds an additional ORDER BY clause (after OrderBy/OrderByDescending) in descending order.
         /// </summary>
         /// <param name="column">The column name to order by.</param>
         /// <returns>The query builder for method chaining.</returns>
         IQueryBuilder<T> ThenByDescending(string column);
+
+        /// <summary>
+        /// Then orders results by a property selected via lambda expression in descending order.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
         /// Limits the number of results returned (SQL LIMIT).

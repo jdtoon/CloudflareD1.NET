@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -55,6 +56,29 @@ namespace CloudflareD1.NET.Linq.Query
             return this;
         }
 
+        /// <summary>
+        /// Adds a WHERE clause using a lambda expression predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate expression to filter results.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> Where(Expression<Func<T, bool>> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            var visitor = new SqlExpressionVisitor(_mapper);
+            var sql = visitor.Translate(predicate.Body);
+            var parameters = visitor.GetParameters();
+
+            _whereClauses.Add(sql);
+            if (parameters.Length > 0)
+            {
+                _parameters.AddRange(parameters);
+            }
+
+            return this;
+        }
+
         /// <inheritdoc />
         public IQueryBuilder<T> OrderBy(string column)
         {
@@ -65,12 +89,42 @@ namespace CloudflareD1.NET.Linq.Query
             return this;
         }
 
+        /// <summary>
+        /// Orders results by a property selected via lambda expression.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector == null)
+                throw new ArgumentNullException(nameof(keySelector));
+
+            var column = GetColumnNameFromExpression(keySelector);
+            _orderByClauses.Add((column, false));
+            return this;
+        }
+
         /// <inheritdoc />
         public IQueryBuilder<T> OrderByDescending(string column)
         {
             if (string.IsNullOrWhiteSpace(column))
                 throw new ArgumentException("Column name cannot be empty.", nameof(column));
 
+            _orderByClauses.Add((column, true));
+            return this;
+        }
+
+        /// <summary>
+        /// Orders results by a property selected via lambda expression in descending order.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector == null)
+                throw new ArgumentNullException(nameof(keySelector));
+
+            var column = GetColumnNameFromExpression(keySelector);
             _orderByClauses.Add((column, true));
             return this;
         }
@@ -88,6 +142,24 @@ namespace CloudflareD1.NET.Linq.Query
             return this;
         }
 
+        /// <summary>
+        /// Then orders results by a property selected via lambda expression.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> ThenBy<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector == null)
+                throw new ArgumentNullException(nameof(keySelector));
+
+            if (_orderByClauses.Count == 0)
+                throw new InvalidOperationException("ThenBy must be called after OrderBy or OrderByDescending.");
+
+            var column = GetColumnNameFromExpression(keySelector);
+            _orderByClauses.Add((column, false));
+            return this;
+        }
+
         /// <inheritdoc />
         public IQueryBuilder<T> ThenByDescending(string column)
         {
@@ -97,6 +169,24 @@ namespace CloudflareD1.NET.Linq.Query
             if (_orderByClauses.Count == 0)
                 throw new InvalidOperationException("ThenByDescending must be called after OrderBy or OrderByDescending.");
 
+            _orderByClauses.Add((column, true));
+            return this;
+        }
+
+        /// <summary>
+        /// Then orders results by a property selected via lambda expression in descending order.
+        /// </summary>
+        /// <param name="keySelector">Expression to select the property to order by.</param>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector == null)
+                throw new ArgumentNullException(nameof(keySelector));
+
+            if (_orderByClauses.Count == 0)
+                throw new InvalidOperationException("ThenByDescending must be called after OrderBy or OrderByDescending.");
+
+            var column = GetColumnNameFromExpression(keySelector);
             _orderByClauses.Add((column, true));
             return this;
         }
@@ -253,6 +343,25 @@ namespace CloudflareD1.NET.Linq.Query
             }
 
             return Convert.ToInt32(countValue);
+        }
+
+        /// <summary>
+        /// Extracts the column name from a lambda expression property selector.
+        /// </summary>
+        private string GetColumnNameFromExpression<TKey>(Expression<Func<T, TKey>> keySelector)
+        {
+            if (keySelector.Body is MemberExpression memberExpr)
+            {
+                return _mapper.GetColumnName(memberExpr.Member.Name);
+            }
+
+            if (keySelector.Body is UnaryExpression unaryExpr &&
+                unaryExpr.Operand is MemberExpression unaryMemberExpr)
+            {
+                return _mapper.GetColumnName(unaryMemberExpr.Member.Name);
+            }
+
+            throw new ArgumentException("Expression must be a simple property accessor.", nameof(keySelector));
         }
 
         /// <inheritdoc />

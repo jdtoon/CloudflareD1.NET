@@ -16,13 +16,51 @@ dotnet add package CloudflareD1.NET.Linq
 Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a dependency.
 :::
 
+## What's New in v1.1.0
+
+### 🎉 Expression Tree LINQ Support
+
+Write type-safe queries using lambda expressions with full IntelliSense:
+
+```csharp
+// Expression-based queries (v1.1.0+)
+var adults = await client.Query<User>("users")
+    .Where(u => u.Age >= 18 && u.IsActive)
+    .OrderBy(u => u.Name)
+    .Take(10)
+    .ToListAsync();
+
+// String-based queries (still supported)
+var adults = await client.Query<User>("users")
+    .Where("age >= ?", 18)
+    .Where("is_active = ?", true)
+    .OrderBy("name")
+    .Take(10)
+    .ToListAsync();
+```
+
+**Benefits:**
+- ✅ **Compile-time type checking** - Catch errors before runtime
+- ✅ **IntelliSense support** - Full autocomplete for properties
+- ✅ **Refactoring support** - Rename properties safely
+- ✅ **No SQL injection** - Parameters automatically handled
+- ✅ **Backward compatible** - String-based queries still work
+
 ## What's Included
 
 ### 🎯 Fluent Query Builder
 
-Build queries with a chainable, type-safe API:
+Build queries with a chainable, type-safe API supporting both expression trees and SQL strings:
 
 ```csharp
+// Expression-based (type-safe)
+var users = await client.Query<User>("users")
+    .Where(u => u.Age > 18)
+    .OrderBy(u => u.CreatedAt)
+    .Take(10)
+    .ToListAsync();
+
+// String-based (flexible)
 var users = await client.Query<User>("users")
     .Where("age > ?", 18)
     .OrderBy("created_at")
@@ -62,6 +100,7 @@ var users = await client.QueryAsync<User>("SELECT * FROM users");
 
 | Feature | Description |
 |---------|-------------|
+| **Expression Trees (v1.1.0+)** | Lambda expressions with compile-time type checking |
 | **Query Builder** | Fluent API with Where, OrderBy, Take, Skip |
 | **Entity Mapping** | Automatic result-to-object conversion |
 | **Generic Queries** | Type-safe query methods like `QueryAsync<T>()` |
@@ -69,6 +108,17 @@ var users = await client.QueryAsync<User>("SELECT * FROM users");
 | **Pagination** | Built-in Take/Skip for easy paging |
 | **Custom Mappers** | Implement IEntityMapper for custom logic |
 | **Parameterized Queries** | SQL injection protection with ? placeholders |
+
+## Supported Expression Features (v1.1.0+)
+
+The expression tree parser supports:
+
+- **Comparison operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- **Logical operators**: `&&` (AND), `||` (OR), `!` (NOT)
+- **Null checks**: `!= null` becomes `IS NOT NULL`
+- **String methods**: `Contains()`, `StartsWith()`, `EndsWith()`, `ToLower()`, `ToUpper()`
+- **Math operators**: `+`, `-`, `*`, `/`
+- **Captured variables**: Automatically extracts values from closure scope
 
 ## Quick Example
 

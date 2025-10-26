@@ -53,6 +53,41 @@ namespace CloudflareD1.NET.Linq.Mapping
             return rows.Select(Map<T>);
         }
 
+        /// <summary>
+        /// Converts a property name to a column name (PascalCase to snake_case).
+        /// </summary>
+        public string GetColumnName(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return propertyName;
+
+            return ConvertPascalCaseToSnakeCase(propertyName);
+        }
+
+        private static string ConvertPascalCaseToSnakeCase(string pascalCase)
+        {
+            if (string.IsNullOrEmpty(pascalCase))
+                return pascalCase;
+
+            var result = new System.Text.StringBuilder();
+            result.Append(char.ToLowerInvariant(pascalCase[0]));
+
+            for (int i = 1; i < pascalCase.Length; i++)
+            {
+                if (char.IsUpper(pascalCase[i]))
+                {
+                    result.Append('_');
+                    result.Append(char.ToLowerInvariant(pascalCase[i]));
+                }
+                else
+                {
+                    result.Append(pascalCase[i]);
+                }
+            }
+
+            return result.ToString();
+        }
+
         private static PropertyInfo[] GetCachedProperties(Type type)
         {
             return PropertyCache.GetOrAdd(type, t =>
