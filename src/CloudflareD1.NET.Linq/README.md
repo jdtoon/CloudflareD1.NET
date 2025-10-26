@@ -431,6 +431,180 @@ FROM products
 GROUP BY category
 ```
 
+### Having Clause (NEW in v1.5.1)
+
+Filter grouped results after aggregation using the `Having()` clause:
+
+```csharp
+// Groups with more than 5 users
+var largeAgeGroups = await client.Query<User>("users")
+    .GroupBy(u => u.Age)
+    .Having(g => g.Count() > 5)
+    .Select(g => new AgeGroup
+    {
+        Age = g.Key,
+        UserCount = g.Count()
+    })
+    .ToListAsync();
+
+// Categories with high total sales
+var topCategories = await client.Query<Product>("products")
+    .GroupBy(p => p.Category)
+    .Having(g => g.Sum(p => p.Price) > 10000)
+    .Select(g => new CategoryStats
+    {
+        Category = g.Key,
+        TotalSales = g.Sum(p => p.Price),
+        ProductCount = g.Count()
+    })
+    .ToListAsync();
+
+// Average price filter
+var expensiveCategories = await client.Query<Product>("products")
+    .GroupBy(p => p.Category)
+    .Having(g => g.Average(p => p.Price) >= 100)
+    .Select(g => new { Category = g.Key, AvgPrice = g.Average(p => p.Price) })
+    .ToListAsync();
+
+// Combining WHERE, HAVING, and ORDER BY
+var filteredGroups = await client.Query<User>("users")
+    .Where(u => u.IsActive)              // Filter before grouping
+    .GroupBy(u => u.Country)
+    .Having(g => g.Count() >= 10)        // Filter after grouping
+    .Select(g => new CountryStats
+    {
+        Country = g.Key,
+        UserCount = g.Count(),
+        AvgAge = g.Average(u => u.Age)
+    })
+    .OrderByDescending("user_count")     // Sort results
+    .ToListAsync();
+```
+
+**Supported Having Operations:**
+- `g.Count() > value` - Filter by count
+- `g.Sum(x => x.Property) > value` - Filter by sum
+- `g.Average(x => x.Property) >= value` - Filter by average
+- `g.Min(x => x.Property) < value` - Filter by minimum
+- `g.Max(x => x.Property) <= value` - Filter by maximum
+- **Comparison operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+
+**Generates SQL:**
+```sql
+SELECT country, COUNT(*) AS user_count, AVG(age) AS avg_age
+FROM users
+WHERE is_active = 1
+GROUP BY country
+HAVING COUNT(*) >= 10
+ORDER BY user_count DESC
+```
+
+### Join Operations (NEW in v1.6.0)
+
+Perform INNER JOIN and LEFT JOIN operations across multiple tables:
+
+```csharp
+// INNER JOIN - Orders with customer information
+var ordersWithCustomers = await client.Query<Order>("orders")
+    .Join(
+        client.Query<Customer>("customers"),
+        order => order.CustomerId,    // Outer key selector
+        customer => customer.Id)      // Inner key selector
+    .Select((order, customer) => new OrderWithCustomer
+    {
+        OrderId = order.Id,
+        OrderTotal = order.Total,
+        CustomerName = customer.Name,
+        CustomerEmail = customer.Email
+    })
+    .ToListAsync();
+
+// LEFT JOIN - All users with their orders (including users without orders)
+var usersWithOrders = await client.Query<User>("users")
+    .LeftJoin(
+        client.Query<Order>("orders"),
+        user => user.Id,
+        order => order.UserId)
+    .Select((user, order) => new UserWithOrder
+    {
+        UserName = user.Name,
+        OrderId = order.Id,           // Will be 0 for users without orders
+        OrderTotal = order.Total      // Will be 0.0 for users without orders
+    })
+    .ToListAsync();
+
+// JOIN with WHERE clause
+var highValueOrders = await client.Query<Order>("orders")
+    .Join(
+        client.Query<Customer>("customers"),
+        order => order.CustomerId,
+        customer => customer.Id)
+    .Select((order, customer) => new OrderWithCustomer
+    {
+        OrderId = order.Id,
+        OrderTotal = order.Total,
+        CustomerName = customer.Name
+    })
+    .Where(result => result.OrderTotal > 1000)  // Filter joined results
+    .ToListAsync();
+
+// JOIN with ORDER BY and LIMIT
+var recentOrders = await client.Query<Order>("orders")
+    .Join(
+        client.Query<Customer>("customers"),
+        order => order.CustomerId,
+        customer => customer.Id)
+    .Select((order, customer) => new OrderWithCustomer
+    {
+        OrderId = order.Id,
+        OrderDate = order.CreatedAt,
+        CustomerName = customer.Name
+    })
+    .OrderByDescending("order_date")
+    .Take(10)
+    .ToListAsync();
+
+// JOIN with COUNT
+var orderCount = await client.Query<Order>("orders")
+    .Join(
+        client.Query<Customer>("customers"),
+        order => order.CustomerId,
+        customer => customer.Id)
+    .Select((order, customer) => new { order.Id, customer.Name })
+    .CountAsync();
+```
+
+**Join Features:**
+- **INNER JOIN** - `.Join()` returns only matching rows from both tables
+- **LEFT JOIN** - `.LeftJoin()` returns all rows from left table, with nulls for non-matching right rows
+- **Type-safe** - IntelliSense and compile-time checking for key selectors
+- **Projection** - `.Select((outer, inner) => new Result { ... })` to combine fields
+- **Filtering** - Use `.Where()` after `.Select()` to filter joined results
+- **Sorting** - Use `.OrderBy()` / `.OrderByDescending()` on projected results
+- **Pagination** - Use `.Take()` and `.Skip()` for paging
+- **Aggregation** - Use `.CountAsync()`, `.FirstOrDefaultAsync()`, etc.
+
+**Generates SQL:**
+```sql
+-- INNER JOIN
+SELECT orders.id AS order_id, orders.total AS order_total, 
+       customers.name AS customer_name, customers.email AS customer_email
+FROM orders
+INNER JOIN customers ON orders.customer_id = customers.id
+
+-- LEFT JOIN with WHERE
+SELECT users.name AS user_name, orders.id AS order_id, orders.total AS order_total
+FROM users
+LEFT JOIN orders ON users.id = orders.user_id
+WHERE users.is_active = 1
+```
+
+**Important Notes:**
+- Join keys must be properties (not computed expressions)
+- Column aliases are automatically generated to avoid conflicts
+- For LEFT JOIN, non-matching right-side values will be `0` for numbers, empty string for strings
+- Complex joins with multiple conditions can use raw SQL with `QueryAsync<T>()`
+
 ## Advanced Usage
 
 ### Custom Entity Mapper
@@ -588,13 +762,34 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 );
 ```
 
-## What's New
+### v1.6.0 - Join Operations
+- ✅ **Join() support** - INNER JOIN across multiple tables
+- ✅ **LeftJoin() support** - LEFT JOIN with null handling
+- ✅ **Multi-table projections** - Combine columns from joined tables
+- ✅ **Type-safe key selectors** - IntelliSense for join conditions
+- ✅ **WHERE/ORDER BY/LIMIT** - Full query support on joined results
 
-### v1.2.1 - Computed Properties in Select()
+### v1.5.1 - Having Clause
+- ✅ **Having() clause** - Filter grouped results after aggregation
+- ✅ **Aggregate predicates** - Use Count(), Sum(), Average(), Min(), Max() in conditions
+- ✅ **Comparison operators** - Support for >, <, >=, <=, ==, !=
+
+### v1.5.0 - GroupBy & Aggregations
+- ✅ **GroupBy() support** - Group results by one or more columns
+- ✅ **Aggregate functions** - Count(), Sum(), Average(), Min(), Max()
+- ✅ **Multiple aggregates** - Combine multiple aggregate functions
+- ✅ **OrderBy/Take** - Sort and limit grouped results
+
+### v1.4.0 - Computed Properties
 - ✅ **Computed properties** - Use expressions in projections: `.Select(u => new { u.Name, IsAdult = u.Age >= 18 })`
 - ✅ **Math operations** - Calculate values: `Total = u.Price * u.Quantity`, `Discount = u.Price * 0.1m`
 - ✅ **Boolean expressions** - Create flags: `IsExpensive = u.Price > 100`, `IsMinor = u.Age < 18`
 - ✅ **String methods** - Transform text: `UpperName = u.Name.ToUpper()`
+
+### v1.3.0 - IQueryable<T> Support
+- ✅ **IQueryable<T>** - Standard LINQ with deferred execution
+- ✅ **Query composition** - Chain multiple LINQ operations
+- ✅ **Lazy evaluation** - Queries execute only when materialized
 
 ### v1.2.0 - Select() Projection
 - ✅ **Select() projection** - Select specific columns: `.Select(u => new { u.Id, u.Name })`
@@ -608,9 +803,10 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 
 ## Coming Soon
 
-- 🚧 **Include() for joins** - Automatic join and nested object mapping
-- 🚧 **Having() clause** - Filter grouped results after aggregation
-- 🚧 **IQueryable<T>** - Full deferred execution support
+- 🚧 **Multi-column GroupBy** - Group by multiple properties
+- 🚧 **RIGHT JOIN support** - Complete all SQL join types
+- 🚧 **Subquery support** - Nested queries in WHERE clauses
+- 🚧 **Union/Intersect/Except** - Set operations
 
 ## Related Packages
 

@@ -872,7 +872,7 @@ try
     Console.WriteLine("✓ Test orders inserted\n");
 
     Console.WriteLine("Step 63: INNER JOIN - Orders with customer names...");
-    
+
     var ordersWithCustomers = await client.Query<Order>("test_orders")
         .Join(
             client.Query<TestUser>("test_users"),
@@ -964,7 +964,7 @@ try
     Console.WriteLine("Step 67: Cleaning up test data...");
     await client.ExecuteAsync("DROP TABLE IF EXISTS test_orders");
     Console.WriteLine("✓ Dropped test_orders table");
-    
+
     Console.WriteLine("Step 68: Deleting test users...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern OR email LIKE @pattern2",

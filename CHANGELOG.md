@@ -7,7 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.5.0] - 2024-12-14
+## [1.6.0] - 2025-01-26
+
+### Added - CloudflareD1.NET.Linq
+
+#### Join Operations
+- **Join() support**: INNER JOIN across multiple tables with type-safe key selectors
+- **LeftJoin() support**: LEFT JOIN with proper NULL handling for non-matching rows
+- **Multi-table projections**: Combine columns from joined tables with automatic aliasing
+- **IJoinQueryBuilder<TOuter, TInner, TKey>**: New interface for join operations
+- **IJoinProjectionQueryBuilder<TResult>**: Interface for projection after joining
+- **JoinType enum**: Support for Inner, Left, Right join types
+- **WHERE clause support**: Filter joined results after projection
+- **ORDER BY support**: Sort joined results with `.OrderBy()` and `.OrderByDescending()`
+- **LIMIT/OFFSET support**: Use `.Take()` and `.Skip()` with joined results
+- **Aggregation support**: Use `.CountAsync()`, `.FirstOrDefaultAsync()`, etc. on joins
+
+#### Expression Parsing Enhancements
+- **MemberInitExpression support**: Parse object initializer syntax in Select projections
+- **NewExpression support**: Parse constructor syntax in Select projections
+- **Automatic column aliasing**: Generate unique aliases to avoid naming conflicts
+- **Multi-table SELECT clause generation**: Build proper SELECT with qualified column names
+- **JOIN ON clause generation**: Translate key selectors to SQL JOIN conditions
+
+#### Bug Fixes
+- Fixed JsonElement handling in CountAsync() for D1 API responses
+- Fixed column mapping in join results with proper snake_case to PascalCase conversion
+- Fixed ambiguous column names in multi-table SELECT statements
+
+#### Documentation
+- Comprehensive Join Operations section in LINQ README
+- New Docusaurus page: `docs/linq/joins.md` with detailed examples
+- Updated ROADMAP.md to mark v1.6.0 complete
+- Integration test examples in test-app (6 new test steps)
+
+#### Testing
+- 6 new unit tests for Join operations
+- 6 integration test examples in test-app
+- Full test coverage for INNER JOIN and LEFT JOIN
+- Test coverage for complex scenarios (WHERE, ORDER BY, LIMIT, COUNT)
+
+### Technical Details
+- New files: IJoinQueryBuilder.cs, JoinQueryBuilder.cs, JoinType.cs
+- Total new code: ~600 lines
+- Backward compatible: No breaking changes to existing APIs
+- 153 total tests passing
+
+---
+
+### Added - CloudflareD1.NET.Linq (v1.5.1)
+
+#### Having Clause
+- **Having() support**: Filter grouped results after aggregation
+- **Aggregate predicates**: Use Count(), Sum(), Average(), Min(), Max() in conditions
+- **Comparison operators**: Full support for >, <, >=, <=, ==, !=
+- **Expression translation**: Converts LINQ expressions to SQL HAVING clauses
+- **Integration with GroupBy**: Seamless combination of GROUP BY and HAVING
+
+#### Bug Fixes
+- Fixed CS8620 nullability warning in GroupByQueryBuilder.ConvertResultsToRows()
+
+#### Documentation
+- Comprehensive Having Clause section in LINQ README
+- New Docusaurus page: `docs/linq/having.md` with detailed examples
+- Updated ROADMAP.md to mark v1.5.1 complete
+- Integration test examples in test-app (3 new test steps)
+
+#### Testing
+- 6 new unit tests for Having clause
+- 3 integration test examples in test-app
+- Full test coverage for all aggregate functions in Having predicates
+
+### Technical Details
+- Enhanced GroupByQueryBuilder with Having() implementation
+- Total new code: ~90 lines for Having translation
+- Backward compatible: No breaking changes to existing APIs
+
+---
+
+## [1.5.0] - 2025-01-14
 
 ### Added - CloudflareD1.NET.Linq
 

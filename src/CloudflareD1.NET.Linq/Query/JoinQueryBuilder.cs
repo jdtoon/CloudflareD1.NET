@@ -368,7 +368,7 @@ namespace CloudflareD1.NET.Linq.Query
         {
             // Extract column selections from the lambda expression
             // For: (outer, inner) => new Result { Prop1 = outer.Prop1, Prop2 = inner.Prop2 }
-            
+
             if (_selector is LambdaExpression lambda)
             {
                 // Handle MemberInitExpression (object initializer syntax)

@@ -12,12 +12,12 @@
   - Database management
 
 #### LINQ Package (CloudflareD1.NET.Linq)
-- **v1.5.0** - GroupBy & Aggregations ✅ **CURRENT**
-  - GroupBy() with single key support
-  - Aggregate functions: Count, Sum, Average, Min, Max
-  - Complex aggregate expressions (e.g., Sum(p => p.Price * p.Quantity))
-  - WHERE, ORDER BY, LIMIT integration with GROUP BY
-  - Full expression tree support for aggregations
+- **v1.6.0** - Join Operations ✅ **CURRENT**
+  - Join() and LeftJoin() support
+  - Multi-table projections
+  - Type-safe key selectors
+  - Having() clause for filtered aggregations
+  - Full WHERE/ORDER BY/LIMIT support on joins
 
 ---
 
@@ -26,7 +26,7 @@
 ### Phase 1: Advanced Query Operations (v1.5.0 - v1.7.0)
 
 #### v1.5.0 - Aggregation & GroupBy ✅ **COMPLETE**
-**Released**: December 2024
+**Released**: January 2025
 
 **Features**:
 - ✅ Basic aggregations: `Sum()`, `Average()`, `Min()`, `Max()`, `Count()`
@@ -35,7 +35,6 @@
 - ✅ Complex expressions in aggregates: `g.Sum(p => p.Price * p.Quantity)`
 - ✅ Multiple aggregations per group
 - ✅ Integration with WHERE, ORDER BY, LIMIT
-- 🚧 `Having()` clause support (stubbed for future)
 
 **Example**:
 ```csharp
@@ -51,7 +50,7 @@ var salesByCategory = await client.Query<Product>("products")
     .ToListAsync();
 ```
 
-**Completed**: December 2024
+**Completed**: January 2025
 - GroupByQueryBuilder implementation
 - AggregateExpressionVisitor for SQL translation
 - SQL GROUP BY generation with aggregate functions
@@ -60,42 +59,75 @@ var salesByCategory = await client.Query<Product>("products")
 
 ---
 
-#### v1.6.0 - Join Support (Next Up! 🎯)
-**Target**: Q1 2025
+#### v1.5.1 - Having Clause ✅ **COMPLETE**
+**Released**: January 2025
+
+**Features**:
+- ✅ `Having()` clause for filtering grouped results
+- ✅ Aggregate predicates in Having: `g.Count() > 10`, `g.Sum(x => x.Price) > 1000`
+- ✅ Full comparison operator support: >, <, >=, <=, ==, !=
+- ✅ Combination with WHERE, ORDER BY, LIMIT
+
+**Example**:
+```csharp
+var largeGroups = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .GroupBy(u => u.Country)
+    .Having(g => g.Count() >= 10)
+    .Select(g => new { Country = g.Key, Count = g.Count() })
+    .OrderByDescending("count")
+    .ToListAsync();
+```
+
+**Completed**: January 2025
+- Having() predicate translation to SQL
+- Expression visitor for aggregate predicates
+- 6 unit tests + 3 integration tests
+- Documentation and examples
+
+---
+
+#### v1.6.0 - Join Support ✅ **COMPLETE**
+**Released**: January 2025
 
 **Features**:
 - ✅ `Join()` - Inner join with two tables
 - ✅ `LeftJoin()` - Left outer join
-- ✅ `SelectMany()` - Flattening nested collections
-- ✅ Nested object mapping
-- ✅ Multi-table projections
+- ✅ Multi-table projections with proper column aliasing
+- ✅ Type-safe key selectors
+- ✅ WHERE, ORDER BY, LIMIT, COUNT on joined results
+- ✅ MemberInitExpression support (object initializer syntax)
 
 **Example**:
 ```csharp
-var ordersWithCustomers = await client.AsQueryable<Order>("orders")
+var ordersWithCustomers = await client.Query<Order>("orders")
     .Join(
-        client.AsQueryable<Customer>("customers"),
+        client.Query<Customer>("customers"),
         order => order.CustomerId,
-        customer => customer.Id,
-        (order, customer) => new {
-            OrderId = order.Id,
-            CustomerName = customer.Name,
-            Total = order.Total
-        })
+        customer => customer.Id)
+    .Select((order, customer) => new OrderWithCustomer
+    {
+        OrderId = order.Id,
+        CustomerName = customer.Name,
+        Total = order.Total
+    })
+    .Where(result => result.Total > 100)
     .ToListAsync();
 ```
 
-**Estimated Effort**: 3-4 weeks
-- D1JoinQueryable implementation
-- SQL JOIN generation (INNER, LEFT, RIGHT)
-- Multi-table expression parsing
-- Complex projection mapping
-- Unit tests (20-25 new tests)
+**Completed**: January 2025
+- JoinQueryBuilder implementation
+- IJoinQueryBuilder and IJoinProjectionQueryBuilder interfaces
+- SQL JOIN generation (INNER, LEFT)
+- Multi-table SELECT clause parsing
+- Proper column aliasing to avoid conflicts
+- 6 unit tests + 6 integration tests
+- Full documentation and examples
 
 ---
 
 #### v1.7.0 - Advanced LINQ Methods
-**Target**: Q2 2026
+**Target**: Q2 2025
 
 **Features**:
 - ✅ `Distinct()` - Remove duplicates

@@ -32,6 +32,8 @@ const sidebars = {
         'linq/iqueryable',
         'linq/query-builder',
         'linq/groupby',
+        'linq/having',
+        'linq/joins',
         'linq/expression-trees',
         'linq/entity-mapping',
       ],

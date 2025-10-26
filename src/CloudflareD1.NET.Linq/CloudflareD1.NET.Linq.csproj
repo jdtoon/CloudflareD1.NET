@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, Join operations (INNER JOIN, LEFT JOIN), Having clause for filtered aggregations, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations;having;join;inner-join;left-join</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.5.0: GroupBy &amp; Aggregations - Added full GroupBy() support with aggregate functions. New IGroupByQueryBuilder&lt;TSource, TKey&gt; and IGroupByProjectionQueryBuilder&lt;TResult&gt; interfaces. Supports Count(), Sum(), Average(), Min(), Max() with complex expressions like Sum(p => p.Price * p.Quantity). AggregateExpressionVisitor translates aggregate expressions to SQL. Full integration with WHERE, ORDER BY, LIMIT clauses. SQL GROUP BY generation with proper aggregate handling. 11 new unit tests + 8 integration tests. Comprehensive documentation and examples. Fully backward compatible.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.6.0: Join Operations - Added Join() and LeftJoin() support for multi-table queries with type-safe key selectors and automatic column aliasing. New IJoinQueryBuilder and IJoinProjectionQueryBuilder interfaces. Support for WHERE, ORDER BY, LIMIT, COUNT on joined results. MemberInitExpression and NewExpression parsing in Select projections. v1.5.1: Having() clause for filtering grouped results with aggregate predicates (Count, Sum, Average, Min, Max). Fixed JsonElement handling in CountAsync and nullability warnings. 12 new unit tests + 9 integration tests. Full backward compatibility.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
