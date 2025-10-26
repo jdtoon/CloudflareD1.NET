@@ -18,7 +18,7 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
-### v1.3.0 - IQueryable<T> with Deferred Execution
+### v1.3.0 - IQueryable&lt;T&gt; with Deferred Execution
 
 Standard LINQ query syntax with deferred execution:
 

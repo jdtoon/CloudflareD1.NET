@@ -2,7 +2,7 @@
 sidebar_position: 5
 ---
 
-# IQueryable<T> Support
+# IQueryable&lt;T&gt; Support
 
 CloudflareD1.NET.Linq v1.3.0 introduces full **IQueryable<T>** support with deferred execution, allowing you to use standard LINQ query syntax with composable, testable queries.
 
@@ -248,11 +248,11 @@ public void BuildsCorrectAdultQuery()
 }
 ```
 
-## IQueryable vs Query<T>
+## IQueryable vs Query&lt;T&gt;
 
 CloudflareD1.NET.Linq offers two approaches:
 
-### IQueryable<T> - Deferred Execution
+### IQueryable&lt;T&gt; - Deferred Execution
 
 ```csharp
 // Deferred - query doesn't execute until enumerated
@@ -270,7 +270,7 @@ var results = await ((D1Queryable<User>)query).ToListAsync();
 - Creating reusable query fragments
 - Unit testing query composition
 
-### Query<T> - Immediate Builder
+### Query&lt;T&gt; - Immediate Builder
 
 ```csharp
 // Immediate builder - executes when you call ToListAsync
