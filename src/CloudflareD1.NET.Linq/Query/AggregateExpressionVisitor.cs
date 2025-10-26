@@ -90,7 +90,7 @@ namespace CloudflareD1.NET.Linq.Query
             if (node.Arguments.Count >= 2)
             {
                 var selectorArg = node.Arguments[1];
-                
+
                 // Unwrap the Quote expression if present
                 if (selectorArg is UnaryExpression unary && unary.NodeType == ExpressionType.Quote)
                 {
@@ -140,7 +140,7 @@ namespace CloudflareD1.NET.Linq.Query
                 // Handle binary expressions inside aggregates (e.g., Sum(x => x.Price * x.Quantity))
                 _sql.Append("(");
                 Visit(node.Left);
-                
+
                 switch (node.NodeType)
                 {
                     case ExpressionType.Add:
@@ -158,7 +158,7 @@ namespace CloudflareD1.NET.Linq.Query
                     default:
                         throw new NotSupportedException($"Binary operator {node.NodeType} not supported in aggregates");
                 }
-                
+
                 Visit(node.Right);
                 _sql.Append(")");
                 return node;

@@ -622,10 +622,160 @@ try
     Console.WriteLine("✅ IQueryable<T> Select() Tests Completed!");
     Console.WriteLine("========================================\n");
 
-    Console.WriteLine("Step 48: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("========================================");
+    Console.WriteLine("🧪 Testing GroupBy & Aggregations (v1.5.0)");
+    Console.WriteLine("========================================\n");
+
+    // First, let's add some more varied data for grouping tests
+    Console.WriteLine("Step 49: Adding more test data for GroupBy tests...");
+    await client.ExecuteAsync(@"
+        INSERT INTO test_users (name, email, age) VALUES
+        ('Alice', 'alice@demo.com', 25),
+        ('Bob', 'bob@demo.com', 30),
+        ('Charlie', 'charlie@demo.com', 25),
+        ('David', 'david@demo.com', 30),
+        ('Eve', 'eve@demo.com', 35)
+    ");
+    Console.WriteLine("✓ Added test data for grouping\n");
+
+    Console.WriteLine("Step 50: GroupBy with Count() - Group users by age...");
+    var ageGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroup
+        {
+            Age = g.Key,
+            UserCount = g.Count()
+        })
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {ageGroups.Count()} age groups:");
+    foreach (var group in ageGroups.OrderBy(g => g.Age))
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s)");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 51: GroupBy with Sum() - Calculate total ages per group...");
+    var ageGroupsWithSum = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroupWithAggregates
+        {
+            Age = g.Key,
+            UserCount = g.Count(),
+            TotalAge = g.Sum(u => u.Age)
+        })
+        .ToListAsync();
+    Console.WriteLine($"✓ Age groups with sum:");
+    foreach (var group in ageGroupsWithSum.OrderBy(g => g.Age))
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s), total age: {group.TotalAge}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 52: GroupBy with Average() - Average age per group...");
+    var ageGroupsWithAvg = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroupWithStats
+        {
+            Age = g.Key,
+            UserCount = g.Count(),
+            AverageAge = g.Average(u => u.Age)
+        })
+        .ToListAsync();
+    Console.WriteLine($"✓ Age groups with average:");
+    foreach (var group in ageGroupsWithAvg.OrderBy(g => g.Age))
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s), avg: {group.AverageAge:F1}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 53: GroupBy with Min/Max - Min and Max ages per group...");
+    var ageGroupsWithMinMax = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroupComplete
+        {
+            Age = g.Key,
+            UserCount = g.Count(),
+            MinAge = g.Min(u => u.Age),
+            MaxAge = g.Max(u => u.Age)
+        })
+        .ToListAsync();
+    Console.WriteLine($"✓ Age groups with min/max:");
+    foreach (var group in ageGroupsWithMinMax.OrderBy(g => g.Age))
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s), min: {group.MinAge}, max: {group.MaxAge}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 54: GroupBy with multiple aggregates - Full statistics...");
+    var fullStats = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new FullAgeStats
+        {
+            Age = g.Key,
+            UserCount = g.Count(),
+            TotalAge = g.Sum(u => u.Age),
+            AverageAge = g.Average(u => u.Age),
+            MinAge = g.Min(u => u.Age),
+            MaxAge = g.Max(u => u.Age)
+        })
+        .ToListAsync();
+    Console.WriteLine($"✓ Full statistics by age group:");
+    foreach (var stats in fullStats.OrderBy(s => s.Age))
+    {
+        Console.WriteLine($"  Age {stats.Age}: count={stats.UserCount}, sum={stats.TotalAge}, avg={stats.AverageAge:F1}, min={stats.MinAge}, max={stats.MaxAge}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 55: GroupBy with OrderBy - Ordered by count descending...");
+    var orderedGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroup
+        {
+            Age = g.Key,
+            UserCount = g.Count()
+        })
+        .OrderByDescending("user_count")
+        .ToListAsync();
+    Console.WriteLine($"✓ Age groups ordered by count (DESC):");
+    foreach (var group in orderedGroups)
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s)");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 56: GroupBy with Take - Top 2 age groups...");
+    var topGroups = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("demo.com"))
+        .GroupBy(u => u.Age)
+        .Select(g => new AgeGroup
+        {
+            Age = g.Key,
+            UserCount = g.Count()
+        })
+        .OrderByDescending("user_count")
+        .Take(2)
+        .ToListAsync();
+    Console.WriteLine($"✓ Top 2 age groups:");
+    foreach (var group in topGroups)
+    {
+        Console.WriteLine($"  Age {group.Age}: {group.UserCount} user(s)");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("========================================");
+    Console.WriteLine("✅ GroupBy & Aggregations Tests Completed!");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 57: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
-        "DELETE FROM test_users WHERE email LIKE @pattern",
-        new { pattern = "%@example.com" }
+        "DELETE FROM test_users WHERE email LIKE @pattern OR email LIKE @pattern2",
+        new { pattern = "%@example.com", pattern2 = "%@demo.com" }
     );
     Console.WriteLine($"✓ Deleted {deleteResult.Meta?.Changes} test row(s)\n");
 
@@ -692,3 +842,43 @@ public class UserWithMultipleComputed
     public bool IsMinor { get; set; }
     public bool IsSenior { get; set; }
 }
+
+// GroupBy result classes (v1.5.0)
+public class AgeGroup
+{
+    public int Age { get; set; }
+    public int UserCount { get; set; }
+}
+
+public class AgeGroupWithAggregates
+{
+    public int Age { get; set; }
+    public int UserCount { get; set; }
+    public int TotalAge { get; set; }
+}
+
+public class AgeGroupWithStats
+{
+    public int Age { get; set; }
+    public int UserCount { get; set; }
+    public double AverageAge { get; set; }
+}
+
+public class AgeGroupComplete
+{
+    public int Age { get; set; }
+    public int UserCount { get; set; }
+    public int MinAge { get; set; }
+    public int MaxAge { get; set; }
+}
+
+public class FullAgeStats
+{
+    public int Age { get; set; }
+    public int UserCount { get; set; }
+    public int TotalAge { get; set; }
+    public double AverageAge { get; set; }
+    public int MinAge { get; set; }
+    public int MaxAge { get; set; }
+}
+

@@ -328,10 +328,10 @@ namespace CloudflareD1.NET.Linq.Query
             // Count groups: SELECT COUNT(*) FROM (SELECT ... GROUP BY ...)
             var innerSql = new StringBuilder();
             innerSql.Append("SELECT ");
-            
+
             var groupByColumns = GetGroupByColumns();
             innerSql.Append(string.Join(", ", groupByColumns));
-            
+
             innerSql.Append($" FROM {_tableName}");
 
             if (_whereClauses.Count > 0)

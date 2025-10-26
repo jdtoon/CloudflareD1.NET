@@ -10,7 +10,7 @@ namespace CloudflareD1.NET.Linq.Query
     /// </summary>
     /// <typeparam name="TSource">The source entity type.</typeparam>
     /// <typeparam name="TKey">The grouping key type.</typeparam>
-    public interface IGroupByQueryBuilder<TSource, TKey> 
+    public interface IGroupByQueryBuilder<TSource, TKey>
         where TSource : class, new()
     {
         /// <summary>
@@ -19,7 +19,7 @@ namespace CloudflareD1.NET.Linq.Query
         /// <typeparam name="TResult">The result type.</typeparam>
         /// <param name="selector">Expression defining the projection with aggregations.</param>
         /// <returns>A query builder for the projected grouped results.</returns>
-        IGroupByProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<ID1Grouping<TKey, TSource>, TResult>> selector) 
+        IGroupByProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<ID1Grouping<TKey, TSource>, TResult>> selector)
             where TResult : class, new();
 
         /// <summary>
