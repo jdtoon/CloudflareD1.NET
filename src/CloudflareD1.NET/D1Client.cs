@@ -91,7 +91,7 @@ namespace CloudflareD1.NET
                     return await _remoteProvider!.QueryAsync(sql, parameters, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (!(ex is D1Exception))
+            catch (Exception ex) when (!(ex is D1Exception) && !(ex is OperationCanceledException))
             {
                 _logger.LogError(ex, "Unexpected error executing query");
                 throw new D1QueryException("An unexpected error occurred while executing the query", ex, sql);
@@ -163,7 +163,12 @@ namespace CloudflareD1.NET
         /// <inheritdoc/>
         public async Task<D1QueryResult[]> BatchAsync(params string[] sqlStatements)
         {
-            if (sqlStatements == null || sqlStatements.Length == 0)
+            if (sqlStatements == null)
+            {
+                throw new ArgumentNullException(nameof(sqlStatements));
+            }
+
+            if (sqlStatements.Length == 0)
             {
                 throw new ArgumentException("SQL statements cannot be null or empty.", nameof(sqlStatements));
             }

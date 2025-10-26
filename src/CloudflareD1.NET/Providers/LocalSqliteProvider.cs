@@ -338,11 +338,16 @@ namespace CloudflareD1.NET.Providers
             if (parameters is System.Collections.IEnumerable enumerable && !(parameters is string) && !(parameters is System.Collections.IDictionary))
             {
                 int index = 1;
+                var paramList = new List<object>();
                 foreach (var param in enumerable)
                 {
+                    paramList.Add(param);
                     command.Parameters.AddWithValue($"@p{index}", param ?? DBNull.Value);
                     index++;
                 }
+
+                // Replace ? placeholders with @p1, @p2, etc.
+                command.CommandText = ReplacePositionalParameters(command.CommandText, paramList.Count);
                 return;
             }
 
@@ -366,6 +371,46 @@ namespace CloudflareD1.NET.Providers
                 var value = prop.GetValue(parameters);
                 command.Parameters.AddWithValue($"@{prop.Name}", value ?? DBNull.Value);
             }
+        }
+
+        private static string ReplacePositionalParameters(string sql, int paramCount)
+        {
+            // Replace ? placeholders with @p1, @p2, etc.
+            int index = 1;
+            var result = new System.Text.StringBuilder();
+            int i = 0;
+
+            while (i < sql.Length)
+            {
+                if (sql[i] == '?' && index <= paramCount)
+                {
+                    result.Append($"@p{index}");
+                    index++;
+                }
+                else if (sql[i] == '\'' || sql[i] == '"')
+                {
+                    // Skip string literals
+                    char quote = sql[i];
+                    result.Append(quote);
+                    i++;
+                    while (i < sql.Length)
+                    {
+                        result.Append(sql[i]);
+                        if (sql[i] == quote && (i == 0 || sql[i - 1] != '\\'))
+                        {
+                            break;
+                        }
+                        i++;
+                    }
+                }
+                else
+                {
+                    result.Append(sql[i]);
+                }
+                i++;
+            }
+
+            return result.ToString();
         }
 
         public void Dispose()

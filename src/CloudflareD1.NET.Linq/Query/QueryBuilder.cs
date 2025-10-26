@@ -126,7 +126,7 @@ namespace CloudflareD1.NET.Linq.Query
         {
             var sql = BuildSql();
             var parameters = _parameters.ToArray();
-            
+
             // Use QueryAsync for SELECT statements, not ExecuteAsync
             var result = await _client.QueryAsync(sql, parameters);
 
@@ -245,7 +245,7 @@ namespace CloudflareD1.NET.Linq.Query
             }
 
             var countValue = firstRow["count"];
-            
+
             // Handle JsonElement from System.Text.Json
             if (countValue is JsonElement jsonElement)
             {
@@ -299,6 +299,11 @@ namespace CloudflareD1.NET.Linq.Query
             if (_takeCount.HasValue)
             {
                 sql.Append($" LIMIT {_takeCount.Value}");
+            }
+            else if (_skipCount.HasValue)
+            {
+                // SQLite requires LIMIT before OFFSET, use a very large limit if not specified
+                sql.Append(" LIMIT -1");
             }
 
             if (_skipCount.HasValue)
