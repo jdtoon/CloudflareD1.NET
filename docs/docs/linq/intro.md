@@ -18,6 +18,38 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
+### v1.3.0 - IQueryable<T> with Deferred Execution
+
+Standard LINQ query syntax with deferred execution:
+
+```csharp
+// Create IQueryable - query is NOT executed yet
+IQueryable<User> queryable = client.AsQueryable<User>("users");
+
+// Compose query - still not executed (deferred execution)
+var adults = queryable
+    .Where(u => u.Age >= 18)
+    .OrderBy(u => u.Name)
+    .Skip(10)
+    .Take(5);
+
+// NOW the query executes
+var results = await ((D1Queryable<User>)adults).ToListAsync();
+```
+
+**Supported Operations:**
+- ✅ **Where** - Filter with lambda expressions, multiple clauses combined with AND
+- ✅ **OrderBy / OrderByDescending** - Sort by properties
+- ✅ **ThenBy / ThenByDescending** - Secondary sorting
+- ✅ **Take / Skip** - Pagination
+- ✅ **Terminal operations** - ToListAsync, CountAsync, FirstOrDefaultAsync, SingleAsync, AnyAsync
+
+**Key Benefits:**
+- ✅ **Deferred execution** - Query only runs when enumerated
+- ✅ **Composable** - Build queries incrementally and reuse query fragments
+- ✅ **Standard LINQ** - Use familiar IQueryable<T> patterns
+- ✅ **Testable** - Easy to unit test query composition logic
+
 ### v1.2.1 - Computed Properties in Select()
 
 Generate new values dynamically using expressions:

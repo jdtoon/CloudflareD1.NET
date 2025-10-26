@@ -29,7 +29,9 @@ const sidebars = {
       items: [
         'linq/intro',
         'linq/installation',
+        'linq/iqueryable',
         'linq/query-builder',
+        'linq/expression-trees',
         'linq/entity-mapping',
       ],
     },
