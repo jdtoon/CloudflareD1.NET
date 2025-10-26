@@ -143,6 +143,12 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> Skip(int count);
 
         /// <summary>
+        /// Removes duplicate rows from the result set (SQL DISTINCT).
+        /// </summary>
+        /// <returns>The query builder for method chaining.</returns>
+        IQueryBuilder<T> Distinct();
+
+        /// <summary>
         /// Executes the query and returns all matching entities.
         /// </summary>
         /// <returns>A list of entities matching the query.</returns>

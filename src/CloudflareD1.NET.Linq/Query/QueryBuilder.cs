@@ -24,6 +24,7 @@ namespace CloudflareD1.NET.Linq.Query
         private readonly List<(string Column, bool Descending)> _orderByClauses;
         private int? _takeCount;
         private int? _skipCount;
+        private bool _isDistinct;
 
         /// <summary>
         /// Initializes a new instance of the QueryBuilder class.
@@ -321,6 +322,16 @@ namespace CloudflareD1.NET.Linq.Query
             return this;
         }
 
+        /// <summary>
+        /// Removes duplicate rows from the result set (SQL DISTINCT).
+        /// </summary>
+        /// <returns>The query builder for method chaining.</returns>
+        public IQueryBuilder<T> Distinct()
+        {
+            _isDistinct = true;
+            return this;
+        }
+
         /// <inheritdoc />
         public async Task<IEnumerable<T>> ToListAsync()
         {
@@ -518,7 +529,7 @@ namespace CloudflareD1.NET.Linq.Query
         private string BuildSql()
         {
             var sql = new StringBuilder();
-            sql.Append($"SELECT * FROM {_tableName}");
+            sql.Append($"SELECT {(_isDistinct ? "DISTINCT " : "")}* FROM {_tableName}");
 
             if (_whereClauses.Count > 0)
             {

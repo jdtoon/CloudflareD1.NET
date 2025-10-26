@@ -62,6 +62,12 @@ namespace CloudflareD1.NET.Linq.Query
         IProjectionQueryBuilder<TResult> Skip(int count);
 
         /// <summary>
+        /// Removes duplicate rows from the result set (SQL DISTINCT).
+        /// </summary>
+        /// <returns>The query builder for method chaining.</returns>
+        IProjectionQueryBuilder<TResult> Distinct();
+
+        /// <summary>
         /// Executes the query and returns all matching projected results.
         /// </summary>
         /// <returns>A list of projected results matching the query.</returns>

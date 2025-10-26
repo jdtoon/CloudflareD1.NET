@@ -24,6 +24,7 @@ namespace CloudflareD1.NET.Linq.Query
         private readonly List<(string Column, bool Descending)> _orderByClauses;
         private int? _takeCount;
         private int? _skipCount;
+        private bool _isDistinct;
 
         /// <summary>
         /// Initializes a new instance of the ProjectionQueryBuilder class.
@@ -124,6 +125,16 @@ namespace CloudflareD1.NET.Linq.Query
                 throw new ArgumentOutOfRangeException(nameof(count), "Skip count must be non-negative.");
 
             _skipCount = count;
+            return this;
+        }
+
+        /// <summary>
+        /// Removes duplicate rows from the result set (SQL DISTINCT).
+        /// </summary>
+        /// <returns>The query builder for method chaining.</returns>
+        public IProjectionQueryBuilder<TResult> Distinct()
+        {
+            _isDistinct = true;
             return this;
         }
 
@@ -276,7 +287,7 @@ namespace CloudflareD1.NET.Linq.Query
         private string BuildSql()
         {
             var sql = new StringBuilder();
-            sql.Append("SELECT ");
+            sql.Append($"SELECT {(_isDistinct ? "DISTINCT " : "")}");
 
             // Build column list with aliases
             var columnParts = _selectColumns.Select(col =>
