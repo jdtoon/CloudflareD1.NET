@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2024-12-14
+
+### Added - CloudflareD1.NET.Linq
+
+#### GroupBy & Aggregations
+- **GroupBy() support**: Group query results by single key with full LINQ integration
+- **Aggregate functions**: Count(), Sum(), Average(), Min(), Max() with expression support
+- **Complex aggregate expressions**: Support for calculations like `Sum(p => p.Price * p.Quantity)`
+- **IGroupByQueryBuilder<TSource, TKey>**: New interface for GroupBy operations
+- **IGroupByProjectionQueryBuilder<TResult>**: Interface for projection after grouping
+- **AggregateExpressionVisitor**: Translates LINQ aggregate expressions to SQL
+- **SQL GROUP BY generation**: Proper SQL with aggregate functions and GROUP BY clauses
+
+#### Integration Features
+- **WHERE clause integration**: Filter data before grouping with `.Where()`
+- **ORDER BY integration**: Sort grouped results with `.OrderBy()` and `.OrderByDescending()`
+- **LIMIT/OFFSET support**: Use `.Take()` and `.Skip()` with grouped results
+- **Multiple aggregates per group**: Calculate multiple aggregate functions in single query
+
+#### Documentation
+- Comprehensive GroupBy section in README with examples
+- Updated ROADMAP.md to mark v1.5.0 complete
+- Integration test examples in test-app (8 new test steps)
+- API documentation for all new interfaces and methods
+
+#### Testing
+- 11 new unit tests (2 API tests + 9 SQL generation tests)
+- 8 integration test examples in test-app
+- Full test coverage for all aggregate functions
+- Test coverage for complex scenarios (WHERE, ORDER BY, LIMIT integration)
+
+### Technical Details
+- New files: IGrouping.cs, IGroupByQueryBuilder.cs, GroupByQueryBuilder.cs, AggregateExpressionVisitor.cs
+- Total new code: ~1,088 lines
+- Result class constraint: `where TResult : class, new()` for entity mapper compatibility
+- Backward compatible: No breaking changes to existing APIs
+
 ## [1.0.0] - 2025-10-25
 
 ### Added
