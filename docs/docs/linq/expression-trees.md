@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # Expression Tree LINQ
 
-Starting with v1.1.0, CloudflareD1.NET.Linq supports expression tree-based queries using lambda expressions. This provides compile-time type checking, IntelliSense support, and refactoring safety while maintaining the same performance as string-based queries.
+Starting with v1.1.0, CloudflareD1.NET.Linq supports expression tree-based queries using lambda expressions. **v1.2.0 adds Select() projection** for column selection and result transformation.
 
 ## Why Use Expression Trees?
 
@@ -20,6 +20,34 @@ Starting with v1.1.0, CloudflareD1.NET.Linq supports expression tree-based queri
 - Use **strings** when you need complex SQL or database-specific features
 
 ## Basic Syntax
+
+### Select Projections (v1.2.0+)
+
+Select specific columns and transform results:
+
+```csharp
+// Select specific columns into a DTO
+var summaries = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .ToListAsync();
+
+// Select with OrderBy
+var topUsers = await client.Query<User>("users")
+    .OrderByDescending(u => u.CreatedAt)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .Take(10)
+    .ToListAsync();
+
+// Combine with Where, OrderBy, Take, Skip
+var pagedResults = await client.Query<User>("users")
+    .Where(u => u.Country == "US")
+    .OrderBy(u => u.Name)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .Skip(20)
+    .Take(10)
+    .ToListAsync();
+```
 
 ### Where Clauses
 
@@ -213,6 +241,77 @@ Basic math operators are supported:
 .Where(s => s.Total / s.Count < 10)
 ```
 
+## Select() Projection (v1.2.0+)
+
+Select specific columns and transform results to reduce data transfer and improve performance.
+
+### Basic Column Selection
+
+```csharp
+// Select into a DTO
+public class UserSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+var summaries = await client.Query<User>("users")
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .ToListAsync();
+// Generates: SELECT id AS Id, name AS Name FROM users
+```
+
+### Combining with Filters
+
+```csharp
+// Select + Where + OrderBy
+var activeUsers = await client.Query<User>("users")
+    .Where(u => u.IsActive && u.Age >= 18)
+    .OrderBy(u => u.Name)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .ToListAsync();
+```
+
+### Projection with Pagination
+
+```csharp
+// Select with Skip/Take
+var page2 = await client.Query<User>("users")
+    .Where(u => u.Country == "US")
+    .OrderBy(u => u.CreatedAt)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .Skip(10)
+    .Take(10)
+    .ToListAsync();
+```
+
+### FirstOrDefault with Projection
+
+```csharp
+// Get first result as projection
+var newest = await client.Query<User>("users")
+    .OrderByDescending(u => u.CreatedAt)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .FirstOrDefaultAsync();
+```
+
+### Count with Projection
+
+```csharp
+// Count still works (doesn't actually select columns for COUNT)
+var count = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .CountAsync();
+```
+
+### Benefits of Projection
+
+- **Reduced data transfer** - Only selected columns are returned
+- **Type safety** - DTOs are strongly typed
+- **Cleaner code** - Express exactly what data you need
+- **Performance** - Less data over the network
+
 ## Property Name Conversion
 
 Properties are automatically converted to snake_case column names:
@@ -345,11 +444,11 @@ public class UserService
 Expression trees support most common LINQ patterns, but have some limitations:
 
 **Not Supported:**
-- `Select()` projection (coming in future version)
 - `Join()` operations
 - `GroupBy()` grouping
 - Subqueries
 - `IN` operator with expression lists (use string syntax)
+- Computed properties in Select() (e.g., `Select(u => new { u.Name, Adult = u.Age >= 18 })`)
 
 **Workarounds:**
 - For complex SQL, use string-based Where clauses

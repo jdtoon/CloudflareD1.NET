@@ -333,7 +333,46 @@ try
     Console.WriteLine($"✓ Results match: {stringBased.Count() == expressionBased.Count()}");
     Console.WriteLine();
 
-    Console.WriteLine("Step 23: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("Step 23: Select() projection - specific columns only...");
+    var userSummaries = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+        .Take(3)
+        .ToListAsync();
+    Console.WriteLine($"✓ Selected {userSummaries.Count()} user summaries (Id, Name only)");
+    foreach (var summary in userSummaries.Take(2))
+    {
+        Console.WriteLine($"  - {summary.Id}: {summary.Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 24: Select() with Where and OrderBy combination...");
+    var activeUserNames = await client.Query<TestUser>("test_users")
+        .Where(u => u.Email != null && u.Email.Contains("@example.com"))
+        .OrderBy(u => u.Name)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+        .Take(5)
+        .ToListAsync();
+    Console.WriteLine($"✓ Found {activeUserNames.Count()} users with projections");
+    Console.WriteLine($"✓ First user: {activeUserNames.FirstOrDefault()?.Name ?? "None"}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 25: Select() FirstOrDefault with projection...");
+    var firstSummary = await client.Query<TestUser>("test_users")
+        .OrderBy(u => u.Id)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+        .FirstOrDefaultAsync();
+    Console.WriteLine($"✓ First user summary: {firstSummary?.Name ?? "None"} (ID: {firstSummary?.Id})");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 26: Select() Count works with projections...");
+    var projectionCount = await client.Query<TestUser>("test_users")
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+        .CountAsync();
+    Console.WriteLine($"✓ Count with projection: {projectionCount}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 27: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }
@@ -367,4 +406,11 @@ public class TestUser
     public string Name { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? CreatedAt { get; set; }
+}
+
+// DTO for Select() projection tests
+public class UserSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

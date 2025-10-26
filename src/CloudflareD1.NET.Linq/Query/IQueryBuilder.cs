@@ -83,6 +83,14 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> ThenByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
+        /// Projects the query results into a new form using a lambda expression.
+        /// </summary>
+        /// <typeparam name="TResult">The type to project to.</typeparam>
+        /// <param name="selector">Expression defining the projection.</param>
+        /// <returns>A new query builder for the projected type.</returns>
+        IProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<T, TResult>> selector) where TResult : class, new();
+
+        /// <summary>
         /// Limits the number of results returned (SQL LIMIT).
         /// </summary>
         /// <param name="count">The maximum number of results to return.</param>

@@ -41,6 +41,32 @@ namespace CloudflareD1.NET.Linq.Query
             _orderByClauses = new List<(string, bool)>();
         }
 
+        /// <summary>
+        /// Projects the query results into a new form using a lambda expression.
+        /// </summary>
+        /// <typeparam name="TResult">The type to project to.</typeparam>
+        /// <param name="selector">Expression defining the projection.</param>
+        /// <returns>A new query builder for the projected type.</returns>
+        public IProjectionQueryBuilder<TResult> Select<TResult>(Expression<Func<T, TResult>> selector) where TResult : class, new()
+        {
+            if (selector == null)
+                throw new ArgumentNullException(nameof(selector));
+
+            var visitor = new SelectExpressionVisitor(_mapper);
+            var columns = visitor.GetColumns(selector.Body);
+
+            return new ProjectionQueryBuilder<TResult>(
+                _client,
+                _tableName,
+                _mapper,
+                columns,
+                _whereClauses,
+                _parameters,
+                _orderByClauses,
+                _takeCount,
+                _skipCount);
+        }
+
         /// <inheritdoc />
         public IQueryBuilder<T> Where(string whereClause, params object[] parameters)
         {

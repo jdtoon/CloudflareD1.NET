@@ -335,12 +335,23 @@ var ordersWithCustomers = await client.QueryAsync<OrderWithCustomer>(@"
 );
 ```
 
+## What's New
+
+### v1.2.0 - Select() Projection
+- ✅ **Select() projection** - Select specific columns: `.Select(u => new { u.Id, u.Name })`
+- ✅ **DTO mapping** - Project to strongly-typed DTOs
+- ✅ **Performance optimization** - Reduce data transfer by selecting only needed columns
+
+### v1.1.0 - Expression Tree LINQ
+- ✅ **Expression tree support** - Type-safe queries: `.Where(u => u.Age >= 18)`
+- ✅ **Lambda expressions** - Full IntelliSense and compile-time checking
+- ✅ **OrderBy expressions** - `.OrderBy(u => u.Name)`, `.ThenBy(u => u.CreatedAt)`
+
 ## Coming Soon
 
-- 🚧 **Expression tree support** - True LINQ with `.Where(u => u.Age > 18)`
 - 🚧 **Include() for joins** - Automatic join and nested object mapping
-- 🚧 **Select() for projections** - Project to anonymous types
 - 🚧 **GroupBy() support** - Aggregate queries with grouping
+- 🚧 **IQueryable<T>** - Full deferred execution support
 
 ## Related Packages
 

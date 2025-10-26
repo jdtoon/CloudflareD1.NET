@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction with expression trees, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper;expression-trees</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides type-safe query construction with expression trees, Select() projection, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;query-builder;orm;sqlite;object-mapper;expression-trees;projection</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.1.0: Expression tree LINQ support - Added Where(lambda), OrderBy(lambda), ThenBy(lambda) with full expression tree parsing for type-safe queries. Supports binary operators, logical operators, string methods (Contains, StartsWith, EndsWith), null comparisons, and captured variables. 16 new unit tests covering expression translation.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.2.0: Select() Projection Support - Added Select&lt;TResult&gt;(lambda) for projecting query results to DTOs and anonymous types. Select specific columns to reduce data transfer and improve performance. Includes SelectExpressionVisitor, IProjectionQueryBuilder&lt;T&gt;, and ProjectionQueryBuilder&lt;T&gt;. Fully integrated with Where/OrderBy/Take/Skip. 8 new unit tests (103 total). All features maintain backward compatibility.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

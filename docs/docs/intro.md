@@ -6,15 +6,16 @@ sidebar_position: 1
 
 Welcome to **CloudflareD1.NET** - a complete .NET adapter for Cloudflare D1, the serverless SQL database that runs on Cloudflare's edge network.
 
-:::tip What's New in v1.1.0
-**Expression Tree LINQ Support** is now available! Write type-safe queries using lambda expressions:
+:::tip What's New in v1.2.0
+**Select() Projection** is now available! Select specific columns and transform results:
 ```csharp
-var adults = await client.Query<User>("users")
-    .Where(u => u.Age >= 18 && u.IsActive)
-    .OrderBy(u => u.Name)
+var summaries = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .OrderBy("name")
     .ToListAsync();
 ```
-Learn more in the [Query Builder](/docs/linq/query-builder) documentation.
+Learn more in the [Query Builder](/docs/linq/query-builder) and [Expression Trees](/docs/linq/expression-trees) documentation.
 :::
 
 ## What is CloudflareD1.NET?

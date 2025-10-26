@@ -16,9 +16,27 @@ dotnet add package CloudflareD1.NET.Linq
 Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a dependency.
 :::
 
-## What's New in v1.1.0
+## What's New
 
-### 🎉 Expression Tree LINQ Support
+### v1.2.0 - Select() Projection
+
+Select specific columns and transform results:
+
+```csharp
+var summaries = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name })
+    .OrderBy("name")
+    .ToListAsync();
+```
+
+**Benefits:**
+- ✅ **Reduced data transfer** - Only fetch columns you need
+- ✅ **Type-safe DTOs** - Project to strongly-typed classes
+- ✅ **Better performance** - Less data over the network
+- ✅ **Cleaner code** - Express intent clearly
+
+### v1.1.0 - Expression Tree LINQ
 
 Write type-safe queries using lambda expressions with full IntelliSense:
 
