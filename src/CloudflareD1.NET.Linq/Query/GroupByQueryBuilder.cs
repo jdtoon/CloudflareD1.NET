@@ -456,7 +456,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         private static IEnumerable<Dictionary<string, object?>> ConvertResultsToRows(
-            IEnumerable<IDictionary<string, object>>? results)
+            IEnumerable<Dictionary<string, object?>>? results)
         {
             if (results == null)
                 return Enumerable.Empty<Dictionary<string, object?>>();
