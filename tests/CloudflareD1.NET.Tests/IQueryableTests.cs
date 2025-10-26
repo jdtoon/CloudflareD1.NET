@@ -29,10 +29,10 @@ namespace CloudflareD1.NET.Tests
         {
             // Arrange
             var mockClient = new Mock<ID1Client>();
-            
+
             // Act
             IQueryable<User> queryable = mockClient.Object.AsQueryable<User>("users");
-            
+
             // Assert
             queryable.Should().NotBeNull();
             queryable.Should().BeAssignableTo<IQueryable<User>>();
@@ -79,7 +79,7 @@ namespace CloudflareD1.NET.Tests
             // Act
             IQueryable<User> queryable = mockClient.Object.AsQueryable<User>("users");
             var query = queryable.Where(u => u.Age >= 18);
-            
+
             // Cast to D1Queryable to access ToListAsync
             var results = await ((D1Queryable<User>)query).ToListAsync();
 
@@ -114,7 +114,7 @@ namespace CloudflareD1.NET.Tests
             var query = queryable
                 .Where(u => u.Age >= 18)
                 .Where(u => u.IsActive);
-            
+
             var results = await ((D1Queryable<User>)query).ToListAsync();
 
             // Assert
@@ -207,10 +207,10 @@ namespace CloudflareD1.NET.Tests
             };
 
             mockClient.Setup(c => c.QueryAsync(
-                It.Is<string>(sql => 
-                    sql.Contains("WHERE") && 
-                    sql.Contains("ORDER BY") && 
-                    sql.Contains("LIMIT") && 
+                It.Is<string>(sql =>
+                    sql.Contains("WHERE") &&
+                    sql.Contains("ORDER BY") &&
+                    sql.Contains("LIMIT") &&
                     sql.Contains("OFFSET")),
                 It.IsAny<object[]>(),
                 It.IsAny<CancellationToken>()))
@@ -224,7 +224,7 @@ namespace CloudflareD1.NET.Tests
                 .OrderBy(u => u.Name)
                 .Skip(10)
                 .Take(5);
-            
+
             var results = await ((D1Queryable<User>)query).ToListAsync();
 
             // Assert

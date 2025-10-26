@@ -46,13 +46,13 @@ namespace CloudflareD1.NET.Linq
         /// <code>
         /// // Create queryable - no query sent yet
         /// IQueryable&lt;User&gt; query = client.AsQueryable&lt;User&gt;("users");
-        /// 
+        ///
         /// // Compose query - still no query sent
         /// var adults = query
         ///     .Where(u => u.Age >= 18)
         ///     .OrderBy(u => u.Name)
         ///     .Select(u => new { u.Id, u.Name });
-        /// 
+        ///
         /// // Now execute - query is sent to D1
         /// var results = await ((D1Queryable&lt;User&gt;)adults).ToListAsync();
         /// </code>

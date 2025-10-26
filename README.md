@@ -30,7 +30,8 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🧪 **Well Tested** - Comprehensive test coverage
 
 ### LINQ Package (CloudflareD1.NET.Linq)
-- ✨ **IQueryable<T> Support** - Standard LINQ with deferred execution (NEW in v1.3.0)
+- ✨ **IQueryable<T> Support** - Standard LINQ with deferred execution (v1.3.0+)
+- 🎯 **Select() Projections** - Project to DTOs with computed properties (NEW in v1.4.0)
 - 🎯 **Type-Safe Queries** - `QueryAsync<T>()` with automatic entity mapping
 - 🗺️ **Automatic Mapping** - Snake_case columns to PascalCase properties  
 - 💪 **Strongly Typed** - Compile-time type checking for queries

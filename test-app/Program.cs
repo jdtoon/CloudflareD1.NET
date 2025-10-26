@@ -551,7 +551,78 @@ try
     Console.WriteLine("✅ IQueryable<T> Tests Completed!");
     Console.WriteLine("========================================");
 
-    Console.WriteLine("Step 30: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("========================================");
+    Console.WriteLine("Testing IQueryable<T> Select() Projections");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 42: Simple Select() projection...");
+    var simpleProjection = client.AsQueryable<TestUser>("test_users")
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var summaries = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)simpleProjection).ToListAsync();
+    Console.WriteLine($"✓ Retrieved {summaries.Count()} user summaries");
+    if (summaries.Any())
+    {
+        Console.WriteLine($"  First: ID={summaries.First().Id}, Name={summaries.First().Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 43: Select() with Where() filter...");
+    var filteredProjection = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 21)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var adultSummaries = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)filteredProjection).ToListAsync();
+    Console.WriteLine($"✓ Retrieved {adultSummaries.Count()} adult users (21+)");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 44: Select() with OrderBy()...");
+    var orderedProjection = client.AsQueryable<TestUser>("test_users")
+        .OrderBy(u => u.Name)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var sortedSummaries = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)orderedProjection).ToListAsync();
+    Console.WriteLine($"✓ Retrieved {sortedSummaries.Count()} users ordered by name");
+    if (sortedSummaries.Any())
+    {
+        Console.WriteLine($"  First (alphabetically): {sortedSummaries.First().Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 45: Select() with pagination...");
+    var pagedProjection = client.AsQueryable<TestUser>("test_users")
+        .OrderBy(u => u.Id)
+        .Skip(1)
+        .Take(2)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var pagedSummaries = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)pagedProjection).ToListAsync();
+    Console.WriteLine($"✓ Retrieved {pagedSummaries.Count()} users (page 2, size 2)");
+    foreach (var user in pagedSummaries)
+    {
+        Console.WriteLine($"  ID={user.Id}, Name={user.Name}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 46: Select() with complex chain (Where + OrderBy + Take)...");
+    var complexProjection = client.AsQueryable<TestUser>("test_users")
+        .Where(u => u.Age >= 18)
+        .OrderByDescending(u => u.Age)
+        .Take(3)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var topAdults = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)complexProjection).ToListAsync();
+    Console.WriteLine($"✓ Retrieved top {topAdults.Count()} oldest adults");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 47: Select() projection with FirstOrDefaultAsync()...");
+    var firstProjection = client.AsQueryable<TestUser>("test_users")
+        .OrderBy(u => u.Id)
+        .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+    var firstProjectedUser = await ((CloudflareD1.NET.Linq.Query.D1ProjectionQueryable<UserSummary>)firstProjection).FirstOrDefaultAsync();
+    Console.WriteLine($"✓ First user: {(firstProjectedUser != null ? $"ID={firstProjectedUser.Id}, Name={firstProjectedUser.Name}" : "None")}");
+    Console.WriteLine();
+
+    Console.WriteLine("========================================");
+    Console.WriteLine("✅ IQueryable<T> Select() Tests Completed!");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 48: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }

@@ -12,7 +12,8 @@ dotnet add package CloudflareD1.NET.Linq
 
 ## Features
 
-- ✅ **IQueryable<T> support** - Standard LINQ query syntax with deferred execution (NEW in v1.3.0)
+- ✅ **IQueryable<T> support** - Standard LINQ query syntax with deferred execution (v1.3.0+)
+- ✅ **Select() projections** - Project to DTOs with computed properties (NEW in v1.4.0)
 - ✅ **Fluent query builder** - Chain methods like `.Where()`, `.OrderBy()`, `.Take()`, `.Skip()`
 - ✅ **Generic query methods** - `QueryAsync<T>()`, `QueryFirstOrDefaultAsync<T>()`, etc.
 - ✅ **Automatic entity mapping** - Maps query results to strongly-typed objects
@@ -135,6 +136,56 @@ var firstUser = await ((D1Queryable<User>)firstQuery).FirstOrDefaultAsync();
 var anyQuery = client.AsQueryable<User>("users")
     .Where(u => u.Age >= 65);
 var hasSeniors = await ((D1Queryable<User>)anyQuery).AnyAsync();
+```
+
+**Select() Projections (NEW in v1.4.0):**
+
+Project query results into DTOs or custom types:
+
+```csharp
+// Define a DTO
+public class UserSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+// Simple projection
+var summaries = client.AsQueryable<User>("users")
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+var results = await ((D1ProjectionQueryable<UserSummary>)summaries).ToListAsync();
+
+// With computed properties
+public class UserWithAge
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public bool IsAdult { get; set; }
+}
+
+var withComputed = client.AsQueryable<User>("users")
+    .Select(u => new UserWithAge
+    {
+        Name = u.Name,
+        Age = u.Age,
+        IsAdult = u.Age >= 18  // Computed
+    });
+var computed = await ((D1ProjectionQueryable<UserWithAge>)withComputed).ToListAsync();
+
+// Combine with filtering and sorting
+var adultSummaries = client.AsQueryable<User>("users")
+    .Where(u => u.IsActive)
+    .OrderBy(u => u.Name)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+var filtered = await ((D1ProjectionQueryable<UserSummary>)adultSummaries).ToListAsync();
+
+// With pagination
+var paged = client.AsQueryable<User>("users")
+    .OrderBy(u => u.Id)
+    .Skip(10)
+    .Take(5)
+    .Select(u => new UserSummary { Id = u.Id, Name = u.Name });
+var pageResults = await ((D1ProjectionQueryable<UserSummary>)paged).ToListAsync();
 ```
 
 **Key Benefits of IQueryable:**

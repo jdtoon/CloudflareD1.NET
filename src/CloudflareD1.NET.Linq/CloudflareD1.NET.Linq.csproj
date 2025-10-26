@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.3.0: IQueryable&lt;T&gt; Support - Added full IQueryable&lt;T&gt; implementation with deferred execution. New AsQueryable&lt;T&gt;() extension method creates composable queries. Supports Where, OrderBy, OrderByDescending, ThenBy, ThenByDescending, Take, Skip. D1QueryProvider translates expression trees to SQL. Includes ToListAsync, CountAsync, FirstOrDefaultAsync, SingleAsync, AnyAsync terminal operations. 11 new unit tests (120 total). Fully backward compatible with existing Query&lt;T&gt;() builder.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.4.0: Select() Projection Support - Added full Select() support for IQueryable&lt;T&gt; with projection to DTOs and computed properties. New D1ProjectionQueryable&lt;TResult&gt; wraps projection results. D1QueryProvider handles expression tree translation for Select(). Supports chaining with Where, OrderBy, Take, Skip before projection. Computed properties enable calculations like IsAdult = Age >= 18. All projection terminal operations supported: ToListAsync, FirstOrDefaultAsync, CountAsync, AnyAsync. 10 new Select() unit tests (132 total). 6 integration test examples. Fully backward compatible.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
