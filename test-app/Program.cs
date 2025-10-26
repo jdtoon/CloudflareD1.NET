@@ -156,7 +156,7 @@ try
     var allUsers = await client.Query<TestUser>("test_users")
         .ToListAsync();
     Console.WriteLine($"✓ Query builder found {allUsers.Count()} total users");
-    
+
     var queryResults = await client.Query<TestUser>("test_users")
         .Where("email LIKE ?", "%@example.com")
         .ToListAsync();
@@ -214,14 +214,81 @@ try
     }
     Console.WriteLine();
 
-    Console.WriteLine("Step 13: Getting total count...");
+    Console.WriteLine("Step 13: Testing Query Builder - ThenBy for multi-column sorting...");
+    var multiSortUsers = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .OrderBy("name")
+        .ThenByDescending("id")
+        .ToListAsync();
+    Console.WriteLine($"✓ Multi-column sort (name ASC, then id DESC): {multiSortUsers.Count()} users");
+    foreach (var u in multiSortUsers.Take(2))
+    {
+        Console.WriteLine($"   - Name: {u.Name}, ID: {u.Id}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 14: Testing Query Builder - FirstOrDefaultAsync...");
+    var firstFromBuilder = await client.Query<TestUser>("test_users")
+        .Where("email LIKE ?", "%@example.com")
+        .OrderBy("id")
+        .FirstOrDefaultAsync();
+    Console.WriteLine($"✓ First user from builder: {firstFromBuilder?.Name ?? "null"}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 15: Testing Query Builder - SingleAsync (should throw if not exactly 1)...");
+    try
+    {
+        // This should throw because we have multiple users
+        var single = await client.Query<TestUser>("test_users")
+            .Where("email LIKE ?", "%@example.com")
+            .SingleAsync();
+        Console.WriteLine($"✗ Should have thrown but got: {single.Name}");
+    }
+    catch (InvalidOperationException)
+    {
+        Console.WriteLine("✓ SingleAsync correctly threw InvalidOperationException for multiple results");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 16: Testing extension QuerySingleAsync (should throw if not exactly 1)...");
+    try
+    {
+        // This should succeed - get single user by ID
+        var singleUser = await client.QuerySingleAsync<TestUser>(
+            "SELECT * FROM test_users WHERE id = @id",
+            new { id = orderedUsers.First().Id }
+        );
+        Console.WriteLine($"✓ QuerySingleAsync returned: {singleUser.Name}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"✗ QuerySingleAsync failed: {ex.Message}");
+    }
+    Console.WriteLine();
+
+    Console.WriteLine("Step 17: Testing extension QuerySingleOrDefaultAsync...");
+    var singleOrDefault = await client.QuerySingleOrDefaultAsync<TestUser>(
+        "SELECT * FROM test_users WHERE id = @id",
+        new { id = orderedUsers.First().Id }
+    );
+    Console.WriteLine($"✓ QuerySingleOrDefaultAsync returned: {singleOrDefault?.Name ?? "null"}");
+
+    // Test with no results
+    var noResult = await client.QuerySingleOrDefaultAsync<TestUser>(
+        "SELECT * FROM test_users WHERE id = @id",
+        new { id = 999999 }
+    );
+    Console.WriteLine($"✓ QuerySingleOrDefaultAsync with no results returned: {(noResult == null ? "null" : "value")}");
+    Console.WriteLine();
+
+    Console.WriteLine("Step 18: Getting total count...");
     var countResult = await client.QueryAsync("SELECT COUNT(*) as total FROM test_users");
     if (countResult.Results != null && countResult.Results.Count > 0)
     {
         Console.WriteLine($"✓ Total users in database: {countResult.Results[0]["total"]}\n");
     }
 
-    Console.WriteLine("Step 14: Cleaning up test data (optional - comment out if you want to keep)...");
+    Console.WriteLine("Step 19: Cleaning up test data (optional - comment out if you want to keep)...");
     var deleteResult = await client.ExecuteAsync(
         "DELETE FROM test_users WHERE email LIKE @pattern",
         new { pattern = "%@example.com" }
