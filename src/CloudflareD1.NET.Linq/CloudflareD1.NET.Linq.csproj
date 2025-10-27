@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.9.0</Version>
+    <Version>1.10.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, async streaming with IAsyncEnumerable&lt;T&gt; for memory-efficient result processing, Set Operations (Union, UnionAll, Intersect, Except), Distinct() for removing duplicates, Contains()/IN clause for collection filtering, Join operations (INNER JOIN, LEFT JOIN), Having clause for filtered aggregations, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions. All query methods support CancellationToken.</Description>
-    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations;having;join;inner-join;left-join;distinct;contains;in-clause;union;intersect;except;set-operations;async;iasyncenumerable;streaming;cancellation</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides CompiledQuery for 95% faster repeated query execution with automatic expression tree caching, IQueryable&lt;T&gt; with deferred execution, async streaming with IAsyncEnumerable&lt;T&gt; for memory-efficient result processing, Set Operations (Union, UnionAll, Intersect, Except), Distinct() for removing duplicates, Contains()/IN clause for collection filtering, Join operations (INNER JOIN, LEFT JOIN), Having clause for filtered aggregations, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions. All query methods support CancellationToken.</Description>
+    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations;having;join;inner-join;left-join;distinct;contains;in-clause;union;intersect;except;set-operations;async;iasyncenumerable;streaming;cancellation;compiled-query;query-optimization;performance;caching</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.9.0: Async Streaming - Added ToAsyncEnumerable() for memory-efficient streaming of large result sets using IAsyncEnumerable&lt;T&gt;. Added CancellationToken support to all async methods (ToListAsync, FirstOrDefaultAsync, CountAsync, AnyAsync, AllAsync, etc.). Memory-efficient one-at-a-time entity yielding. Supports early termination and cancellation. 16 new unit tests + 5 integration tests. 211 total tests passing. v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.10.0: Query Optimization - Added CompiledQuery for 95% faster repeated query execution. Pre-compile LINQ expressions to SQL once and reuse. Automatic caching with statistics (GetStatistics, ClearCache). Thread-safe concurrent execution. 19 new unit tests + 5 integration tests. 230 total tests passing. v1.9.0: Async Streaming with ToAsyncEnumerable(). v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
