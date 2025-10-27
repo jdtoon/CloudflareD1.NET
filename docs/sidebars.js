@@ -32,6 +32,14 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Code-First',
+      items: [
+        'code-first/overview',
+        'code-first/recipes',
+      ],
+    },
+    {
+      type: 'category',
       label: 'LINQ Package',
       items: [
         'linq/intro',

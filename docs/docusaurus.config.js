@@ -24,7 +24,12 @@ const config = {
   projectName: 'CloudflareD1.NET', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  // Moved onBrokenMarkdownLinks to markdown.hooks to satisfy v4 migration warning
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you

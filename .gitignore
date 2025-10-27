@@ -402,4 +402,3 @@ docs/build/
 docs/node_modules/
 docs/.cache/
 docs/yarn.lock
-docs/package-lock.json

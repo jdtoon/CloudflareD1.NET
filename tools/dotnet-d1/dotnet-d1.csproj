@@ -30,11 +30,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\CloudflareD1.NET\CloudflareD1.NET.csproj" />
     <ProjectReference Include="..\..\src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />
+    <ProjectReference Include="..\..\src\CloudflareD1.NET.Linq\CloudflareD1.NET.Linq.csproj" />
+    <ProjectReference Include="..\..\src\CloudflareD1.NET.CodeFirst\CloudflareD1.NET.CodeFirst.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.10" />
+    <PackageReference Include="System.Text.Json" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.10" />
   </ItemGroup>
 
 </Project>

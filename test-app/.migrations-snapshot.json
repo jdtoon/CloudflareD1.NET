@@ -1,0 +1,109 @@
+{
+  "Tables": [
+    {
+      "Name": "orders",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "customer_id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "total",
+          "Type": "REAL",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "status",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "order_date",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "customer",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [
+        {
+          "Name": "ix_orders_customer_id",
+          "Sql": "CREATE INDEX ix_orders_customer_id ON orders (customer_id)"
+        },
+        {
+          "Name": "ix_orders_status",
+          "Sql": "CREATE INDEX ix_orders_status ON orders (status)"
+        }
+      ],
+      "ForeignKeys": [
+        {
+          "Column": "customer_id",
+          "ReferencedTable": "customers",
+          "ReferencedColumn": "id",
+          "OnDelete": "CASCADE"
+        }
+      ]
+    },
+    {
+      "Name": "customers",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "first_name",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "last_name",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "email",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "created_at",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [
+        {
+          "Name": "ix_customers_email",
+          "Sql": "CREATE UNIQUE INDEX ix_customers_email ON customers (email)"
+        },
+        {
+          "Name": "ix_customers_first_name_last_name",
+          "Sql": "CREATE INDEX ix_customers_first_name_last_name ON customers (first_name, last_name)"
+        }
+      ],
+      "ForeignKeys": []
+    }
+  ]
+}
