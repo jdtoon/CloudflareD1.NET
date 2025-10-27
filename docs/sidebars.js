@@ -35,6 +35,7 @@ const sidebars = {
       label: 'Code-First',
       items: [
         'code-first/overview',
+        'code-first/recipes',
       ],
     },
     {
