@@ -87,6 +87,19 @@ public class MigrationScaffolder
             sb.AppendLine(";");
         }
 
+        // Add foreign keys as table constraints
+        foreach (var fk in table.ForeignKeys)
+        {
+            if (!string.IsNullOrEmpty(fk.OnDelete))
+            {
+                sb.AppendLine($"            t.ForeignKey(\"{fk.Column}\", \"{fk.ReferencedTable}\", \"{fk.ReferencedColumn}\", \"{fk.OnDelete}\");");
+            }
+            else
+            {
+                sb.AppendLine($"            t.ForeignKey(\"{fk.Column}\", \"{fk.ReferencedTable}\", \"{fk.ReferencedColumn}\");");
+            }
+        }
+
         sb.Append("        });");
         return sb.ToString();
     }

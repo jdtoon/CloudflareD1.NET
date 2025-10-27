@@ -69,6 +69,31 @@ public class SchemaIntrospector
             }
 
             schema.Tables.Add(table);
+
+            // Get foreign keys for this table
+            var fkResult = await _client.QueryAsync($"PRAGMA foreign_key_list({tableName})");
+            if (fkResult.Results != null)
+            {
+                foreach (var fkRow in fkResult.Results)
+                {
+                    // Columns: id, seq, table, from, to, on_update, on_delete, match
+                    var referencedTable = fkRow.TryGetValue("table", out var tname) && tname != null ? tname.ToString()! : "";
+                    var fromCol = fkRow.TryGetValue("from", out var from) && from != null ? from.ToString()! : "";
+                    var toCol = fkRow.TryGetValue("to", out var to) && to != null ? to.ToString()! : "id";
+                    var onDelete = fkRow.TryGetValue("on_delete", out var od) && od != null ? od.ToString() : null;
+
+                    if (!string.IsNullOrEmpty(fromCol) && !string.IsNullOrEmpty(referencedTable))
+                    {
+                        table.ForeignKeys.Add(new ForeignKeySchema
+                        {
+                            Column = fromCol,
+                            ReferencedTable = referencedTable,
+                            ReferencedColumn = string.IsNullOrEmpty(toCol) ? "id" : toCol,
+                            OnDelete = onDelete
+                        });
+                    }
+                }
+            }
         }
 
         return schema;
@@ -91,6 +116,7 @@ public class TableSchema
     public string Name { get; set; } = string.Empty;
     public List<ColumnSchema> Columns { get; set; } = new();
     public List<IndexSchema> Indexes { get; set; } = new();
+    public List<ForeignKeySchema> ForeignKeys { get; set; } = new();
 }
 
 /// <summary>
@@ -112,4 +138,15 @@ public class IndexSchema
 {
     public string Name { get; set; } = string.Empty;
     public string? Sql { get; set; }
+}
+
+/// <summary>
+/// Represents a foreign key constraint
+/// </summary>
+public class ForeignKeySchema
+{
+    public string Column { get; set; } = string.Empty;
+    public string ReferencedTable { get; set; } = string.Empty;
+    public string ReferencedColumn { get; set; } = string.Empty;
+    public string? OnDelete { get; set; }
 }

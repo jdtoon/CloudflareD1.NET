@@ -13,6 +13,57 @@ namespace CloudflareD1.NET.CodeFirst;
 public class ModelBuilder
 {
     private readonly Dictionary<Type, EntityTypeBuilder> _entityBuilders = new();
+    // Stores fluent relationship configurations collected via HasOne/HasMany
+    private readonly List<RelationshipConfiguration> _relationships = new();
+
+    internal class RelationshipConfiguration
+    {
+        public Type PrincipalType { get; set; } = null!; // referenced
+        public Type DependentType { get; set; } = null!; // has FK
+        public string? PrincipalNavigation { get; set; }
+        public string? DependentNavigation { get; set; }
+        public string? ForeignKeyProperty { get; set; }
+        public string? PrincipalKeyProperty { get; set; }
+        public bool IsRequired { get; set; }
+        public DeleteBehavior DeleteBehavior { get; set; } = DeleteBehavior.NoAction;
+    }
+
+    // Called by relationship builders
+    internal void AddRelationship(Type principalType, Type dependentType, string? principalNavigation, string? dependentNavigation, bool isRequired)
+    {
+        _relationships.Add(new RelationshipConfiguration
+        {
+            PrincipalType = principalType,
+            DependentType = dependentType,
+            PrincipalNavigation = principalNavigation,
+            DependentNavigation = dependentNavigation,
+            IsRequired = isRequired
+        });
+    }
+
+    internal void SetForeignKeyProperty(Type dependentType, Type principalType, string foreignKeyProperty)
+    {
+        var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
+        if (rel != null) rel.ForeignKeyProperty = foreignKeyProperty;
+    }
+
+    internal void SetPrincipalKeyProperty(Type dependentType, Type principalType, string principalKeyProperty)
+    {
+        var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
+        if (rel != null) rel.PrincipalKeyProperty = principalKeyProperty;
+    }
+
+    internal void SetRelationshipRequired(Type dependentType, Type principalType)
+    {
+        var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
+        if (rel != null) rel.IsRequired = true;
+    }
+
+    internal void SetDeleteBehavior(Type dependentType, Type principalType, DeleteBehavior deleteBehavior)
+    {
+        var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
+        if (rel != null) rel.DeleteBehavior = deleteBehavior;
+    }
 
     /// <summary>
     /// Configures an entity type
@@ -133,32 +184,79 @@ public class ModelBuilder
 
     private void BuildForeignKeys(EntityTypeMetadata metadata, EntityTypeBuilder builder)
     {
+        // 1) Fluent API relationships
+        foreach (var rel in _relationships.Where(r => r.DependentType == metadata.ClrType))
+        {
+            var fk = new ForeignKeyMetadata
+            {
+                PrincipalType = rel.PrincipalType,
+                DependentType = rel.DependentType,
+                OnDelete = GetSqlDeleteBehavior(rel.DeleteBehavior)
+            };
+
+            // Resolve FK property: explicit or convention {Principal}Id
+            PropertyMetadata? fkProp = null;
+            if (!string.IsNullOrWhiteSpace(rel.ForeignKeyProperty))
+            {
+                fkProp = metadata.Properties.FirstOrDefault(p => p.PropertyInfo.Name.Equals(rel.ForeignKeyProperty, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                var conventionName = rel.PrincipalType.Name + "Id";
+                fkProp = metadata.Properties.FirstOrDefault(p => p.PropertyInfo.Name.Equals(conventionName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (fkProp != null)
+            {
+                fk.DependentProperties.Add(fkProp);
+                if (rel.IsRequired)
+                {
+                    fkProp.IsRequired = true;
+                }
+            }
+
+            metadata.ForeignKeys.Add(fk);
+        }
+
+        // 2) [ForeignKey] attribute on FK property pointing to navigation
         foreach (var prop in metadata.ClrType.GetProperties())
         {
             var fkAttr = prop.GetCustomAttribute<ForeignKeyAttribute>();
-            if (fkAttr != null)
+            if (fkAttr == null) continue;
+
+            var navProp = metadata.ClrType.GetProperty(fkAttr.Name);
+            if (navProp == null || navProp.PropertyType == typeof(string)) continue;
+
+            // If a matching fluent relationship already exists, skip attribute to avoid duplicates
+            if (_relationships.Any(r => r.DependentType == metadata.ClrType && r.PrincipalType == navProp.PropertyType))
+                continue;
+
+            var fkMetadata = new ForeignKeyMetadata
             {
-                // Find the navigation property referenced by the FK attribute
-                var navProp = metadata.ClrType.GetProperty(fkAttr.Name);
-                if (navProp != null && navProp.PropertyType != typeof(string))
-                {
-                    var fkMetadata = new ForeignKeyMetadata
-                    {
-                        PrincipalType = navProp.PropertyType,
-                        DependentType = metadata.ClrType
-                    };
+                PrincipalType = navProp.PropertyType,
+                DependentType = metadata.ClrType
+            };
 
-                    // Add the foreign key property
-                    var fkPropMetadata = metadata.Properties.FirstOrDefault(p => p.PropertyInfo == prop);
-                    if (fkPropMetadata != null)
-                    {
-                        fkMetadata.DependentProperties.Add(fkPropMetadata);
-                    }
-
-                    metadata.ForeignKeys.Add(fkMetadata);
-                }
+            var fkPropMetadata = metadata.Properties.FirstOrDefault(p => p.PropertyInfo == prop);
+            if (fkPropMetadata != null)
+            {
+                fkMetadata.DependentProperties.Add(fkPropMetadata);
             }
+
+            metadata.ForeignKeys.Add(fkMetadata);
         }
+    }
+
+    private string? GetSqlDeleteBehavior(DeleteBehavior behavior)
+    {
+        return behavior switch
+        {
+            DeleteBehavior.NoAction => "NO ACTION",
+            DeleteBehavior.Cascade => "CASCADE",
+            DeleteBehavior.SetNull => "SET NULL",
+            DeleteBehavior.Restrict => "RESTRICT",
+            _ => null
+        };
     }
 
     private string GetDefaultTableName(Type entityType)

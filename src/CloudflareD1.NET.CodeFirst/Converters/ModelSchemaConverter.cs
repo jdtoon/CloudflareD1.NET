@@ -34,7 +34,26 @@ public static class ModelSchemaConverter
                 table.Columns.Add(col);
             }
 
-            // Indexes are not yet modeled in CodeFirst MVP
+            // Foreign keys (if any)
+            foreach (var fk in entity.ForeignKeys)
+            {
+                // Resolve dependent (FK) column name
+                var fkProp = fk.DependentProperties.FirstOrDefault();
+                if (fkProp == null) continue;
+
+                // Resolve principal table and key column
+                var principal = model.GetEntity(fk.PrincipalType);
+                var principalTable = principal?.TableName ?? ModelSchemaConverterHelpers.ToSnakeCase(ModelSchemaConverterHelpers.Pluralize(fk.PrincipalType.Name));
+                var principalKeyCol = principal?.PrimaryKey.FirstOrDefault()?.ColumnName ?? "id";
+
+                table.ForeignKeys.Add(new ForeignKeySchema
+                {
+                    Column = fkProp.ColumnName,
+                    ReferencedTable = principalTable,
+                    ReferencedColumn = principalKeyCol,
+                    OnDelete = fk.OnDelete
+                });
+            }
 
             db.Tables.Add(table);
         }
@@ -52,5 +71,29 @@ public static class ModelSchemaConverter
         if (type == typeof(byte[]))
             return "BLOB";
         return "TEXT";
+    }
+}
+
+internal static class ModelSchemaConverterHelpers
+{
+    public static string ToSnakeCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        var sb = new System.Text.StringBuilder();
+        sb.Append(char.ToLowerInvariant(input[0]));
+        for (int i = 1; i < input.Length; i++)
+        {
+            var c = input[i];
+            if (char.IsUpper(c)) { sb.Append('_'); sb.Append(char.ToLowerInvariant(c)); }
+            else sb.Append(c);
+        }
+        return sb.ToString();
+    }
+
+    public static string Pluralize(string name)
+    {
+        // very naive pluralization for now
+        if (name.EndsWith("s", StringComparison.OrdinalIgnoreCase)) return name;
+        return name + "s";
     }
 }

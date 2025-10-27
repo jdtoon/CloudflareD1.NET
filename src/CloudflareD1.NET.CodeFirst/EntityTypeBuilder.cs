@@ -71,29 +71,27 @@ public class EntityTypeBuilder<TEntity> : EntityTypeBuilder where TEntity : clas
     /// <summary>
     /// Configures a one-to-many relationship
     /// </summary>
-    public EntityTypeBuilder<TEntity> HasMany<TRelated>(
+    public ReferenceCollectionBuilder<TEntity, TRelated> HasMany<TRelated>(
         Expression<Func<TEntity, System.Collections.Generic.IEnumerable<TRelated>?>> navigationExpression)
         where TRelated : class
     {
         if (navigationExpression == null)
             throw new ArgumentNullException(nameof(navigationExpression));
 
-        // Relationship configuration - implementation deferred for MVP
-        return this;
+        return new ReferenceCollectionBuilder<TEntity, TRelated>(_modelBuilder, navigationExpression);
     }
 
     /// <summary>
     /// Configures a many-to-one relationship
     /// </summary>
-    public EntityTypeBuilder<TEntity> HasOne<TRelated>(
+    public ReferenceReferenceBuilder<TRelated, TEntity> HasOne<TRelated>(
         Expression<Func<TEntity, TRelated?>> navigationExpression)
         where TRelated : class
     {
         if (navigationExpression == null)
             throw new ArgumentNullException(nameof(navigationExpression));
 
-        // Relationship configuration - implementation deferred for MVP
-        return this;
+        return new ReferenceReferenceBuilder<TRelated, TEntity>(_modelBuilder, navigationExpression);
     }
 }
 

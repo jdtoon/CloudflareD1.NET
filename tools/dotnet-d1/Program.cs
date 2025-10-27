@@ -108,10 +108,38 @@ class Program
                 return;
             }
 
-            // Build model metadata using our CodeFirst types to avoid type identity issues
+            // Build model metadata, preferring the context's OnModelCreating if possible
             Console.WriteLine("Building model metadata from context...");
-            var modelBuilder = new ModelBuilder();
-            var model = modelBuilder.Build(ctxType);
+            CloudflareD1.NET.CodeFirst.Metadata.ModelMetadata model;
+            object? ctxInstance = null;
+            try
+            {
+                // Try to create the context using a D1Client constructor
+                ctxInstance = Activator.CreateInstance(ctxType, client);
+            }
+            catch { /* fallback below */ }
+
+            if (ctxInstance != null)
+            {
+                var modelProp = ctxType.GetProperty("Model");
+                if (modelProp != null)
+                {
+                    model = (CloudflareD1.NET.CodeFirst.Metadata.ModelMetadata)modelProp.GetValue(ctxInstance)!;
+                }
+                else
+                {
+                    // Fallback: manual build (no OnModelCreating)
+                    var modelBuilder = new ModelBuilder();
+                    model = modelBuilder.Build(ctxType);
+                }
+            }
+            else
+            {
+                // Fallback: manual build (no OnModelCreating)
+                var modelBuilder = new ModelBuilder();
+                model = modelBuilder.Build(ctxType);
+            }
+
             Console.WriteLine($"✓ Discovered {model.Entities.Count} entity type(s)");
 
             var targetSchema = ModelSchemaConverter.ToDatabaseSchema(model);
