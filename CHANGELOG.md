@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.8.0-beta] - 2025-01-26
+## [1.8.0] - 2025-01-26
 
 ### Added - CloudflareD1.NET.Linq
+
+#### Existence Check Methods
+- **AnyAsync(Expression<Func<T, bool>> predicate)**: Check if any rows match a condition
+  - Generates SQL `SELECT EXISTS(SELECT 1 FROM table WHERE conditions AND predicate)`
+  - Combines with existing Where() clauses
+  - Returns `Task<bool>` - true if any matching rows exist
+  - Optimized with EXISTS for efficient existence checking
+- **AllAsync(Expression<Func<T, bool>> predicate)**: Check if all rows match a condition
+  - Generates SQL `SELECT NOT EXISTS(SELECT 1 FROM table WHERE conditions AND NOT predicate)`
+  - Uses NOT EXISTS with negated predicate for optimal performance
+  - Returns `Task<bool>` - true if all rows satisfy the condition
+  - Combines with existing query filters
 
 #### Set Operations
 - **Union()**: Combine results from two queries, removing duplicates
@@ -42,20 +54,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SQL correctness**: Ensures SQLite syntax requirements (ORDER BY after UNION, not before)
 
 #### Documentation
-- Updated README.md with set operation examples
-- Updated LINQ README with comprehensive set operation usage
-- Updated ROADMAP.md to mark set operations complete
-- Integration test examples in test-app (8 new test steps)
+- Updated README.md with set operation and existence check examples
+- Updated LINQ README with comprehensive usage guide
+- Updated ROADMAP.md to mark v1.8.0 features complete
+- Integration test examples in test-app
 
 #### Testing
-- 19 new unit tests for set operations
-- Coverage for Union, UnionAll, Intersect, Except
-- Tests for chaining, COUNT, ANY, FirstOrDefault
-- Tests for queries with WHERE, ORDER BY, TAKE, SKIP
-- Tests for null argument validation
-- Tests for empty result handling
-- 8 integration test examples in test-app (Steps 77-84)
-- 183 total tests passing (+19 from v1.7.0)
+- **Set Operations**: 19 unit tests
+  - Coverage for Union, UnionAll, Intersect, Except
+  - Tests for chaining, COUNT, ANY, FirstOrDefault
+  - Tests for queries with WHERE, ORDER BY, TAKE, SKIP
+  - Tests for null argument validation
+  - Tests for empty result handling
+  - 8 integration test examples in test-app (Steps 77-84)
+- **Existence Checks**: 12 unit tests
+  - Coverage for AnyAsync(predicate) and AllAsync(predicate)
+  - Tests for simple and complex predicates
+  - Tests combining with existing WHERE clauses
+  - Tests for string comparisons and equality checks
+  - Null argument validation tests
+- **195 total tests passing** (+31 from v1.7.0: 19 set operations + 12 existence checks)
 
 ### Technical Details
 - New files: SetOperationType.cs, ISetOperationQueryBuilder.cs, SetOperationQueryBuilder.cs

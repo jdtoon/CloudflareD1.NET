@@ -211,5 +211,21 @@ namespace CloudflareD1.NET.Linq.Query
         /// </summary>
         /// <returns>True if any records match, false otherwise.</returns>
         Task<bool> AnyAsync();
+
+        /// <summary>
+        /// Executes the query and returns whether any records match the predicate.
+        /// Uses EXISTS with a subquery containing the predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate expression to test.</param>
+        /// <returns>True if any records match the predicate, false otherwise.</returns>
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// Executes the query and returns whether all records match the predicate.
+        /// Uses NOT EXISTS with a subquery containing the negated predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate expression that all records must satisfy.</param>
+        /// <returns>True if all records match the predicate, false otherwise.</returns>
+        Task<bool> AllAsync(Expression<Func<T, bool>> predicate);
     }
 }

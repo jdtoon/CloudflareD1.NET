@@ -304,7 +304,7 @@ namespace CloudflareD1.NET.Tests.Query
             var result = await query1.Intersect(query2).Except(query3).ToListAsync();
 
             // Assert
-            // Age > 20: All except Bob and Eve (22 each) - actually includes them since 22 > 20 = 6 users 
+            // Age > 20: All except Bob and Eve (22 each) - actually includes them since 22 > 20 = 6 users
             // Age < 40: All except Frank (40) = 5 users
             // INTERSECT: Ages between 21-39: Bob (25), Alice (30), Charlie (35), David (28), Eve (22) = 5 users
             // EXCEPT is_active = 0 (Charlie, Eve): Bob, Alice, David = 3 users

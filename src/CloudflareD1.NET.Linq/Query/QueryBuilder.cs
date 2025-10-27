@@ -586,6 +586,88 @@ namespace CloudflareD1.NET.Linq.Query
             }
         }
 
+        /// <inheritdoc />
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            // Clone the WHERE clauses and parameters to preserve the current query state
+            var whereClauses = new List<string>(_whereClauses);
+            var parameters = new List<object>(_parameters);
+
+            // Translate the predicate to SQL
+            var visitor = new SqlExpressionVisitor(_mapper);
+            var predicateSql = visitor.Translate(predicate.Body);
+            var predicateParams = visitor.GetParameters();
+            
+            whereClauses.Add(predicateSql);
+            parameters.AddRange(predicateParams);
+
+            // Build subquery: SELECT 1 FROM table WHERE conditions
+            var sql = $"SELECT 1 FROM {_tableName}";
+            if (whereClauses.Count > 0)
+            {
+                sql += $" WHERE {string.Join(" AND ", whereClauses)}";
+            }
+
+            // Wrap in EXISTS check
+            var existsSql = $"SELECT EXISTS({sql}) as result";
+
+            // Execute the query
+            var result = await _client.QueryAsync(existsSql, parameters.ToArray());
+            var firstResult = result.Results.FirstOrDefault();
+            if (firstResult != null && firstResult.TryGetValue("result", out var value))
+            {
+                return Convert.ToInt32(value) == 1;
+            }
+            return false;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> AllAsync(Expression<Func<T, bool>> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+
+            // Clone the WHERE clauses and parameters to preserve the current query state
+            var whereClauses = new List<string>(_whereClauses);
+            var parameters = new List<object>(_parameters);
+
+            // Negate the predicate: NOT (predicate)
+            var negatedPredicate = Expression.Lambda<Func<T, bool>>(
+                Expression.Not(predicate.Body),
+                predicate.Parameters
+            );
+
+            // Translate the negated predicate to SQL
+            var visitor = new SqlExpressionVisitor(_mapper);
+            var predicateSql = visitor.Translate(negatedPredicate.Body);
+            var predicateParams = visitor.GetParameters();
+            
+            whereClauses.Add(predicateSql);
+            parameters.AddRange(predicateParams);
+
+            // Build subquery: SELECT 1 FROM table WHERE conditions AND NOT predicate
+            var sql = $"SELECT 1 FROM {_tableName}";
+            if (whereClauses.Count > 0)
+            {
+                sql += $" WHERE {string.Join(" AND ", whereClauses)}";
+            }
+
+            // Wrap in NOT EXISTS check
+            var notExistsSql = $"SELECT NOT EXISTS({sql}) as result";
+
+            // Execute the query
+            var result = await _client.QueryAsync(notExistsSql, parameters.ToArray());
+            var firstResult = result.Results.FirstOrDefault();
+            if (firstResult != null && firstResult.TryGetValue("result", out var value))
+            {
+                return Convert.ToInt32(value) == 1;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Builds the SQL query string from the current query builder state.
         /// </summary>
@@ -635,14 +717,14 @@ namespace CloudflareD1.NET.Linq.Query
         internal (string Sql, object[] Parameters) BuildSqlInternal()
         {
             var sql = BuildSql();
-            
+
             // If the query has ORDER BY, LIMIT, or OFFSET, wrap it as a subquery for set operations
             // This is required by SQLite - these clauses must come after the set operation, not before
             if (_orderByClauses.Count > 0 || _takeCount.HasValue || _skipCount.HasValue)
             {
                 sql = $"SELECT * FROM ({sql})";
             }
-            
+
             return (sql, _parameters.ToArray());
         }
 

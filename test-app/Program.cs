@@ -1116,10 +1116,46 @@ try
 
     Console.WriteLine("\n✅ Set Operations Tests Completed!");
 
+    // ============================================
+    // EXISTENCE CHECK TESTS (Steps 85-90)
+    // ============================================
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("TESTING: Existence Check Methods");
+    Console.WriteLine("========================================");
+
+    Console.WriteLine("\nStep 85: Query with AnyAsync(predicate) - simple condition...");
+    var hasUsersOver35 = await client.Query<TestUser>("test_users").AnyAsync(u => u.Age > 35);
+    Console.WriteLine($"✓ Any users over 35: {hasUsersOver35}");
+
+    Console.WriteLine("\nStep 86: Query with AnyAsync(predicate) - no matches...");
+    var hasUsersOver100 = await client.Query<TestUser>("test_users").AnyAsync(u => u.Age > 100);
+    Console.WriteLine($"✓ Any users over 100: {hasUsersOver100}");
+
+    Console.WriteLine("\nStep 87: Query with AnyAsync(predicate) - combining with Where...");
+    var hasYoungAlice = await client.Query<TestUser>("test_users")
+        .Where(u => u.Name == "Alice")
+        .AnyAsync(u => u.Age < 30);
+    Console.WriteLine($"✓ Any Alice under 30: {hasYoungAlice}");
+
+    Console.WriteLine("\nStep 88: Query with AllAsync(predicate) - all match...");
+    var allOver18 = await client.Query<TestUser>("test_users").AllAsync(u => u.Age > 18);
+    Console.WriteLine($"✓ All users over 18: {allOver18}");
+
+    Console.WriteLine("\nStep 89: Query with AllAsync(predicate) - not all match...");
+    var allOver40 = await client.Query<TestUser>("test_users").AllAsync(u => u.Age > 40);
+    Console.WriteLine($"✓ All users over 40: {allOver40}");
+
+    Console.WriteLine("\nStep 90: Query with AllAsync(predicate) - complex condition...");
+    var allActiveOrYoung = await client.Query<TestUser>("test_users")
+        .AllAsync(u => u.Age < 50 || u.Email != null);
+    Console.WriteLine($"✓ All users are either young or have email: {allActiveOrYoung}");
+
+    Console.WriteLine("\n✅ Existence Check Tests Completed!");
+
     Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, and set operations) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, and existence checks) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {
