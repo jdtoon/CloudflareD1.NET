@@ -972,6 +972,16 @@ try
     );
     Console.WriteLine($"✓ Deleted {deleteResult.Meta?.Changes} test row(s)\n");
 
+    // Recreate test data for remaining tests
+    Console.WriteLine("Step 69: Recreating test data for Distinct, Contains, Set Operations, and Existence tests...");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('Alice', 'alice@test.com', 30)");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('Bob', 'bob@test.com', 25)");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('Charlie', 'charlie@test.com', 35)");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('David', 'david@test.com', 28)");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('Eve', 'eve@test.com', 22)");
+    await client.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES ('Frank', 'frank@test.com', 40)");
+    Console.WriteLine("✓ Test data recreated\n");
+
     // Test Distinct() (v1.7.0)
     Console.WriteLine("\n========================================");
     Console.WriteLine("🧪 Testing Distinct() (v1.7.0)");
@@ -995,11 +1005,11 @@ try
     }
 
     Console.WriteLine("\nStep 73: Query distinct ages with Where...");
-    var distinctActiveUsers = await client.Query<TestUser>("test_users")
-        .Where("is_active = ?", 1)
+    var distinctYoungUsers = await client.Query<TestUser>("test_users")
+        .Where("age < ?", 30)
         .Distinct()
         .ToListAsync();
-    Console.WriteLine($"✓ Found {distinctActiveUsers.Count()} distinct active users\n");
+    Console.WriteLine($"✓ Found {distinctYoungUsers.Count()} distinct users under 30\n");
 
     // Test Contains()/IN clause (v1.7.0)
     Console.WriteLine("\n========================================");
@@ -1008,9 +1018,9 @@ try
 
     Console.WriteLine("Step 74: Query users with specific ages using IN clause...");
     var targetAges = new[] { 25, 30, 32 };
-    var usersWithAges = await client.AsQueryable<TestUser>("test_users")
-        .Where(u => targetAges.Contains(u.Age))
-        .ToListAsync();
+    var usersWithAgesQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => targetAges.Contains(u.Age));
+    var usersWithAges = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)usersWithAgesQuery).ToListAsync();
     Console.WriteLine($"✓ Found {usersWithAges.Count()} users with ages 25, 30, or 32");
     foreach (var user in usersWithAges)
     {
@@ -1019,9 +1029,9 @@ try
 
     Console.WriteLine("\nStep 75: Query users with specific names using IN clause...");
     var targetNames = new[] { "Alice", "Bob", "Charlie" };
-    var usersWithNames = await client.AsQueryable<TestUser>("test_users")
-        .Where(u => targetNames.Contains(u.Name))
-        .ToListAsync();
+    var usersWithNamesQuery = client.AsQueryable<TestUser>("test_users")
+        .Where(u => targetNames.Contains(u.Name));
+    var usersWithNames = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)usersWithNamesQuery).ToListAsync();
     Console.WriteLine($"✓ Found {usersWithNames.Count()} users named Alice, Bob, or Charlie");
     foreach (var user in usersWithNames)
     {
@@ -1029,10 +1039,10 @@ try
     }
 
     Console.WriteLine("\nStep 76: Query with Contains() and OrderBy...");
-    var usersWithAgesOrdered = await client.AsQueryable<TestUser>("test_users")
+    var usersWithAgesOrderedQuery = client.AsQueryable<TestUser>("test_users")
         .Where(u => targetAges.Contains(u.Age))
-        .OrderBy(u => u.Name)
-        .ToListAsync();
+        .OrderBy(u => u.Name);
+    var usersWithAgesOrdered = await ((CloudflareD1.NET.Linq.Query.D1Queryable<TestUser>)usersWithAgesOrderedQuery).ToListAsync();
     Console.WriteLine($"✓ Found {usersWithAgesOrdered.Count()} users, ordered by name");
     foreach (var user in usersWithAgesOrdered)
     {
@@ -1073,9 +1083,9 @@ try
     }
 
     Console.WriteLine("\nStep 80: Query with Except() - Users from first query not in second...");
-    var allUsers = client.Query<TestUser>("test_users");
+    var allUsersExcept = client.Query<TestUser>("test_users");
     var oldUsers = client.Query<TestUser>("test_users").Where("age >= ?", 35);
-    var notOldUsers = await allUsers.Except(oldUsers).ToListAsync();
+    var notOldUsers = await allUsersExcept.Except(oldUsers).ToListAsync();
     Console.WriteLine($"✓ Found {notOldUsers.Count()} users (age < 35)");
     foreach (var user in notOldUsers)
     {
@@ -1108,10 +1118,10 @@ try
     Console.WriteLine("\nStep 84: Query with Union().FirstOrDefaultAsync()...");
     var firstYoung = client.Query<TestUser>("test_users").Where("age < ?", 30);
     var firstSenior = client.Query<TestUser>("test_users").Where("age >= ?", 40);
-    var firstUser = await firstYoung.Union(firstSenior).FirstOrDefaultAsync();
-    if (firstUser != null)
+    var firstUnionUser = await firstYoung.Union(firstSenior).FirstOrDefaultAsync();
+    if (firstUnionUser != null)
     {
-        Console.WriteLine($"✓ First user from union: {firstUser.Name}, Age: {firstUser.Age}");
+        Console.WriteLine($"✓ First user from union: {firstUnionUser.Name}, Age: {firstUnionUser.Age}");
     }
 
     Console.WriteLine("\n✅ Set Operations Tests Completed!");

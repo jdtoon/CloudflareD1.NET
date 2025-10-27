@@ -110,7 +110,7 @@ public class AnyAllTests : IDisposable
         var queryBuilder = _client.Query<User>("users");
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             queryBuilder.AnyAsync(null!));
     }
 
@@ -161,7 +161,7 @@ public class AnyAllTests : IDisposable
         var queryBuilder = _client.Query<User>("users");
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             queryBuilder.AllAsync(null!));
     }
 

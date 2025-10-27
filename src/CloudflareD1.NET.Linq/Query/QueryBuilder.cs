@@ -600,7 +600,7 @@ namespace CloudflareD1.NET.Linq.Query
             var visitor = new SqlExpressionVisitor(_mapper);
             var predicateSql = visitor.Translate(predicate.Body);
             var predicateParams = visitor.GetParameters();
-            
+
             whereClauses.Add(predicateSql);
             parameters.AddRange(predicateParams);
 
@@ -644,7 +644,7 @@ namespace CloudflareD1.NET.Linq.Query
             var visitor = new SqlExpressionVisitor(_mapper);
             var predicateSql = visitor.Translate(negatedPredicate.Body);
             var predicateParams = visitor.GetParameters();
-            
+
             whereClauses.Add(predicateSql);
             parameters.AddRange(predicateParams);
 
