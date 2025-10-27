@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>dotnet_d1</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Global Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-d1</ToolCommandName>
+    <PackageId>dotnet-d1</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Junaid Desai</Authors>
+    <Company>CloudflareD1.NET</Company>
+    <Product>dotnet-d1</Product>
+    <Description>Command-line tool for managing Cloudflare D1 database migrations. Provides commands for creating, applying, and rolling back migrations for CloudflareD1.NET applications.</Description>
+    <PackageTags>cloudflare;d1;migrations;cli;tool;database</PackageTags>
+    <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReleaseNotes>v1.0.0: Initial release with migration commands: add, update, list, rollback.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+</Project>
