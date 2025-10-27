@@ -149,6 +149,34 @@ namespace CloudflareD1.NET.Linq.Query
         IQueryBuilder<T> Distinct();
 
         /// <summary>
+        /// Combines this query with another using UNION (removes duplicates).
+        /// </summary>
+        /// <param name="other">The other query to combine with.</param>
+        /// <returns>A set operation query builder.</returns>
+        ISetOperationQueryBuilder<T> Union(IQueryBuilder<T> other);
+
+        /// <summary>
+        /// Combines this query with another using UNION ALL (keeps duplicates).
+        /// </summary>
+        /// <param name="other">The other query to combine with.</param>
+        /// <returns>A set operation query builder.</returns>
+        ISetOperationQueryBuilder<T> UnionAll(IQueryBuilder<T> other);
+
+        /// <summary>
+        /// Returns rows that appear in both this query and another (INTERSECT).
+        /// </summary>
+        /// <param name="other">The other query to intersect with.</param>
+        /// <returns>A set operation query builder.</returns>
+        ISetOperationQueryBuilder<T> Intersect(IQueryBuilder<T> other);
+
+        /// <summary>
+        /// Returns rows from this query that don't appear in another (EXCEPT).
+        /// </summary>
+        /// <param name="other">The other query to exclude.</param>
+        /// <returns>A set operation query builder.</returns>
+        ISetOperationQueryBuilder<T> Except(IQueryBuilder<T> other);
+
+        /// <summary>
         /// Executes the query and returns all matching entities.
         /// </summary>
         /// <returns>A list of entities matching the query.</returns>

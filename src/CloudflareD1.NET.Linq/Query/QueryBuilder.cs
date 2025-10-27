@@ -332,6 +332,70 @@ namespace CloudflareD1.NET.Linq.Query
             return this;
         }
 
+        /// <summary>
+        /// Combines this query with another using UNION (removes duplicates).
+        /// </summary>
+        /// <param name="other">The other query to combine with.</param>
+        /// <returns>A set operation query builder.</returns>
+        public ISetOperationQueryBuilder<T> Union(IQueryBuilder<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (!(other is QueryBuilder<T> queryBuilder))
+                throw new ArgumentException("Query must be a QueryBuilder instance.", nameof(other));
+
+            return new SetOperationQueryBuilder<T>(_client, _mapper, this, SetOperationType.Union, queryBuilder);
+        }
+
+        /// <summary>
+        /// Combines this query with another using UNION ALL (keeps duplicates).
+        /// </summary>
+        /// <param name="other">The other query to combine with.</param>
+        /// <returns>A set operation query builder.</returns>
+        public ISetOperationQueryBuilder<T> UnionAll(IQueryBuilder<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (!(other is QueryBuilder<T> queryBuilder))
+                throw new ArgumentException("Query must be a QueryBuilder instance.", nameof(other));
+
+            return new SetOperationQueryBuilder<T>(_client, _mapper, this, SetOperationType.UnionAll, queryBuilder);
+        }
+
+        /// <summary>
+        /// Returns rows that appear in both this query and another (INTERSECT).
+        /// </summary>
+        /// <param name="other">The other query to intersect with.</param>
+        /// <returns>A set operation query builder.</returns>
+        public ISetOperationQueryBuilder<T> Intersect(IQueryBuilder<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (!(other is QueryBuilder<T> queryBuilder))
+                throw new ArgumentException("Query must be a QueryBuilder instance.", nameof(other));
+
+            return new SetOperationQueryBuilder<T>(_client, _mapper, this, SetOperationType.Intersect, queryBuilder);
+        }
+
+        /// <summary>
+        /// Returns rows from this query that don't appear in another (EXCEPT).
+        /// </summary>
+        /// <param name="other">The other query to exclude.</param>
+        /// <returns>A set operation query builder.</returns>
+        public ISetOperationQueryBuilder<T> Except(IQueryBuilder<T> other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            if (!(other is QueryBuilder<T> queryBuilder))
+                throw new ArgumentException("Query must be a QueryBuilder instance.", nameof(other));
+
+            return new SetOperationQueryBuilder<T>(_client, _mapper, this, SetOperationType.Except, queryBuilder);
+        }
+
         /// <inheritdoc />
         public async Task<IEnumerable<T>> ToListAsync()
         {
@@ -561,6 +625,25 @@ namespace CloudflareD1.NET.Linq.Query
             }
 
             return sql.ToString();
+        }
+
+        /// <summary>
+        /// Builds the SQL query and returns both the SQL string and parameters.
+        /// Used internally by set operation builders.
+        /// </summary>
+        /// <returns>A tuple containing the SQL query and parameters.</returns>
+        internal (string Sql, object[] Parameters) BuildSqlInternal()
+        {
+            var sql = BuildSql();
+            
+            // If the query has ORDER BY, LIMIT, or OFFSET, wrap it as a subquery for set operations
+            // This is required by SQLite - these clauses must come after the set operation, not before
+            if (_orderByClauses.Count > 0 || _takeCount.HasValue || _skipCount.HasValue)
+            {
+                sql = $"SELECT * FROM ({sql})";
+            }
+            
+            return (sql, _parameters.ToArray());
         }
 
         /// <summary>

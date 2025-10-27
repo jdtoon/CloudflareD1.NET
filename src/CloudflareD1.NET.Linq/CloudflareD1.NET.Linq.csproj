@@ -7,18 +7,18 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.7.0-beta</Version>
+    <Version>1.8.0-beta</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
-    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, Distinct() for removing duplicates, Contains()/IN clause for collection filtering, Join operations (INNER JOIN, LEFT JOIN), Having clause for filtered aggregations, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
-    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations;having;join;inner-join;left-join;distinct;contains;in-clause</PackageTags>
+    <Description>LINQ query builder and object mapping extensions for CloudflareD1.NET. Provides IQueryable&lt;T&gt; with deferred execution, Set Operations (Union, UnionAll, Intersect, Except), Distinct() for removing duplicates, Contains()/IN clause for collection filtering, Join operations (INNER JOIN, LEFT JOIN), Having clause for filtered aggregations, GroupBy with aggregations (Count, Sum, Average, Min, Max), type-safe query construction with expression trees, Select() projection with computed properties, entity mapping, and fluent API for building SQL queries using lambda expressions.</Description>
+    <PackageTags>cloudflare;d1;linq;iqueryable;query-builder;orm;sqlite;object-mapper;expression-trees;projection;computed-properties;deferred-execution;groupby;aggregations;having;join;inner-join;left-join;distinct;contains;in-clause;union;intersect;except;set-operations</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.7.0: Advanced Query Features - Added Distinct() method to remove duplicate rows from results (SELECT DISTINCT). Contains()/IN clause support now documented and tested for collection filtering. 11 new unit tests + 6 integration tests. v1.6.0: Join Operations with INNER/LEFT JOIN. v1.5.1: Having() clause for filtered aggregations. 164 total tests passing. Full backward compatibility.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.8.0-beta: Set Operations (UNION, INTERSECT, EXCEPT) - Added Union(), UnionAll(), Intersect(), Except() methods for combining query results. Supports chaining and all execution methods (ToListAsync, CountAsync, AnyAsync, FirstOrDefaultAsync). Automatic subquery wrapping for ORDER BY/LIMIT/OFFSET. 19 new unit tests + 8 integration tests. v1.7.0: Distinct() and Contains()/IN clause. v1.6.0: Join Operations. 183 total tests passing.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

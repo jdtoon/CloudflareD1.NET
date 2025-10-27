@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0-beta] - 2025-01-26
+
+### Added - CloudflareD1.NET.Linq
+
+#### Set Operations
+- **Union()**: Combine results from two queries, removing duplicates
+  - Generates SQL `SELECT ... UNION SELECT ...`
+  - Returns `ISetOperationQueryBuilder<T>` for method chaining
+  - Supports further Union(), Intersect(), Except() chaining
+- **UnionAll()**: Combine results from two queries, keeping all duplicates
+  - Generates SQL `SELECT ... UNION ALL SELECT ...`
+  - More performant than Union() when duplicates don't matter
+- **Intersect()**: Return only rows that appear in both queries
+  - Generates SQL `SELECT ... INTERSECT SELECT ...`
+  - Useful for finding common elements between sets
+- **Except()**: Return rows from first query that don't appear in second
+  - Generates SQL `SELECT ... EXCEPT SELECT ...`
+  - Also known as "set difference" or "minus"
+
+#### Set Operation Query Builder
+- **ISetOperationQueryBuilder<T>**: New fluent interface for set operations
+  - Chainable Union(), UnionAll(), Intersect(), Except() methods
+  - ToListAsync(), FirstOrDefaultAsync(), CountAsync(), AnyAsync()
+- **SetOperationQueryBuilder<T>**: Internal implementation class
+  - Handles SQL generation for complex chained operations
+  - Automatic subquery wrapping for ORDER BY/LIMIT/OFFSET clauses
+  - Parameter aggregation across multiple queries
+- **SetOperationType enum**: Union, UnionAll, Intersect, Except
+
+#### Query Improvements
+- **Subquery wrapping**: Queries with ORDER BY/LIMIT/OFFSET automatically wrapped as subqueries in set operations
+- **Parameter handling**: Proper aggregation of parameters across multiple queries in set operations
+- **SQL correctness**: Ensures SQLite syntax requirements (ORDER BY after UNION, not before)
+
+#### Documentation
+- Updated README.md with set operation examples
+- Updated LINQ README with comprehensive set operation usage
+- Updated ROADMAP.md to mark set operations complete
+- Integration test examples in test-app (8 new test steps)
+
+#### Testing
+- 19 new unit tests for set operations
+- Coverage for Union, UnionAll, Intersect, Except
+- Tests for chaining, COUNT, ANY, FirstOrDefault
+- Tests for queries with WHERE, ORDER BY, TAKE, SKIP
+- Tests for null argument validation
+- Tests for empty result handling
+- 8 integration test examples in test-app (Steps 77-84)
+- 183 total tests passing (+19 from v1.7.0)
+
+### Technical Details
+- New files: SetOperationType.cs, ISetOperationQueryBuilder.cs, SetOperationQueryBuilder.cs
+- Modified files: IQueryBuilder.cs, QueryBuilder.cs
+- New test file: SetOperationTests.cs (19 tests)
+- Total new code: ~650 lines (including tests)
+- Backward compatible: No breaking changes to existing APIs
+
+### Notes
+- This is a beta release for set operations
+- Any/All with predicates planned for full v1.8.0 release
+- Set operations are production-ready and fully tested
+
+---
+
 ## [1.7.0] - 2025-01-26
 
 ### Added - CloudflareD1.NET.Linq

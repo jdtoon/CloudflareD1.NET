@@ -1041,10 +1041,85 @@ try
 
     Console.WriteLine("\n✅ Distinct() and Contains() Tests Completed!");
 
+    // Set Operations (UNION, INTERSECT, EXCEPT) Tests
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("Set Operations (UNION, INTERSECT, EXCEPT) Tests");
+    Console.WriteLine("========================================");
+
+    Console.WriteLine("\nStep 77: Query with Union() - Combine young and senior users...");
+    var youngUsers = client.Query<TestUser>("test_users").Where("age < ?", 30);
+    var seniorUsers = client.Query<TestUser>("test_users").Where("age >= ?", 40);
+    var youngOrSenior = await youngUsers.Union(seniorUsers).ToListAsync();
+    Console.WriteLine($"✓ Found {youngOrSenior.Count()} users (age < 30 OR age >= 40)");
+    foreach (var user in youngOrSenior)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 78: Query with UnionAll() - Include duplicates...");
+    var activeUsers1 = client.Query<TestUser>("test_users").Where("age > ?", 25);
+    var activeUsers2 = client.Query<TestUser>("test_users").Where("age > ?", 25);
+    var combinedWithDuplicates = await activeUsers1.UnionAll(activeUsers2).ToListAsync();
+    Console.WriteLine($"✓ Found {combinedWithDuplicates.Count()} results (with potential duplicates)");
+
+    Console.WriteLine("\nStep 79: Query with Intersect() - Users in both queries...");
+    var query1 = client.Query<TestUser>("test_users").Where("age > ?", 25);
+    var query2 = client.Query<TestUser>("test_users").Where("age < ?", 35);
+    var intersectedUsers = await query1.Intersect(query2).ToListAsync();
+    Console.WriteLine($"✓ Found {intersectedUsers.Count()} users (25 < age < 35)");
+    foreach (var user in intersectedUsers)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 80: Query with Except() - Users from first query not in second...");
+    var allUsers = client.Query<TestUser>("test_users");
+    var oldUsers = client.Query<TestUser>("test_users").Where("age >= ?", 35);
+    var notOldUsers = await allUsers.Except(oldUsers).ToListAsync();
+    Console.WriteLine($"✓ Found {notOldUsers.Count()} users (age < 35)");
+    foreach (var user in notOldUsers)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 81: Query with chained Union() operations...");
+    var veryYoung = client.Query<TestUser>("test_users").Where("age < ?", 25);
+    var middle = client.Query<TestUser>("test_users").Where("age = ?", 30);
+    var veryOld = client.Query<TestUser>("test_users").Where("age > ?", 40);
+    var chainedUnion = await veryYoung.Union(middle).Union(veryOld).ToListAsync();
+    Console.WriteLine($"✓ Found {chainedUnion.Count()} users from chained unions");
+    foreach (var user in chainedUnion)
+    {
+        Console.WriteLine($"   - {user.Name}, Age: {user.Age}");
+    }
+
+    Console.WriteLine("\nStep 82: Query with Union().CountAsync()...");
+    var query1Count = client.Query<TestUser>("test_users").Where("age < ?", 30);
+    var query2Count = client.Query<TestUser>("test_users").Where("age >= ?", 40);
+    var unionCount = await query1Count.Union(query2Count).CountAsync();
+    Console.WriteLine($"✓ Union count: {unionCount}");
+
+    Console.WriteLine("\nStep 83: Query with Union().AnyAsync()...");
+    var anyYoung = client.Query<TestUser>("test_users").Where("age < ?", 20);
+    var anySenior = client.Query<TestUser>("test_users").Where("age > ?", 50);
+    var hasAny = await anyYoung.Union(anySenior).AnyAsync();
+    Console.WriteLine($"✓ Union has results: {hasAny}");
+
+    Console.WriteLine("\nStep 84: Query with Union().FirstOrDefaultAsync()...");
+    var firstYoung = client.Query<TestUser>("test_users").Where("age < ?", 30);
+    var firstSenior = client.Query<TestUser>("test_users").Where("age >= ?", 40);
+    var firstUser = await firstYoung.Union(firstSenior).FirstOrDefaultAsync();
+    if (firstUser != null)
+    {
+        Console.WriteLine($"✓ First user from union: {firstUser.Name}, Age: {firstUser.Age}");
+    }
+
+    Console.WriteLine("\n✅ Set Operations Tests Completed!");
+
     Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees and computed properties) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, and set operations) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {

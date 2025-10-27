@@ -158,14 +158,65 @@ var products = await client.AsQueryable<Product>("products")
 - 6 integration tests in test-app
 - Full documentation and examples
 
-**Deferred to v1.8.0**:
-- Set operations (UNION, INTERSECT, EXCEPT)
-- Any()/All() with predicates
+---
+
+#### v1.8.0-beta - Set Operations ✅ **COMPLETE**
+**Released**: January 2025
+
+**Features**:
+- ✅ `Union()` - Combine results from two queries, removing duplicates
+- ✅ `UnionAll()` - Combine results keeping duplicates (more performant)
+- ✅ `Intersect()` - Return only rows appearing in both queries
+- ✅ `Except()` - Return rows from first query not in second (set difference)
+- ✅ Chainable set operations: `.Union(q1).Union(q2).Intersect(q3)`
+- ✅ `ISetOperationQueryBuilder<T>` fluent interface
+- ✅ ToListAsync(), CountAsync(), AnyAsync(), FirstOrDefaultAsync() on set results
+- ✅ Automatic subquery wrapping for ORDER BY/LIMIT/OFFSET
+- ✅ Parameter aggregation across multiple queries
+
+**Example**:
+```csharp
+// Union - combine young and senior users
+var youngUsers = client.Query<User>("users").Where("age < ?", 30);
+var seniorUsers = client.Query<User>("users").Where("age >= ?", 60);
+var result = await youngUsers.Union(seniorUsers).ToListAsync();
+
+// Intersect - users in both queries
+var activeUsers = client.Query<User>("users").Where("is_active = ?", 1);
+var premiumUsers = client.Query<User>("users").Where("is_premium = ?", 1);
+var activePremium = await activeUsers.Intersect(premiumUsers).ToListAsync();
+
+// Except - set difference
+var allUsers = client.Query<User>("users");
+var inactiveUsers = client.Query<User>("users").Where("is_active = ?", 0);
+var activeOnly = await allUsers.Except(inactiveUsers).ToListAsync();
+
+// Chained operations
+var young = client.Query<User>("users").Where("age < ?", 25);
+var middle = client.Query<User>("users").Where("age = ?", 40);
+var senior = client.Query<User>("users").Where("age > ?", 60);
+var nonMiddleAge = await young.Union(senior).ToListAsync();
+```
+
+**Completed**: January 2025
+- SetOperationType enum (Union, UnionAll, Intersect, Except)
+- ISetOperationQueryBuilder<T> interface
+- SetOperationQueryBuilder<T> implementation
+- Union(), UnionAll(), Intersect(), Except() methods in QueryBuilder
+- Automatic SQL generation with proper syntax (ORDER BY after UNION)
+- Subquery wrapping for queries with ORDER BY/LIMIT/OFFSET
+- 19 unit tests for set operations
+- 8 integration tests in test-app
+- Full documentation and examples
+- 183 total tests passing
+
+**Deferred to full v1.8.0**:
+- Any()/All() with predicates (EXISTS/NOT EXISTS)
 
 ---
 
-### Phase 2: Performance & Async (v1.8.0 - v1.9.0)
-#### v1.8.0 - Async Streaming
+### Phase 2: Performance & Async (v1.9.0 - v1.10.0)
+#### v1.9.0 - Async Streaming
 **Target**: Q2 2026
 
 **Features**:
@@ -193,7 +244,7 @@ await foreach (var user in client.AsQueryable<User>("users")
 
 ---
 
-#### v1.9.0 - Query Optimization & Caching
+#### v1.10.0 - Query Optimization & Caching
 **Target**: Q3 2026
 
 **Features**:

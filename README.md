@@ -34,8 +34,9 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🔗 **Join Operations** - INNER JOIN and LEFT JOIN support (v1.6.0)
 - 📊 **GroupBy & Having** - Group results with aggregate filters (v1.5.0+)
 - 🎯 **Select() Projections** - Project to DTOs with computed properties (v1.4.0)
-- 🔍 **Distinct()** - Remove duplicate rows (NEW in v1.7.0)
-- 📋 **Contains()/IN Clause** - Collection filtering support (NEW in v1.7.0)
+- 🔍 **Distinct()** - Remove duplicate rows (v1.7.0)
+- 📋 **Contains()/IN Clause** - Collection filtering support (v1.7.0)
+- 🔀 **Set Operations** - Union, UnionAll, Intersect, Except (NEW in v1.8.0-beta)
 - 🎯 **Type-Safe Queries** - `QueryAsync<T>()` with automatic entity mapping
 - 🗺️ **Automatic Mapping** - Snake_case columns to PascalCase properties  
 - 💪 **Strongly Typed** - Compile-time type checking for queries
