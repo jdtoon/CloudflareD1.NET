@@ -408,22 +408,92 @@ dotnet d1 migrations diff AddIsActiveColumn --context MyApp.Models.AppDbContext 
 
 **How it works:**
 - Analyzes your `D1Context` subclass and discovers `D1Set<T>` properties
-- Uses attributes (`[Table]`, `[Column]`, `[Key]`, `[Required]`, `[NotMapped]`) to build schema
-- Compares model schema to the snapshot (`.migrations-snapshot.json`)
+- Uses attributes and fluent configuration to build schema:
+    - Attributes: `[Table]`, `[Column]`, `[Key]`, `[Required]`, `[NotMapped]`, `[ForeignKey]`, `[Index]`
+    - Fluent API via `OnModelCreating(ModelBuilder modelBuilder)` for relationships and indexes
+- The CLI tries to construct your context using a `D1Client` and reads the `Model` property. When successful, your `OnModelCreating` runs and all fluent configuration is honored. If construction fails, it falls back to attribute-based model discovery.
+- Compares the model schema to the snapshot (`.migrations-snapshot.json`)
 - Generates migrations only for the differences
 - Updates the snapshot to reflect your current model
 
 **Conventions:**
-- Properties without `[Column]` use the property name as column name
-- Properties without `[Table]` use the class name (pluralized) as table name
+- Properties without `[Column]` use the property name as column name (converted to snake_case)
+- Tables without `[Table]` use the class name pluralized and converted to snake_case
 - String properties map to TEXT, int to INTEGER, DateTime to TEXT, bool to INTEGER (0/1)
 - All properties are nullable unless marked with `[Required]`
+- Relationships default to `{PrincipalName}Id` as the foreign key if not specified
+- Delete behavior defaults to `NO ACTION` unless configured via `.OnDelete(...)`
 
-**Current Limitations:**
-- Relationships (foreign keys, navigation properties) are not yet supported
-- `OnModelCreating` configuration is not yet invoked (use attributes for now)
-- Index configuration is not yet supported
-- Custom SQL type mappings require manual migrations
+**Relationships (Foreign Keys):**
+
+You can configure relationships via attributes or fluent API:
+
+- Attribute-based:
+    ```csharp
+    public class Post
+    {
+            [Key]
+            [Column("id")] public int Id { get; set; }
+
+            [Column("user_id")] public int UserId { get; set; }
+
+            [ForeignKey(nameof(User))]
+            public int UserIdFk { get; set; } // optional alternative when pointing to navigation
+
+            public User User { get; set; } = null!;
+    }
+    ```
+
+- Fluent API (recommended):
+    ```csharp
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+            modelBuilder.Entity<Post>()
+                    .HasOne(p => p.User)
+                    .WithMany(u => u.Posts)
+                    .HasForeignKey(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Cascade); // NO ACTION | CASCADE | SET NULL | RESTRICT
+    }
+    ```
+
+Migrations generated from the model will include `t.ForeignKey(...)` table constraints with the configured `ON DELETE` behavior.
+
+**Indexes:**
+
+You can define indexes via attributes or fluent API:
+
+- Attribute-based:
+    ```csharp
+    [Index(nameof(Email), IsUnique = true, Name = "idx_unique_email")]
+    [Index(nameof(FirstName), nameof(LastName))]
+    public class Customer
+    {
+            [Key] public int Id { get; set; }
+            public string FirstName { get; set; } = string.Empty;
+            public string LastName { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+    }
+    ```
+
+- Fluent API:
+    ```csharp
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+            modelBuilder.Entity<Product>()
+                    .HasIndex(p => p.Sku)
+                    .IsUnique()
+                    .HasName("idx_unique_sku");
+
+            modelBuilder.Entity<Product>()
+                    .HasIndex(p => p.Name);
+    }
+    ```
+
+Indexes appear in generated migrations via `builder.CreateIndex(...)` and `builder.CreateUniqueIndex(...)`. Composite index names default to `ix_{table}_{col1}_{col2}` unless you specify a custom name.
+
+**Notes:**
+- The CLI attempts to run `OnModelCreating`. If your context requires additional services for construction, prefer a constructor that accepts a `D1Client` so the CLI can instantiate it.
+- When `OnModelCreating` can't be invoked, attribute configuration is still honored.
 
 See the [ModelDiffSample](https://github.com/cloudflare/CloudflareD1.NET/tree/main/examples/ModelDiffSample) for a complete working example.
 
