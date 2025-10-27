@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />
