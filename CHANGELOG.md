@@ -16,6 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These will be implemented once Cloudflare adds transaction support to the D1 REST API.
 
+## [1.11.1] - 2025-01-27
+
+### Removed
+
+#### Transaction and Batch Operations
+- **Removed unsupported features** that require Cloudflare D1 REST API transaction support
+  - Removed `ITransaction` interface and `Transaction.cs` implementation
+  - Removed `BeginTransactionAsync()` from client interface
+  - Removed batch operation extensions: `BatchInsertAsync`, `BatchUpdateAsync`, `BatchDeleteAsync`, `UpsertAsync`
+  - Removed 20 unit tests for transaction/batch features
+  - Removed Steps 101-110 from integration tests
+
+### Changed
+- **Realigned library with actual Cloudflare D1 REST API capabilities**
+  - All remaining features verified against real Cloudflare D1 database
+  - 230 tests passing (183 core + 47 LINQ)
+  - 100 integration test steps passing
+
+### Documentation
+- Added Future Enhancements section documenting pending features
+- Clarified that transactions/batch operations require Workers environment or future REST API support
+
 ## [1.11.0] - 2025-01-27
 
 ### Added - CloudflareD1.NET.Linq
