@@ -1162,10 +1162,100 @@ try
 
     Console.WriteLine("\n✅ Existence Check Tests Completed!");
 
+    // ========================================
+    // ASYNC STREAMING TESTS
+    // ========================================
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("Testing Async Streaming (v1.9.0)...");
+    Console.WriteLine("========================================");
+
+    Console.WriteLine("\nStep 91: ToAsyncEnumerable - Stream all users...");
+    var streamedCount = 0;
+    await foreach (var user in client.Query<TestUser>("test_users").ToAsyncEnumerable())
+    {
+        streamedCount++;
+        if (streamedCount <= 3)
+        {
+            Console.WriteLine($"  → Streamed: {user.Name}, Age: {user.Age}");
+        }
+    }
+    Console.WriteLine($"✓ Streamed {streamedCount} users total");
+
+    Console.WriteLine("\nStep 92: ToAsyncEnumerable with WHERE filter...");
+    streamedCount = 0;
+    await foreach (var user in client.Query<TestUser>("test_users")
+        .Where(u => u.Age > 25)
+        .ToAsyncEnumerable())
+    {
+        streamedCount++;
+        if (user.Age <= 25)
+        {
+            throw new Exception($"Filtered user should be over 25, got {user.Age}");
+        }
+    }
+    Console.WriteLine($"✓ Streamed {streamedCount} users over 25");
+
+    Console.WriteLine("\nStep 93: ToAsyncEnumerable with ORDER BY...");
+    var previousAge = 0;
+    streamedCount = 0;
+    await foreach (var user in client.Query<TestUser>("test_users")
+        .OrderBy(u => u.Age)
+        .Take(5)
+        .ToAsyncEnumerable())
+    {
+        streamedCount++;
+        if (user.Age < previousAge)
+        {
+            throw new Exception($"Users should be ordered by age: {user.Age} >= {previousAge}");
+        }
+        previousAge = user.Age;
+    }
+    Console.WriteLine($"✓ Streamed {streamedCount} users in age order (youngest first)");
+
+    Console.WriteLine("\nStep 94: ToAsyncEnumerable with early termination...");
+    streamedCount = 0;
+    await foreach (var user in client.Query<TestUser>("test_users").ToAsyncEnumerable())
+    {
+        streamedCount++;
+        if (streamedCount == 3)
+        {
+            break; // Early termination - stop after 3 items
+        }
+    }
+    Console.WriteLine($"✓ Successfully terminated early after {streamedCount} items");
+    if (streamedCount != 3)
+    {
+        throw new Exception("Should have stopped at exactly 3 items");
+    }
+
+    Console.WriteLine("\nStep 95: ToAsyncEnumerable with complex query (WHERE + ORDER BY + LIMIT)...");
+    streamedCount = 0;
+    var seenNames = new System.Collections.Generic.List<string>();
+    await foreach (var user in client.Query<TestUser>("test_users")
+        .Where(u => u.Age < 40)
+        .OrderByDescending(u => u.Age)
+        .Take(3)
+        .ToAsyncEnumerable())
+    {
+        streamedCount++;
+        seenNames.Add(user.Name);
+        if (user.Age >= 40)
+        {
+            throw new Exception($"User age should be under 40, got {user.Age}");
+        }
+    }
+    Console.WriteLine($"✓ Streamed {streamedCount} users: {string.Join(", ", seenNames)}");
+    if (streamedCount > 3)
+    {
+        throw new Exception("Should have at most 3 items due to Take(3)");
+    }
+
+    Console.WriteLine("\n✅ Async Streaming Tests Completed!");
+
     Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, and existence checks) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, existence checks, and async streaming) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {

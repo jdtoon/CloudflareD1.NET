@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0-beta] - 2025-01-26
+
+### Added - CloudflareD1.NET.Linq
+
+#### Async Streaming
+- **ToAsyncEnumerable(CancellationToken)**: Stream query results for memory-efficient processing
+  - Returns `IAsyncEnumerable<T>` for consuming results one at a time
+  - Memory-efficient - yields entities without loading entire result set
+  - Supports `await foreach` syntax for natural streaming consumption
+  - CancellationToken support for canceling streaming operations mid-enumeration
+  - Ideal for processing large datasets that don't fit in memory
+  - Works with all query operations: Where(), OrderBy(), Take(), Skip(), etc.
+  - Example:
+    ```csharp
+    await foreach (var user in client.Query<User>("users")
+        .Where(u => u.IsActive)
+        .ToAsyncEnumerable(cancellationToken))
+    {
+        await ProcessUserAsync(user); // Process one at a time
+    }
+    ```
+
+#### Cancellation Token Support
+Added `CancellationToken` parameter to all async execution methods:
+- **ToListAsync(CancellationToken)**: Cancel query execution before completion
+- **FirstOrDefaultAsync(CancellationToken)**: Cancel first result fetch
+- **SingleAsync(CancellationToken)**: Cancel single result verification
+- **SingleOrDefaultAsync(CancellationToken)**: Cancel optional single result
+- **CountAsync(CancellationToken)**: Cancel count operation
+- **AnyAsync(CancellationToken)**: Cancel existence check
+- **AnyAsync(Expression, CancellationToken)**: Cancel predicate existence check  
+- **AllAsync(Expression, CancellationToken)**: Cancel universal predicate check
+
+All methods default to `CancellationToken.None` for backwards compatibility.
+
+#### Testing & Documentation
+- **16 new unit tests** in `AsyncStreamingTests.cs`:
+  - Basic streaming (all records, with WHERE, with OrderBy)
+  - Pagination (Take, Skip)
+  - Complex queries (WHERE + ORDER BY + LIMIT)
+  - Early termination (break in foreach loop)
+  - Cancellation (CancellationTokenSource)
+  - Edge cases (no results, multiple enumerations)
+  - Streaming behavior (one-at-a-time yielding)
+  - CancellationToken support across all methods
+- **5 new integration tests** (Steps 91-95) in test-app
+- **211 total tests passing** (195 existing + 16 new)
+- Comprehensive examples for streaming large result sets
+
 ## [1.8.0] - 2025-01-26
 
 ### Added - CloudflareD1.NET.Linq

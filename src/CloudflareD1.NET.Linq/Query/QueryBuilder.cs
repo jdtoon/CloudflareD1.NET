@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using CloudflareD1.NET;
 using CloudflareD1.NET.Linq.Mapping;
@@ -397,13 +398,13 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<T>> ToListAsync()
+        public async Task<IEnumerable<T>> ToListAsync(CancellationToken cancellationToken = default)
         {
             var sql = BuildSql();
             var parameters = _parameters.ToArray();
 
             // Use QueryAsync for SELECT statements, not ExecuteAsync
-            var result = await _client.QueryAsync(sql, parameters);
+            var result = await _client.QueryAsync(sql, parameters, cancellationToken);
 
             if (!result.Success)
             {
@@ -420,7 +421,34 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<T?> FirstOrDefaultAsync()
+        public async IAsyncEnumerable<T> ToAsyncEnumerable([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var sql = BuildSql();
+            var parameters = _parameters.ToArray();
+
+            // Execute query to get results
+            var result = await _client.QueryAsync(sql, parameters, cancellationToken);
+
+            if (!result.Success)
+            {
+                throw new InvalidOperationException($"Query failed: {string.Join(", ", result.Errors)}");
+            }
+
+            if (result.Results == null || result.Results.Count == 0)
+            {
+                yield break;
+            }
+
+            // Yield entities one at a time
+            foreach (var row in result.Results)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return _mapper.Map<T>(row);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<T?> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
         {
             // Optimize by only taking 1 result
             var originalTake = _takeCount;
@@ -428,7 +456,7 @@ namespace CloudflareD1.NET.Linq.Query
 
             try
             {
-                var results = await ToListAsync();
+                var results = await ToListAsync(cancellationToken);
                 return results.FirstOrDefault();
             }
             finally
@@ -438,7 +466,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<T> SingleAsync()
+        public async Task<T> SingleAsync(CancellationToken cancellationToken = default)
         {
             // Optimize by only taking 2 results (to detect if there's more than one)
             var originalTake = _takeCount;
@@ -446,7 +474,7 @@ namespace CloudflareD1.NET.Linq.Query
 
             try
             {
-                var results = await ToListAsync();
+                var results = await ToListAsync(cancellationToken);
                 var resultsList = results.ToList();
 
                 if (resultsList.Count == 0)
@@ -468,7 +496,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<T?> SingleOrDefaultAsync()
+        public async Task<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
         {
             // Optimize by only taking 2 results (to detect if there's more than one)
             var originalTake = _takeCount;
@@ -476,7 +504,7 @@ namespace CloudflareD1.NET.Linq.Query
 
             try
             {
-                var results = await ToListAsync();
+                var results = await ToListAsync(cancellationToken);
                 var resultsList = results.ToList();
 
                 if (resultsList.Count == 0)
@@ -498,10 +526,10 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<int> CountAsync()
+        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
         {
             var sql = BuildCountSql();
-            var result = await _client.QueryAsync(sql, _parameters.ToArray());
+            var result = await _client.QueryAsync(sql, _parameters.ToArray(), cancellationToken);
 
             if (!result.Success)
             {
@@ -569,7 +597,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<bool> AnyAsync()
+        public async Task<bool> AnyAsync(CancellationToken cancellationToken = default)
         {
             // Optimize by only checking if at least 1 result exists
             var originalTake = _takeCount;
@@ -577,7 +605,7 @@ namespace CloudflareD1.NET.Linq.Query
 
             try
             {
-                var results = await ToListAsync();
+                var results = await ToListAsync(cancellationToken);
                 return results.Any();
             }
             finally
@@ -587,7 +615,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
@@ -615,7 +643,7 @@ namespace CloudflareD1.NET.Linq.Query
             var existsSql = $"SELECT EXISTS({sql}) as result";
 
             // Execute the query
-            var result = await _client.QueryAsync(existsSql, parameters.ToArray());
+            var result = await _client.QueryAsync(existsSql, parameters.ToArray(), cancellationToken);
             var firstResult = result.Results.FirstOrDefault();
             if (firstResult != null && firstResult.TryGetValue("result", out var value))
             {
@@ -625,7 +653,7 @@ namespace CloudflareD1.NET.Linq.Query
         }
 
         /// <inheritdoc />
-        public async Task<bool> AllAsync(Expression<Func<T, bool>> predicate)
+        public async Task<bool> AllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
@@ -659,7 +687,7 @@ namespace CloudflareD1.NET.Linq.Query
             var notExistsSql = $"SELECT NOT EXISTS({sql}) as result";
 
             // Execute the query
-            var result = await _client.QueryAsync(notExistsSql, parameters.ToArray());
+            var result = await _client.QueryAsync(notExistsSql, parameters.ToArray(), cancellationToken);
             var firstResult = result.Results.FirstOrDefault();
             if (firstResult != null && firstResult.TryGetValue("result", out var value))
             {

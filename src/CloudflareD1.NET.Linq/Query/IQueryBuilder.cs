@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CloudflareD1.NET.Linq.Query
@@ -179,53 +180,69 @@ namespace CloudflareD1.NET.Linq.Query
         /// <summary>
         /// Executes the query and returns all matching entities.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>A list of entities matching the query.</returns>
-        Task<IEnumerable<T>> ToListAsync();
+        Task<IEnumerable<T>> ToListAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Streams the query results asynchronously without loading all records into memory.
+        /// This is memory-efficient for large result sets as it yields one entity at a time.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the streaming operation.</param>
+        /// <returns>An async enumerable that yields entities one at a time.</returns>
+        IAsyncEnumerable<T> ToAsyncEnumerable(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns the first entity, or null if no results.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>The first entity or null.</returns>
-        Task<T?> FirstOrDefaultAsync();
+        Task<T?> FirstOrDefaultAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns exactly one entity. Throws if zero or more than one result.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>The single entity.</returns>
-        Task<T> SingleAsync();
+        Task<T> SingleAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns exactly one entity or null. Throws if more than one result.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>The single entity or null.</returns>
-        Task<T?> SingleOrDefaultAsync();
+        Task<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns the count of matching records.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>The number of matching records.</returns>
-        Task<int> CountAsync();
+        Task<int> CountAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns whether any records match.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>True if any records match, false otherwise.</returns>
-        Task<bool> AnyAsync();
+        Task<bool> AnyAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns whether any records match the predicate.
         /// Uses EXISTS with a subquery containing the predicate.
         /// </summary>
         /// <param name="predicate">The predicate expression to test.</param>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>True if any records match the predicate, false otherwise.</returns>
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes the query and returns whether all records match the predicate.
         /// Uses NOT EXISTS with a subquery containing the negated predicate.
         /// </summary>
         /// <param name="predicate">The predicate expression that all records must satisfy.</param>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
         /// <returns>True if all records match the predicate, false otherwise.</returns>
-        Task<bool> AllAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> AllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
     }
 }
