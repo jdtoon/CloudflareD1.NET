@@ -308,6 +308,125 @@ dotnet d1 migrations scaffold AddProductPrice --connection local.db
 - ✅ New/dropped indexes
 - ✅ Column types, constraints (PRIMARY KEY, NOT NULL, UNIQUE, DEFAULT)
 
+#### Code-First Model Diff
+
+Generate migrations from your Code-First model classes:
+
+```bash
+# Generate migration from your DbContext model
+dotnet d1 migrations diff <MigrationName> --context <FullyQualifiedContextType> --assembly <path-to-dll>
+```
+
+**Options:**
+- `--context` (required): Fully qualified type name of your `D1Context` subclass (e.g., `MyApp.Data.AppDbContext`)
+- `--assembly` (required): Path to the compiled assembly containing your context (e.g., `bin/Debug/net8.0/MyApp.dll`)
+- `--connection` (optional): Path to local database for comparison (defaults to `local-model.db`)
+
+**Example workflow:**
+
+1. Define your Code-First model:
+
+```csharp
+using CloudflareD1.NET.CodeFirst;
+
+namespace MyApp.Models
+{
+    [Table("users")]
+    public class User
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Column("name")]
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Column("email")]
+        public string? Email { get; set; }
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AppDbContext : D1Context
+    {
+        public D1Set<User> Users { get; set; } = null!;
+    }
+}
+```
+
+2. Build your application:
+
+```bash
+dotnet build
+```
+
+3. Generate migration from your model:
+
+```bash
+dotnet d1 migrations diff InitialCreate --context MyApp.Models.AppDbContext --assembly bin/Debug/net8.0/MyApp.dll
+```
+
+4. Review the generated migration:
+
+```csharp
+// Migrations/20241027140000_InitialCreate.cs
+public class InitialCreate : Migration
+{
+    public override void Up(MigrationBuilder builder)
+    {
+        builder.CreateTable("users", table =>
+        {
+            table.Integer("id").PrimaryKey();
+            table.Text("name").NotNull();
+            table.Text("email");
+            table.Text("created_at").NotNull();
+        });
+    }
+
+    public override void Down(MigrationBuilder builder)
+    {
+        builder.DropTable("users");
+    }
+}
+```
+
+5. Make changes to your model and generate another migration:
+
+```csharp
+// Add a new property
+[Column("is_active")]
+public bool IsActive { get; set; } = true;
+```
+
+```bash
+# Rebuild and generate incremental migration
+dotnet build
+dotnet d1 migrations diff AddIsActiveColumn --context MyApp.Models.AppDbContext --assembly bin/Debug/net8.0/MyApp.dll
+```
+
+**How it works:**
+- Analyzes your `D1Context` subclass and discovers `D1Set<T>` properties
+- Uses attributes (`[Table]`, `[Column]`, `[Key]`, `[Required]`, `[NotMapped]`) to build schema
+- Compares model schema to the snapshot (`.migrations-snapshot.json`)
+- Generates migrations only for the differences
+- Updates the snapshot to reflect your current model
+
+**Conventions:**
+- Properties without `[Column]` use the property name as column name
+- Properties without `[Table]` use the class name (pluralized) as table name
+- String properties map to TEXT, int to INTEGER, DateTime to TEXT, bool to INTEGER (0/1)
+- All properties are nullable unless marked with `[Required]`
+
+**Current Limitations:**
+- Relationships (foreign keys, navigation properties) are not yet supported
+- `OnModelCreating` configuration is not yet invoked (use attributes for now)
+- Index configuration is not yet supported
+- Custom SQL type mappings require manual migrations
+
+See the [ModelDiffSample](https://github.com/cloudflare/CloudflareD1.NET/tree/main/examples/ModelDiffSample) for a complete working example.
+
 #### List Migrations
 
 ```bash
