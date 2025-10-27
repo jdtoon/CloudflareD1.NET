@@ -1,5 +1,6 @@
 ﻿using CloudflareD1.NET;
 using CloudflareD1.NET.Configuration;
+using CloudflareD1.NET.Extensions;
 using CloudflareD1.NET.Linq;
 using CloudflareD1.NET.Linq.Query;
 using CloudflareD1.NET.Models;
@@ -1341,9 +1342,233 @@ try
     Console.WriteLine("\n✅ CompiledQuery Tests Completed!");
 
     Console.WriteLine("\n========================================");
-    Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
+    Console.WriteLine("� Testing Transactions (v1.11.0)");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, existence checks, async streaming, and compiled queries) is working correctly with Cloudflare D1!");
+
+    Console.WriteLine("\nStep 101: BeginTransaction - Commit multiple operations atomically...");
+    using (var transaction = await client.BeginTransactionAsync())
+    {
+        Console.WriteLine("✓ Transaction started");
+        
+        // Execute multiple operations
+        await transaction.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES (@name, @email, @age)",
+            new { name = "Transaction User 1", email = $"txn1_{DateTime.UtcNow.Ticks}@example.com", age = 28 });
+        await transaction.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES (@name, @email, @age)",
+            new { name = "Transaction User 2", email = $"txn2_{DateTime.UtcNow.Ticks}@example.com", age = 32 });
+        
+        // Commit the transaction
+        await transaction.CommitAsync();
+        Console.WriteLine("✓ Transaction committed successfully");
+    }
+
+    // Verify both users were inserted
+    var txnUsers = await client.Query<TestUser>("test_users")
+        .Where(u => u.Name.StartsWith("Transaction User"))
+        .ToListAsync();
+    if (txnUsers.Count != 2)
+    {
+        throw new Exception($"Expected 2 transaction users, found {txnUsers.Count}");
+    }
+    Console.WriteLine($"✓ Verified {txnUsers.Count} users inserted via transaction");
+
+    Console.WriteLine("\nStep 102: BeginTransaction - Rollback on error...");
+    var countBefore = await client.Query<TestUser>("test_users").CountAsync();
+    try
+    {
+        using (var transaction = await client.BeginTransactionAsync())
+        {
+            Console.WriteLine("✓ Transaction started");
+            
+            // Insert a user
+            await transaction.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES (@name, @email, @age)",
+                new { name = "Rollback Test User", email = $"rollback_{DateTime.UtcNow.Ticks}@example.com", age = 40 });
+            
+            // Don't commit - let it rollback on dispose
+            Console.WriteLine("✓ Transaction will rollback (not committed)");
+        }
+    }
+    catch
+    {
+        // Ignore
+    }
+    
+    var countAfter = await client.Query<TestUser>("test_users").CountAsync();
+    if (countAfter != countBefore)
+    {
+        throw new Exception($"Transaction should have rolled back, but count changed from {countBefore} to {countAfter}");
+    }
+    Console.WriteLine($"✓ Transaction rolled back successfully (count unchanged: {countBefore})");
+
+    Console.WriteLine("\nStep 103: BeginTransaction - Query within transaction...");
+    using (var transaction = await client.BeginTransactionAsync())
+    {
+        Console.WriteLine("✓ Transaction started");
+        
+        // Query within transaction
+        var result = await transaction.QueryAsync("SELECT COUNT(*) as count FROM test_users");
+        Console.WriteLine($"✓ Queried within transaction: {result.Results?.Count ?? 0} result(s)");
+        
+        await transaction.CommitAsync();
+        Console.WriteLine("✓ Transaction committed");
+    }
+
+    Console.WriteLine("\nStep 104: BeginTransaction - Multiple queries and updates...");
+    using (var transaction = await client.BeginTransactionAsync())
+    {
+        Console.WriteLine("✓ Transaction started");
+        
+        // Get a user
+        var userToUpdate = await client.Query<TestUser>("test_users")
+            .Where(u => u.Name == "Transaction User 1")
+            .FirstOrDefaultAsync();
+        
+        if (userToUpdate != null)
+        {
+            // Update age
+            await transaction.ExecuteAsync("UPDATE test_users SET age = @age WHERE id = @id",
+                new { age = userToUpdate.Age + 1, id = userToUpdate.Id });
+            
+            // Insert a related record (simulated)
+            await transaction.ExecuteAsync("INSERT INTO test_users (name, email, age) VALUES (@name, @email, @age)",
+                new { name = "Related User", email = $"related_{DateTime.UtcNow.Ticks}@example.com", age = 25 });
+            
+            await transaction.CommitAsync();
+            Console.WriteLine($"✓ Updated user {userToUpdate.Id} and inserted related record");
+        }
+        else
+        {
+            Console.WriteLine("⚠ User not found for update test");
+        }
+    }
+
+    Console.WriteLine("\nStep 105: BeginTransaction - Transaction IsActive check...");
+    var txn = await client.BeginTransactionAsync();
+    if (!txn.IsActive)
+    {
+        throw new Exception("Transaction should be active after creation");
+    }
+    Console.WriteLine("✓ Transaction is active");
+    
+    await txn.CommitAsync();
+    if (txn.IsActive)
+    {
+        throw new Exception("Transaction should not be active after commit");
+    }
+    Console.WriteLine("✓ Transaction is inactive after commit");
+
+    Console.WriteLine("\n✅ Transaction Tests Completed!");
+
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("📦 Testing Batch Operations (v1.11.0)");
+    Console.WriteLine("========================================");
+
+    Console.WriteLine("\nStep 106: BatchInsertAsync - Insert multiple products...");
+    // Create products table for batch testing
+    await client.ExecuteAsync("DROP TABLE IF EXISTS products");
+    await client.ExecuteAsync(@"
+        CREATE TABLE products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            price REAL NOT NULL,
+            stock INTEGER DEFAULT 0
+        )
+    ");
+    
+    var products = new List<Product>
+    {
+        new Product { Name = "Widget A", Price = 19.99, Stock = 100 },
+        new Product { Name = "Widget B", Price = 29.99, Stock = 50 },
+        new Product { Name = "Widget C", Price = 39.99, Stock = 75 },
+        new Product { Name = "Widget D", Price = 49.99, Stock = 25 }
+    };
+    
+    var insertResults = await client.BatchInsertAsync("products", products);
+    Console.WriteLine($"✓ Batch inserted {insertResults.Length} products");
+    
+    var productCount = await client.QueryAsync("SELECT COUNT(*) as count FROM products");
+    Console.WriteLine($"✓ Verified {productCount.Results?[0]["count"]} products in database");
+
+    Console.WriteLine("\nStep 107: BatchUpdateAsync - Update multiple products...");
+    var allProducts = await client.Query<Product>("products").ToListAsync();
+    
+    // Update prices
+    foreach (var p in allProducts)
+    {
+        p.Price = p.Price * 1.1; // 10% increase
+    }
+    
+    var updateResults = await client.BatchUpdateAsync("products", allProducts, p => p.Id);
+    Console.WriteLine($"✓ Batch updated {updateResults.Length} products");
+    
+    // Verify update
+    var updatedProduct = await client.Query<Product>("products")
+        .Where(p => p.Name == "Widget A")
+        .FirstOrDefaultAsync();
+    if (updatedProduct != null && Math.Abs(updatedProduct.Price - 21.989) > 0.01)
+    {
+        throw new Exception($"Price not updated correctly: {updatedProduct.Price}");
+    }
+    Console.WriteLine($"✓ Verified price update: Widget A now costs ${updatedProduct?.Price:F2}");
+
+    Console.WriteLine("\nStep 108: BatchDeleteAsync - Delete multiple products by ID...");
+    var productsToDelete = allProducts.Take(2).Select(p => p.Id).ToList();
+    
+    var deleteResults = await client.BatchDeleteAsync<int>("products", productsToDelete);
+    Console.WriteLine($"✓ Batch deleted {deleteResults.Length} products");
+    
+    var remainingCount = await client.Query<Product>("products").CountAsync();
+    if (remainingCount != 2)
+    {
+        throw new Exception($"Expected 2 products remaining, found {remainingCount}");
+    }
+    Console.WriteLine($"✓ Verified {remainingCount} products remaining");
+
+    Console.WriteLine("\nStep 109: UpsertAsync - Insert new and update existing...");
+    // Upsert new product (insert)
+    var newProduct = new Product { Id = 999, Name = "Widget E", Price = 59.99, Stock = 10 };
+    var upsertResult1 = await client.UpsertAsync("products", newProduct);
+    Console.WriteLine($"✓ Upserted new product (changes: {upsertResult1.Meta?.Changes})");
+    
+    // Upsert existing product (update)
+    var existingProduct = await client.Query<Product>("products").FirstOrDefaultAsync();
+    if (existingProduct != null)
+    {
+        existingProduct.Stock = 999;
+        var upsertResult2 = await client.UpsertAsync("products", existingProduct);
+        Console.WriteLine($"✓ Upserted existing product (changes: {upsertResult2.Meta?.Changes})");
+        
+        // Verify update
+        var verifyProduct = await client.Query<Product>("products")
+            .Where(p => p.Id == existingProduct.Id)
+            .FirstOrDefaultAsync();
+        if (verifyProduct?.Stock != 999)
+        {
+            throw new Exception($"Stock not updated correctly: {verifyProduct?.Stock}");
+        }
+        Console.WriteLine($"✓ Verified upsert: Product {verifyProduct.Id} now has stock of {verifyProduct.Stock}");
+    }
+
+    Console.WriteLine("\nStep 110: Large Batch Operations - Insert 50 products...");
+    var largeProductBatch = Enumerable.Range(1, 50)
+        .Select(i => new Product { Name = $"Bulk Product {i}", Price = i * 10.0, Stock = i * 5 })
+        .ToList();
+    
+    var largeBatchResults = await client.BatchInsertAsync("products", largeProductBatch);
+    Console.WriteLine($"✓ Batch inserted {largeBatchResults.Length} products");
+    
+    var finalCount = await client.Query<Product>("products").CountAsync();
+    Console.WriteLine($"✓ Total products in database: {finalCount}");
+    if (finalCount < 50)
+    {
+        throw new Exception($"Expected at least 50 products, found {finalCount}");
+    }
+
+    Console.WriteLine("\n✅ Batch Operations Tests Completed!");
+
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("�🎉 ALL TESTS PASSED SUCCESSFULLY!");
+    Console.WriteLine("========================================");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, existence checks, async streaming, compiled queries, transactions, and batch operations) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {
@@ -1474,3 +1699,11 @@ public class UserWithOrderInfo
     public double OrderTotal { get; set; }
 }
 
+// Product class for batch operations tests (v1.11.0)
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public double Price { get; set; }
+    public int Stock { get; set; }
+}

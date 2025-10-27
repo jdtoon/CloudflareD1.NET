@@ -45,6 +45,13 @@ namespace CloudflareD1.NET
         /// <param name="sqlStatements">The SQL statements to execute.</param>
         /// <returns>An array of results, one for each statement.</returns>
         Task<D1QueryResult[]> BatchAsync(params string[] sqlStatements);
+
+        /// <summary>
+        /// Begins a new database transaction.
+        /// All operations within the transaction will be executed atomically.
+        /// </summary>
+        /// <returns>A transaction instance that can be used to execute statements and commit/rollback.</returns>
+        Task<ITransaction> BeginTransactionAsync();
     }
 
     /// <summary>

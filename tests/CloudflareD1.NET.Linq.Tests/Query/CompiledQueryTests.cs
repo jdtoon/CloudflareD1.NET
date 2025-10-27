@@ -444,13 +444,13 @@ namespace CloudflareD1.NET.Linq.Tests.Query
             );
 
             var stats = CompiledQuery.GetStatistics();
-            
+
             // Debug: print SQL of each query to see if any are duplicates
             System.Diagnostics.Debug.WriteLine($"Query1 SQL: {query1.Sql}");
             System.Diagnostics.Debug.WriteLine($"Query2 SQL: {query2.Sql}");
             System.Diagnostics.Debug.WriteLine($"Query3 SQL: {query3.Sql}");
             System.Diagnostics.Debug.WriteLine($"Cache stats: Hits={stats.CacheHits}, Misses={stats.CacheMisses}, Size={stats.CacheSize}");
-            
+
             Assert.Equal(0, stats.CacheHits);
             Assert.Equal(3, stats.CacheMisses);
             Assert.Equal(3, stats.CacheSize);

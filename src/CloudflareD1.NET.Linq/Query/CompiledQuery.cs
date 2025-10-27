@@ -318,6 +318,9 @@ namespace CloudflareD1.NET.Linq.Query
 
             public Task<D1QueryResult[]> BatchAsync(params string[] sqlStatements)
                 => throw new NotSupportedException("DummyD1Client is for compilation only");
+
+            public Task<ITransaction> BeginTransactionAsync()
+                => throw new NotSupportedException("DummyD1Client is for compilation only");
         }
     }
 }
