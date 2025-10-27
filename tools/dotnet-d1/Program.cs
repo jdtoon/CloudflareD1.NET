@@ -3,6 +3,8 @@ using System.Text;
 using CloudflareD1.NET;
 using CloudflareD1.NET.Configuration;
 using CloudflareD1.NET.Migrations;
+using CloudflareD1.NET.CodeFirst;
+using CloudflareD1.NET.CodeFirst.Converters;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -32,6 +34,18 @@ class Program
         scaffoldCommand.AddOption(connectionOption);
         scaffoldCommand.SetHandler(async (string name, string connection) => await ScaffoldMigration(name, connection), scaffoldNameArg, connectionOption);
 
+    // migrations diff command (Code-First): generate migration from model metadata vs snapshot
+    var diffCommand = new Command("diff", "Generate a migration by diffing Code-First model against last snapshot");
+    var diffNameArg = new Argument<string>("name", "Name of the migration (e.g., InitialCreate)");
+    var contextOption = new Option<string>("--context", description: "Fully qualified DbContext type name (e.g., MyApp.Data.AppDbContext)") { IsRequired = true };
+    var assemblyOption = new Option<string>("--assembly", description: "Path to the assembly (.dll) containing the context") { IsRequired = true };
+    var localDbOption = new Option<string>("--connection", () => "local-model.db", description: "Optional local SQLite file path for constructing the context (no data access required)");
+    diffCommand.AddArgument(diffNameArg);
+    diffCommand.AddOption(contextOption);
+    diffCommand.AddOption(assemblyOption);
+    diffCommand.AddOption(localDbOption);
+    diffCommand.SetHandler(async (string name, string context, string assembly, string connection) => await DiffFromModel(name, context, assembly, connection), diffNameArg, contextOption, assemblyOption, localDbOption);
+
         // database update command
         var updateCommand = new Command("update", "Apply all pending migrations");
         var targetOption = new Option<string?>("--target", "Target migration to update to");
@@ -49,6 +63,7 @@ class Program
         migrationsCommand.AddCommand(addCommand);
         migrationsCommand.AddCommand(listCommand);
         migrationsCommand.AddCommand(scaffoldCommand);
+    migrationsCommand.AddCommand(diffCommand);
 
         // database command group
         var databaseCommand = new Command("database", "Manage database state");
@@ -61,6 +76,104 @@ class Program
         return await rootCommand.InvokeAsync(args);
     }
 
+    static async Task DiffFromModel(string name, string contextTypeName, string assemblyPath, string connection)
+    {
+        try
+        {
+            Console.WriteLine("🧮 Generating migration from Code-First model...");
+            Console.WriteLine();
+
+            if (!File.Exists(assemblyPath))
+            {
+                Console.WriteLine($"❌ Assembly not found: {assemblyPath}");
+                return;
+            }
+
+            // Prepare a local D1Client (no actual DB access needed to build model)
+            var options = Options.Create(new D1Options
+            {
+                UseLocalMode = true,
+                LocalDatabasePath = connection
+            });
+            using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Warning));
+            var logger = loggerFactory.CreateLogger<D1Client>();
+            var client = new D1Client(options, logger);
+
+            // Load the user's assembly and context type
+            var asm = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(assemblyPath));
+            var ctxType = asm.GetType(contextTypeName, throwOnError: false);
+            if (ctxType == null)
+            {
+                Console.WriteLine($"❌ Could not find context type: {contextTypeName}");
+                return;
+            }
+
+            // Build model metadata using our CodeFirst types to avoid type identity issues
+            Console.WriteLine("Building model metadata from context...");
+            var modelBuilder = new ModelBuilder();
+            var model = modelBuilder.Build(ctxType);
+            Console.WriteLine($"✓ Discovered {model.Entities.Count} entity type(s)");
+
+            var targetSchema = ModelSchemaConverter.ToDatabaseSchema(model);
+
+            // Load previous snapshot if any
+            DatabaseSchema? previousSchema = null;
+            if (SchemaSnapshot.Exists())
+            {
+                Console.WriteLine("Loading previous schema snapshot...");
+                previousSchema = await SchemaSnapshot.LoadAsync();
+                Console.WriteLine($"✓ Loaded snapshot with {previousSchema?.Tables.Count ?? 0} table(s)");
+            }
+            else
+            {
+                Console.WriteLine("ℹ️  No previous snapshot found - treating this as initial migration");
+            }
+            Console.WriteLine();
+
+            // Generate migration code
+            Console.WriteLine("Generating migration code from model diff...");
+            var scaffolder = new MigrationScaffolder();
+            var migrationCode = scaffolder.GenerateMigration(previousSchema, targetSchema, name);
+
+            // Save migration file
+            var migrationsDir = FindOrCreateMigrationsDirectory();
+            if (migrationsDir == null)
+            {
+                Console.WriteLine("❌ Could not find or create Migrations directory.");
+                return;
+            }
+
+            var migrationId = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var className = ToPascalCase(name);
+            var fileName = $"{migrationId}_{className}.cs";
+            var filePath = Path.Combine(migrationsDir, fileName);
+            await File.WriteAllTextAsync(filePath, migrationCode);
+
+            Console.WriteLine($"✓ Created migration: {fileName}");
+            Console.WriteLine($"  Location: {filePath}");
+            Console.WriteLine();
+
+            // Save snapshot of the model schema
+            Console.WriteLine("Saving schema snapshot from model...");
+            await SchemaSnapshot.SaveAsync(targetSchema);
+            Console.WriteLine("✓ Schema snapshot saved");
+            Console.WriteLine();
+
+            Console.WriteLine("✨ Model diff migration generated successfully!");
+            Console.WriteLine();
+            Console.WriteLine("Next steps:");
+            Console.WriteLine("  1. Review the generated migration file");
+            Console.WriteLine("  2. Apply migrations in your app using MigrationRunner");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   Inner: {ex.InnerException.Message}");
+            }
+        }
+    }
     static async Task AddMigration(string name)
     {
         if (string.IsNullOrWhiteSpace(name))

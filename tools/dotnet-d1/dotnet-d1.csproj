@@ -30,7 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\CloudflareD1.NET\CloudflareD1.NET.csproj" />
     <ProjectReference Include="..\..\src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />
+    <ProjectReference Include="..\..\src\CloudflareD1.NET.Linq\CloudflareD1.NET.Linq.csproj" />
+    <ProjectReference Include="..\..\src\CloudflareD1.NET.CodeFirst\CloudflareD1.NET.CodeFirst.csproj" />
   </ItemGroup>
 
   <ItemGroup>

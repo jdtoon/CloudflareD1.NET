@@ -31,7 +31,7 @@ public class ModelBuilder
     /// <summary>
     /// Builds the model metadata
     /// </summary>
-    internal ModelMetadata Build(Type contextType)
+    public ModelMetadata Build(Type contextType)
     {
         var model = new ModelMetadata();
 

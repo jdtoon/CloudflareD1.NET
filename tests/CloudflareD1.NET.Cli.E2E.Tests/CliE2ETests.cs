@@ -71,6 +71,40 @@ public class CliE2ETests
         Assert.True(File.Exists(snapshot));
     }
 
+    [Fact]
+    public async Task ModelDiff_Creates_Migration_From_Context_Assembly()
+    {
+        using var tmp = new TempWorkspace();
+
+        var repo = RepoRoot;
+        // Use the repo's ModelDiffSample class library to supply a context assembly
+        var sampleProj = Path.Combine(repo, "examples","ModelDiffSample","ModelDiffSample.csproj");
+        var (exitBuild, outBuild, errBuild) = await RunWithOutput("dotnet", new[]{"build", sampleProj, "-c","Debug"}, repo);
+        Assert.Equal(0, exitBuild);
+        var dll = Path.Combine(repo, "examples","ModelDiffSample","bin","Debug","net8.0","ModelDiffSample.dll");
+
+        // Run CLI migrations diff from a clean temp workspace
+        var (exit, stdout, stderr) = await RunCliAsync(tmp.Path, "migrations","diff","InitialFromModel","--context","ModelDiffSample.AppDbContext","--assembly", dll);
+        if (exit != 0)
+        {
+            throw new Exception($"CLI failed with exit {exit}\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        }
+        if (!stdout.Contains("Model diff migration generated"))
+        {
+            throw new Exception($"Unexpected CLI output.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        }
+
+        // Assert: migration file exists and has CreateTable for users
+        var migrationsDir = Path.Combine(tmp.Path, "Migrations");
+        var files = Directory.GetFiles(migrationsDir, "*_InitialFromModel.cs");
+        Assert.Single(files);
+        var content = await File.ReadAllTextAsync(files[0]);
+        Assert.Contains("CreateTable(\"users\"", content);
+
+        // Snapshot saved
+        Assert.True(File.Exists(Path.Combine(tmp.Path, ".migrations-snapshot.json")));
+    }
+
     private static async Task<(int exitCode, string stdout, string stderr)> RunCliAsync(string workingDir, params string[] args)
     {
         var project = Path.Combine(RepoRoot, "tools", "dotnet-d1", "dotnet-d1.csproj");
@@ -89,6 +123,29 @@ public class CliE2ETests
         var stderr = await proc.StandardError.ReadToEndAsync();
         proc.WaitForExit();
         return (proc.ExitCode, stdout, stderr);
+    }
+
+    private static async Task Run(string file, string[] args, string workingDir)
+    {
+        var (exit, _, err) = await RunWithOutput(file, args, workingDir);
+        if (exit != 0) throw new Exception($"Command failed: {file} {string.Join(' ', args)}\n{err}");
+    }
+
+    private static async Task<(int exitCode, string stdout, string stderr)> RunWithOutput(string file, string[] args, string workingDir)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = file,
+            WorkingDirectory = workingDir,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        foreach (var a in args) psi.ArgumentList.Add(a);
+        using var p = Process.Start(psi)!;
+        var o = await p.StandardOutput.ReadToEndAsync();
+        var e = await p.StandardError.ReadToEndAsync();
+        p.WaitForExit();
+        return (p.ExitCode, o, e);
     }
 
     private static string FindRepoRoot()

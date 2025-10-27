@@ -1,0 +1,22 @@
+{
+  "Tables": [
+    {
+      "Name": "users",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "name",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": []
+    }
+  ]
+}
