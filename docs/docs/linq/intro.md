@@ -18,6 +18,47 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
+### v1.8.0 - Set Operations & Existence Checks
+
+Combine multiple queries and perform efficient existence checks:
+
+```csharp
+// Set Operations - Combine query results
+var allCustomers = await activeCustomers
+    .Union(premiumCustomers)
+    .OrderBy("Name")
+    .ToListAsync();
+
+var commonUsers = await setA
+    .Intersect(setB)
+    .ToListAsync();
+
+// Existence Checks - Efficient validation with predicates
+var hasOldUsers = await client.Query<User>("users")
+    .AnyAsync(u => u.Age > 35);
+
+var allAdults = await client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .AllAsync(u => u.Age >= 18);
+```
+
+**Set Operations:**
+- ✅ **Union()** - Combine queries, remove duplicates
+- ✅ **UnionAll()** - Combine queries, keep duplicates
+- ✅ **Intersect()** - Find common rows between queries
+- ✅ **Except()** - Find rows in first query but not second
+- ✅ **Chainable** - Multiple set operations in sequence
+
+**Existence Checks:**
+- ✅ **AnyAsync(predicate)** - Check if any rows match condition
+- ✅ **AllAsync(predicate)** - Check if all rows match condition
+- ✅ **Optimized SQL** - Uses `EXISTS` and `NOT EXISTS` patterns
+- ✅ **Complex predicates** - Support for AND/OR/NOT logic
+
+Learn more: [Set Operations](./set-operations.md) | [Existence Checks](./existence-checks.md)
+
+---
+
 ### v1.5.0 - GroupBy &amp; Aggregations
 
 Group query results and perform aggregate calculations:
