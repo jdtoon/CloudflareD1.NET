@@ -73,17 +73,19 @@ public class OnModelCreatingE2ETests
         Assert.Contains("CreateTable(\"customers\"", content);
         Assert.Contains("CreateTable(\"products\"", content);
 
-        // Indexes from attributes on Customer
-        Assert.Contains("idx_unique_email", content);
-        Assert.Contains("CreateUniqueIndex(\"customers\", \"idx_unique_email\"", content);
+    // Indexes from attributes on Customer
+    Assert.Contains("idx_unique_email", content);
+    Assert.Contains("CreateIndex(\"idx_unique_email\", \"customers\", new[]", content);
+    Assert.Contains(", true)", content);
         // Composite index name will be generated automatically
         Assert.Matches(new System.Text.RegularExpressions.Regex("ix_customers.*first.*last",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase), content);
 
-        // Indexes from fluent API on Product
-        Assert.Contains("idx_unique_sku", content);
-        Assert.Contains("CreateUniqueIndex(\"products\", \"idx_unique_sku\"", content);
-        Assert.Contains("ix_products_name", content);
+    // Indexes from fluent API on Product
+    Assert.Contains("idx_unique_sku", content);
+    Assert.Contains("CreateIndex(\"idx_unique_sku\", \"products\", new[]", content);
+    Assert.Contains(", true)", content);
+    Assert.Contains("ix_products_name", content);
 
         // Snapshot saved
         Assert.True(File.Exists(Path.Combine(tmp.Path, ".migrations-snapshot.json")));
