@@ -3,10 +3,12 @@ using CloudflareD1.NET.Configuration;
 using CloudflareD1.NET.Extensions;
 using CloudflareD1.NET.Linq;
 using CloudflareD1.NET.Linq.Query;
+using CloudflareD1.NET.Migrations;
 using CloudflareD1.NET.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Reflection;
 
 Console.WriteLine("=== CloudflareD1.NET - Cloudflare D1 Connection Test ===\n");
 
@@ -1366,11 +1368,211 @@ try
 
     Console.WriteLine("\n✅ CompiledQuery Tests Completed!");
 
+    // ==========================================
+    // MIGRATIONS TESTS
+    // ==========================================
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("MIGRATIONS TESTS");
+    Console.WriteLine("========================================\n");
+
+    Console.WriteLine("Step 0: Cleaning up migration-related tables...");
+    try
+    {
+        await client.ExecuteAsync("DROP TABLE IF EXISTS posts");
+        await client.ExecuteAsync("DROP TABLE IF EXISTS users");
+        await client.ExecuteAsync("DROP TABLE IF EXISTS __migrations");
+        Console.WriteLine("✓ Cleaned up existing migration tables");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠ Warning during cleanup: {ex.Message}");
+    }
+
+    Console.WriteLine("\nStep 1: Loading migrations from assembly...");
+    var migrations = Assembly.GetExecutingAssembly()
+        .GetTypes()
+        .Where(t => t.IsSubclassOf(typeof(Migration)) && !t.IsAbstract)
+        .Select(t => (Migration)Activator.CreateInstance(t)!)
+        .OrderBy(m => m.Id)
+        .ToList();
+    
+    Console.WriteLine($"✓ Loaded {migrations.Count} migrations:");
+    foreach (var migration in migrations)
+    {
+        Console.WriteLine($"  - {migration.Id}_{migration.Name}");
+    }
+
+    Console.WriteLine("\nStep 2: Creating MigrationRunner...");
+    var runner = new MigrationRunner(client, migrations);
+    Console.WriteLine("✓ MigrationRunner created");
+
+    Console.WriteLine("\nStep 3: Checking pending migrations...");
+    var pendingBeforeApply = await runner.GetPendingMigrationsAsync();
+    Console.WriteLine($"✓ Found {pendingBeforeApply.Count} pending migrations");
+
+    Console.WriteLine("\nStep 4: Applying all pending migrations...");
+    // Debug: Show what SQL will be generated
+    foreach (var migration in migrations)
+    {
+        var testBuilder = new MigrationBuilder();
+        migration.Up(testBuilder);
+        Console.WriteLine($"\n  Migration {migration.Id} will execute:");
+        foreach (var stmt in testBuilder.Statements)
+        {
+            Console.WriteLine($"    {stmt}");
+        }
+    }
+    
+    var appliedMigrations = await runner.MigrateAsync();
+    Console.WriteLine($"\n✓ Applied {appliedMigrations.Count} migrations:");
+    foreach (var migrationId in appliedMigrations)
+    {
+        var migration = migrations.First(m => m.Id == migrationId);
+        Console.WriteLine($"  ✓ {migrationId}_{migration.Name}");
+    }
+
+    Console.WriteLine("\nStep 5: Verifying migration history...");
+    var appliedMigrationIds = await runner.GetAppliedMigrationsAsync();
+    Console.WriteLine($"✓ Migration history contains {appliedMigrationIds.Count} entries");
+    if (appliedMigrationIds.Count != migrations.Count)
+    {
+        throw new Exception($"Expected {migrations.Count} applied migrations, got {appliedMigrationIds.Count}");
+    }
+
+    Console.WriteLine("\nStep 6: Verifying no pending migrations...");
+    var pendingAfterApply = await runner.GetPendingMigrationsAsync();
+    Console.WriteLine($"✓ Pending migrations: {pendingAfterApply.Count}");
+    if (pendingAfterApply.Count != 0)
+    {
+        throw new Exception("Expected no pending migrations after apply");
+    }
+
+    Console.WriteLine("\nStep 7: Verifying created tables exist...");
+    var migratedTablesResult = await client.QueryAsync(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('users', 'posts') ORDER BY name"
+    );
+    Console.WriteLine($"✓ Found {migratedTablesResult.Results.Count} tables:");
+    foreach (var table in migratedTablesResult.Results)
+    {
+        Console.WriteLine($"  - {table["name"]}");
+    }
+    if (migratedTablesResult.Results.Count != 2)
+    {
+        throw new Exception("Expected 2 tables (users, posts)");
+    }
+
+    Console.WriteLine("\nStep 8: Verifying table structure (users table)...");
+    var usersColumnsResult = await client.QueryAsync("PRAGMA table_info(users)");
+    Console.WriteLine($"✓ Users table has {usersColumnsResult.Results.Count} columns:");
+    var expectedColumns = new[] { "id", "name", "email", "age", "created_at", "phone" };
+    foreach (var column in usersColumnsResult.Results)
+    {
+        Console.WriteLine($"  - {column["name"]} ({column["type"]})");
+    }
+    var actualColumns = usersColumnsResult.Results.Select(c => c["name"]?.ToString()).ToList();
+    if (!expectedColumns.All(col => actualColumns.Contains(col)))
+    {
+        throw new Exception($"Missing expected columns in users table");
+    }
+
+    Console.WriteLine("\nStep 9: Verifying indexes exist...");
+    var indexesResult = await client.QueryAsync(
+        "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name IN ('users', 'posts') AND name LIKE 'idx_%' ORDER BY name"
+    );
+    Console.WriteLine($"✓ Found {indexesResult.Results.Count} indexes:");
+    foreach (var index in indexesResult.Results)
+    {
+        Console.WriteLine($"  - {index["name"]}");
+    }
+    if (indexesResult.Results.Count < 3)
+    {
+        throw new Exception("Expected at least 3 indexes");
+    }
+
+    Console.WriteLine("\nStep 10: Testing data insertion in migrated tables...");
+    await client.ExecuteAsync(
+        "INSERT INTO users (name, email, age, phone) VALUES (@name, @email, @age, @phone)",
+        new { name = "Migration Test User", email = "migrationtest@example.com", age = 30, phone = "555-0100" }
+    );
+    var lastUserId = (await client.QueryAsync("SELECT last_insert_rowid() as id")).Results[0]["id"];
+    Console.WriteLine($"✓ Inserted user with ID: {lastUserId}");
+
+    await client.ExecuteAsync(
+        "INSERT INTO posts (title, content, user_id, status) VALUES (@title, @content, @userId, @status)",
+        new { title = "Test Post", content = "This is a test post", userId = lastUserId, status = "published" }
+    );
+    Console.WriteLine("✓ Inserted post with foreign key reference");
+
+    Console.WriteLine("\nStep 11: Verifying foreign key constraint...");
+    var postsResult = await client.QueryAsync("SELECT * FROM posts WHERE user_id = @userId", new { userId = lastUserId });
+    Console.WriteLine($"✓ Found {postsResult.Results.Count} posts for user");
+    if (postsResult.Results.Count != 1)
+    {
+        throw new Exception("Expected 1 post for the test user");
+    }
+
+    Console.WriteLine("\nStep 12: Testing rollback (rolling back last migration)...");
+    var rolledBackId = await runner.RollbackAsync();
+    Console.WriteLine($"✓ Rolled back migration: {rolledBackId}");
+    if (rolledBackId != "20251027091500")
+    {
+        throw new Exception($"Expected to rollback migration 20251027091500, got {rolledBackId}");
+    }
+
+    Console.WriteLine("\nStep 13: Verifying phone column removed after rollback...");
+    var usersColumnsAfterRollback = await client.QueryAsync("PRAGMA table_info(users)");
+    var columnsAfterRollback = usersColumnsAfterRollback.Results.Select(c => c["name"]?.ToString()).ToList();
+    Console.WriteLine($"✓ Users table now has {columnsAfterRollback.Count} columns");
+    if (columnsAfterRollback.Contains("phone"))
+    {
+        throw new Exception("Phone column should have been removed after rollback");
+    }
+
+    Console.WriteLine("\nStep 14: Re-applying rolled back migration...");
+    var reapplied = await runner.MigrateAsync();
+    Console.WriteLine($"✓ Re-applied {reapplied.Count} migrations");
+    if (reapplied.Count != 1 || reapplied[0] != "20251027091500")
+    {
+        throw new Exception("Expected to re-apply migration 20251027091500");
+    }
+
+    Console.WriteLine("\nStep 15: Verifying phone column re-added...");
+    var usersColumnsAfterReapply = await client.QueryAsync("PRAGMA table_info(users)");
+    var columnsAfterReapply = usersColumnsAfterReapply.Results.Select(c => c["name"]?.ToString()).ToList();
+    Console.WriteLine($"✓ Users table has {columnsAfterReapply.Count} columns again");
+    if (!columnsAfterReapply.Contains("phone"))
+    {
+        throw new Exception("Phone column should have been re-added");
+    }
+
+    Console.WriteLine("\nStep 16: Cleaning up - rolling back all migrations...");
+    var rollbackCount = 0;
+    while (true)
+    {
+        var rollbackId = await runner.RollbackAsync();
+        if (rollbackId == null) break;
+        Console.WriteLine($"  Rolled back: {rollbackId}");
+        rollbackCount++;
+    }
+    Console.WriteLine($"✓ Rolled back {rollbackCount} migrations");
+
+    Console.WriteLine("\nStep 17: Verifying all tables removed...");
+    var remainingTables = await client.QueryAsync(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('users', 'posts')"
+    );
+    Console.WriteLine($"✓ Remaining tables: {remainingTables.Results.Count}");
+    if (remainingTables.Results.Count != 0)
+    {
+        throw new Exception("Expected all tables to be removed after complete rollback");
+    }
+
+    Console.WriteLine("\n✅ Migrations Tests Completed!");
+
     Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
     Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties,");
-    Console.WriteLine("set operations, existence checks, async streaming, and compiled queries)");
+    Console.WriteLine("set operations, existence checks, async streaming, compiled queries, and migrations)");
     Console.WriteLine("is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)

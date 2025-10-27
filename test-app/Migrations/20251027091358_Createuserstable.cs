@@ -13,13 +13,14 @@ public class Migration20251027091358_Createuserstable : Migration
 
     public override void Up(MigrationBuilder builder)
     {
-        builder.CreateTable("users", t => t
-            .Integer("id").PrimaryKey().AutoIncrement()
-            .Text("name").NotNull()
-            .Text("email").NotNull().Unique()
-            .Integer("age")
-            .Text("created_at").NotNull().Default("(datetime('now'))")
-        );
+        builder.CreateTable("users", t =>
+        {
+            t.Integer("id").PrimaryKey().AutoIncrement();
+            t.Text("name").NotNull();
+            t.Text("email").NotNull().Unique();
+            t.Integer("age");
+            t.Text("created_at").Default("CURRENT_TIMESTAMP");
+        });
 
         builder.CreateIndex("idx_users_email", "users", new[] { "email" }, unique: true);
     }

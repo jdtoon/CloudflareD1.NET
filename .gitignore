@@ -392,6 +392,10 @@ FodyWeavers.xsd
 *.db-wal
 local.db
 
+# Sensitive configuration files
+**/appsettings.json
+!**/appsettings.example.json
+
 # Docusaurus
 docs/.docusaurus/
 docs/build/
