@@ -11,14 +11,14 @@
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET</Product>
-    <Description>A complete .NET adapter for Cloudflare D1 database. Provides seamless integration with Cloudflare's serverless SQLite database, supporting both local SQLite development and remote D1 production deployments. Features include query execution, batch operations, transactions, time travel queries, and full database management capabilities.</Description>
+    <Description>A complete .NET adapter for Cloudflare D1 database. Provides seamless integration with Cloudflare's serverless SQLite database, supporting both local SQLite development and remote D1 production deployments. Features include query execution, batch operations, time travel queries, and full database management capabilities.</Description>
     <PackageTags>cloudflare;d1;database;sqlite;serverless;cloudflare-d1;edge;workers</PackageTags>
     <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.11.0: Added comprehensive transaction support with BeginTransactionAsync, atomic commit/rollback, and auto-rollback on dispose. Added efficient batch operations: BatchInsertAsync, BatchUpdateAsync, BatchDeleteAsync, and UpsertAsync with automatic property mapping and AUTOINCREMENT handling. 250 tests passing (230 existing + 20 new).</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.11.0: Fixed JsonElement compatibility for AnyAsync/AllAsync when using Cloudflare D1 REST API. Ensures proper handling of both local SQLite (native types) and remote D1 API responses (JsonElement). 230 tests passing.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

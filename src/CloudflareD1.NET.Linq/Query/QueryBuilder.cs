@@ -647,6 +647,11 @@ namespace CloudflareD1.NET.Linq.Query
             var firstResult = result.Results.FirstOrDefault();
             if (firstResult != null && firstResult.TryGetValue("result", out var value))
             {
+                // Handle both direct int values and JsonElement from Cloudflare API
+                if (value is System.Text.Json.JsonElement jsonElement)
+                {
+                    return jsonElement.GetInt32() == 1;
+                }
                 return Convert.ToInt32(value) == 1;
             }
             return false;
@@ -691,6 +696,11 @@ namespace CloudflareD1.NET.Linq.Query
             var firstResult = result.Results.FirstOrDefault();
             if (firstResult != null && firstResult.TryGetValue("result", out var value))
             {
+                // Handle both direct int values and JsonElement from Cloudflare API
+                if (value is System.Text.Json.JsonElement jsonElement)
+                {
+                    return jsonElement.GetInt32() == 1;
+                }
                 return Convert.ToInt32(value) == 1;
             }
             return false;

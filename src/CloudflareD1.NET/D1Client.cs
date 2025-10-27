@@ -177,18 +177,6 @@ namespace CloudflareD1.NET
             return await BatchAsync(statements, CancellationToken.None).ConfigureAwait(false);
         }
 
-        /// <inheritdoc/>
-        public Task<ITransaction> BeginTransactionAsync()
-        {
-            ThrowIfDisposed();
-            
-            _logger.LogDebug("Beginning new transaction");
-            
-            // Create and return a new transaction
-            ITransaction transaction = new Transaction(this);
-            return Task.FromResult(transaction);
-        }
-
         #endregion
 
         #region ID1ManagementClient Implementation

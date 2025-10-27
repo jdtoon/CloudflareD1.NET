@@ -307,6 +307,25 @@ The library includes a comprehensive test suite. Run tests with:
 dotnet test
 ```
 
+## 🔮 Future Enhancements
+
+The following features are planned for future releases, pending Cloudflare D1 REST API support:
+
+### Transactions (Pending Cloudflare API)
+- **ITransaction Interface** - Explicit transaction control with Begin/Commit/Rollback
+- **Atomic Operations** - Multiple operations within a single transaction
+- **Auto-rollback** - Automatic rollback on dispose if not committed
+
+**Note:** Cloudflare D1 currently only supports transactions in the Workers environment. Once transaction support is added to the REST API, we will implement these features.
+
+### Batch Operations (Pending Cloudflare API)
+- **BatchInsertAsync** - Bulk insert multiple entities efficiently
+- **BatchUpdateAsync** - Bulk update with automatic property mapping
+- **BatchDeleteAsync** - Bulk delete operations
+- **UpsertAsync** - Insert or update based on existence
+
+**Note:** While basic batch execution is supported via `BatchAsync()`, advanced batch operations with automatic entity mapping require transaction support from Cloudflare's REST API.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
