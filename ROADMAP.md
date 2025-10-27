@@ -12,13 +12,13 @@
   - Database management
 
 #### LINQ Package (CloudflareD1.NET.Linq)
-- **v1.8.0** - Set Operations & Existence Checks ✅ **CURRENT**
-  - Union(), UnionAll(), Intersect(), Except() for set operations
-  - AnyAsync(predicate), AllAsync(predicate) for existence checks
-  - ISetOperationQueryBuilder<T> fluent interface
-  - EXISTS/NOT EXISTS SQL patterns
-  - Chainable set operations
-  - Full WHERE/ORDER BY/LIMIT support
+- **v1.9.0-beta** - Async Streaming & Cancellation ✅ **CURRENT**
+  - ToAsyncEnumerable() for memory-efficient streaming
+  - IAsyncEnumerable<T> support with await foreach
+  - CancellationToken support for all async methods
+  - Early termination and real-time processing
+  - Memory-efficient one-at-a-time entity yielding
+  - 211 total tests passing
 
 ---
 
@@ -257,7 +257,57 @@ var allActiveOrYoung = await client.Query<User>("users")
 ---
 
 ### Phase 2: Performance & Async (v1.9.0 - v1.10.0)
-#### v1.9.0 - Async Streaming
+
+#### v1.9.0 - Async Streaming ✅ **COMPLETE**
+**Released**: January 2026
+
+Memory-efficient streaming with `IAsyncEnumerable<T>` and comprehensive cancellation support.
+
+**Features**:
+- ✅ `ToAsyncEnumerable(CancellationToken)` - Stream results without loading all into memory
+- ✅ `IAsyncEnumerable<T>` support with `await foreach` syntax
+- ✅ Memory-efficient one-at-a-time entity yielding (O(1) memory vs O(n))
+- ✅ Early termination support (break from foreach loop)
+- ✅ CancellationToken parameter added to all async methods
+- ✅ Real-time processing - start immediately without waiting for all results
+
+**Example**:
+```csharp
+// Stream large datasets efficiently
+await foreach (var user in client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .ToAsyncEnumerable(cancellationToken))
+{
+    await ProcessUserAsync(user); // Process one at a time
+}
+
+// Early termination
+var count = 0;
+await foreach (var user in client.Query<User>("users").ToAsyncEnumerable())
+{
+    await ProcessAsync(user);
+    if (++count >= 100) break; // Stop after 100
+}
+
+// All methods support cancellation
+var users = await client.Query<User>("users")
+    .ToListAsync(cancellationToken);
+```
+
+**Completed**: January 2026
+- ToAsyncEnumerable() implementation with yield return
+- CancellationToken support added to 8 async methods:
+  * ToListAsync, FirstOrDefaultAsync, SingleAsync, SingleOrDefaultAsync
+  * CountAsync, AnyAsync (both overloads), AllAsync
+- 16 new unit tests for streaming and cancellation
+- 5 integration tests in test-app (Steps 91-95)
+- Comprehensive documentation with real-world use cases
+- Performance comparison table (O(1) vs O(n) memory)
+- **211 total tests passing** (195 + 16 new)
+
+---
+
+#### v1.10.0 - Query Optimization & Caching
 **Target**: Q2 2026
 
 **Features**:
