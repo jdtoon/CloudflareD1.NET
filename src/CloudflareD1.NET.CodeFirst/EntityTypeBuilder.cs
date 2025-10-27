@@ -64,8 +64,12 @@ public class EntityTypeBuilder<TEntity> : EntityTypeBuilder where TEntity : clas
         if (keyExpression == null)
             throw new ArgumentNullException(nameof(keyExpression));
 
-        // Key configuration is stored but currently we rely on [Key] attribute
-        // This is here for API completeness
+        // Support both single and composite keys via NewExpression
+        var names = ExtractPropertyNames(keyExpression.Body);
+        if (names.Length == 0)
+            throw new ArgumentException("Invalid key expression. Must reference one or more properties.");
+
+        _modelBuilder.SetEntityKey(typeof(TEntity), names);
         return this;
     }
 
@@ -136,6 +140,26 @@ public class EntityTypeBuilder<TEntity> : EntityTypeBuilder where TEntity : clas
         }
 
         throw new ArgumentException($"Expression '{expression}' is not a valid property expression");
+    }
+
+    private static string[] ExtractPropertyNames(Expression expression)
+    {
+        switch (expression)
+        {
+            case MemberExpression m:
+                return new[] { m.Member.Name };
+            case UnaryExpression u when u.Operand is MemberExpression um:
+                return new[] { um.Member.Name };
+            case NewExpression n:
+                var list = n.Arguments.Select(arg =>
+                {
+                    if (arg is MemberExpression mm) return mm.Member.Name;
+                    if (arg is UnaryExpression uu && uu.Operand is MemberExpression umm) return umm.Member.Name;
+                    throw new ArgumentException("Composite key expression must be a list of property accesses.");
+                }).ToArray();
+                return list;
+        }
+        return Array.Empty<string>();
     }
 }
 

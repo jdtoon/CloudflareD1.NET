@@ -71,11 +71,15 @@ public class MigrationScaffolder
         sb.AppendLine($"builder.CreateTable(\"{table.Name}\", t =>");
         sb.AppendLine("        {");
 
+        // Determine if we have a composite primary key (more than one PK column)
+        var pkColumns = table.Columns.Where(c => c.IsPrimaryKey).Select(c => c.Name).ToList();
+
         foreach (var column in table.Columns)
         {
             sb.Append($"            t.{MapType(column.Type)}(\"{column.Name}\")");
 
-            if (column.IsPrimaryKey)
+            // Only mark column-level primary key when single-column PK
+            if (column.IsPrimaryKey && pkColumns.Count == 1)
                 sb.Append(".PrimaryKey()");
 
             if (column.NotNull && !column.IsPrimaryKey)
@@ -85,6 +89,13 @@ public class MigrationScaffolder
                 sb.Append($".Default({FormatDefaultValue(column.DefaultValue)})");
 
             sb.AppendLine(";");
+        }
+
+        // Add table-level composite primary key if needed
+        if (pkColumns.Count > 1)
+        {
+            var cols = string.Join(", ", pkColumns.Select(c => $"\"{c}\""));
+            sb.AppendLine($"            t.PrimaryKey({cols});");
         }
 
         // Add foreign keys as table constraints
@@ -108,14 +119,9 @@ public class MigrationScaffolder
     {
         // Parse index SQL to determine if unique and which columns
         var isUnique = index.Sql?.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) ?? false;
-
-        // Extract column name from SQL (simplified - assumes single column index)
-        var columnName = ExtractIndexColumn(index.Sql);
-
-        if (isUnique)
-            return $"builder.CreateUniqueIndex(\"{tableName}\", \"{index.Name}\", \"{columnName}\");";
-        else
-            return $"builder.CreateIndex(\"{tableName}\", \"{index.Name}\", \"{columnName}\");";
+        var columns = ExtractIndexColumns(index.Sql);
+        var cols = string.Join(", ", columns.Select(c => $"\"{c}\""));
+        return $"builder.CreateIndex(\"{index.Name}\", \"{tableName}\", new[] {{ {cols} }}, {isUnique.ToString().ToLowerInvariant()});";
     }
 
     private (List<string> UpOperations, List<string> DownOperations) CompareColumns(
@@ -170,7 +176,7 @@ public class MigrationScaffolder
             if (!oldTable.Indexes.Any(i => i.Name == newIdx.Name))
             {
                 upOps.Add(GenerateCreateIndex(newTable.Name, newIdx));
-                downOps.Add($"builder.DropIndex(\"{newTable.Name}\", \"{newIdx.Name}\");");
+                downOps.Add($"builder.DropIndex(\"{newIdx.Name}\");");
             }
         }
 
@@ -179,7 +185,7 @@ public class MigrationScaffolder
         {
             if (!newTable.Indexes.Any(i => i.Name == oldIdx.Name))
             {
-                upOps.Add($"builder.DropIndex(\"{newTable.Name}\", \"{oldIdx.Name}\");");
+                upOps.Add($"builder.DropIndex(\"{oldIdx.Name}\");");
                 downOps.Add(GenerateCreateIndex(newTable.Name, oldIdx));
             }
         }
@@ -208,10 +214,10 @@ public class MigrationScaffolder
         return $"\"{defaultValue}\"";
     }
 
-    private string ExtractIndexColumn(string? indexSql)
+    private string[] ExtractIndexColumns(string? indexSql)
     {
         if (string.IsNullOrEmpty(indexSql))
-            return "id";
+            return new[] { "id" };
 
         // Simple extraction: find text between ( and )
         var start = indexSql.IndexOf('(');
@@ -220,10 +226,14 @@ public class MigrationScaffolder
         if (start >= 0 && end > start)
         {
             var columnsPart = indexSql.Substring(start + 1, end - start - 1);
-            return columnsPart.Trim().Split(',')[0].Trim();
+            return columnsPart
+                .Split(',')
+                .Select(c => c.Trim())
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .ToArray();
         }
 
-        return "id";
+        return new[] { "id" };
     }
 
     private string GenerateMigrationFile(string migrationName, List<string> upOps, List<string> downOps)

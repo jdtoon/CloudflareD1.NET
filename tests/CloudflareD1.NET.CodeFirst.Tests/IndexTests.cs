@@ -190,7 +190,8 @@ public class IndexTests
         var code = scaffolder.GenerateMigration(null, schema, "TestMigration");
 
         // Assert
-        Assert.Contains("CreateUniqueIndex(\"products\", \"idx_product_email\"", code);
+    Assert.Contains("CreateIndex(\"idx_product_email\", \"products\", new[]", code);
+    Assert.Contains(", true)", code);
     }
 
     // Test entities

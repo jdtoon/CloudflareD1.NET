@@ -37,7 +37,8 @@ public class ReferenceCollectionBuilder<TPrincipal, TDependent>
             typeof(TDependent),
             collectionProperty,
             referenceProperty,
-            isRequired: false);
+            isRequired: false,
+            isOneToOne: false);
 
         return this;
     }
@@ -130,7 +131,8 @@ public class ReferenceReferenceBuilder<TPrincipal, TDependent>
             typeof(TDependent),
             inverseProperty,
             referenceProperty,
-            isRequired: false);
+            isRequired: false,
+            isOneToOne: true);
 
         return this;
     }
@@ -149,7 +151,8 @@ public class ReferenceReferenceBuilder<TPrincipal, TDependent>
             typeof(TDependent),
             collectionProperty,
             referenceProperty,
-            isRequired: false);
+            isRequired: false,
+            isOneToOne: false);
 
         return new ReferenceCollectionBuilder<TPrincipal, TDependent>(_modelBuilder, navigationExpression!);
     }

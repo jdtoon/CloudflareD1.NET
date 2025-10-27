@@ -44,7 +44,16 @@ public static class ModelSchemaConverter
                 // Resolve principal table and key column
                 var principal = model.GetEntity(fk.PrincipalType);
                 var principalTable = principal?.TableName ?? ModelSchemaConverterHelpers.ToSnakeCase(ModelSchemaConverterHelpers.Pluralize(fk.PrincipalType.Name));
-                var principalKeyCol = principal?.PrimaryKey.FirstOrDefault()?.ColumnName ?? "id";
+                string principalKeyCol;
+                if (!string.IsNullOrWhiteSpace(fk.PrincipalKeyPropertyName) && principal != null)
+                {
+                    var match = principal.Properties.FirstOrDefault(p => p.PropertyInfo.Name.Equals(fk.PrincipalKeyPropertyName, StringComparison.OrdinalIgnoreCase));
+                    principalKeyCol = match?.ColumnName ?? principal.PrimaryKey.FirstOrDefault()?.ColumnName ?? "id";
+                }
+                else
+                {
+                    principalKeyCol = principal?.PrimaryKey.FirstOrDefault()?.ColumnName ?? "id";
+                }
 
                 table.ForeignKeys.Add(new ForeignKeySchema
                 {

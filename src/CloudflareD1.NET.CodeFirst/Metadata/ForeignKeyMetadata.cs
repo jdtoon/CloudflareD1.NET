@@ -29,6 +29,12 @@ public class ForeignKeyMetadata
     public List<PropertyMetadata> PrincipalProperties { get; } = new();
 
     /// <summary>
+    /// Gets or sets the principal key property name when explicitly configured.
+    /// Used to resolve the referenced column when not using the primary key.
+    /// </summary>
+    public string? PrincipalKeyPropertyName { get; set; }
+
+    /// <summary>
     /// Gets or sets the foreign key constraint name
     /// </summary>
     public string? ConstraintName { get; set; }

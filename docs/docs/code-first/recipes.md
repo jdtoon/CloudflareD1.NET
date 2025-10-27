@@ -110,6 +110,41 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 The diff tooling generates the corresponding CREATE INDEX statements for migrations.
 
+## Composite primary keys
+
+Define composite keys with the fluent API:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<OrderItem>(b =>
+    {
+        b.HasKey(oi => new { oi.OrderId, oi.LineNumber });
+    });
+}
+```
+
+Migrations will emit a table-level PRIMARY KEY (OrderId, LineNumber).
+
+## One-to-one relationships
+
+Use WithOne and make the foreign key unique to enforce 1:1. The framework adds a unique index automatically on the FK when you configure one-to-one.
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Passport>(b =>
+    {
+        b.HasOne(p => p.Person)
+         .WithOne(p => p.Passport)
+         .HasForeignKey<Passport>(p => p.PersonId)
+         .OnDelete(DeleteBehavior.Cascade);
+    });
+}
+```
+
+This will create a unique index on person_id and a foreign key to people(id).
+
 ## End-to-end sample
 
 ```csharp

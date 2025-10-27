@@ -17,6 +17,8 @@ public class ModelBuilder
     private readonly List<RelationshipConfiguration> _relationships = new();
     // Stores fluent index configurations collected via HasIndex
     private readonly List<IndexConfiguration> _indexes = new();
+    // Stores fluent key configurations collected via HasKey
+    private readonly Dictionary<Type, List<string>> _keys = new();
 
     internal class RelationshipConfiguration
     {
@@ -28,6 +30,7 @@ public class ModelBuilder
         public string? PrincipalKeyProperty { get; set; }
         public bool IsRequired { get; set; }
         public DeleteBehavior DeleteBehavior { get; set; } = DeleteBehavior.NoAction;
+        public bool IsOneToOne { get; set; }
     }
 
     internal class IndexConfiguration
@@ -39,7 +42,7 @@ public class ModelBuilder
     }
 
     // Called by relationship builders
-    internal void AddRelationship(Type principalType, Type dependentType, string? principalNavigation, string? dependentNavigation, bool isRequired)
+    internal void AddRelationship(Type principalType, Type dependentType, string? principalNavigation, string? dependentNavigation, bool isRequired, bool isOneToOne)
     {
         _relationships.Add(new RelationshipConfiguration
         {
@@ -47,7 +50,8 @@ public class ModelBuilder
             DependentType = dependentType,
             PrincipalNavigation = principalNavigation,
             DependentNavigation = dependentNavigation,
-            IsRequired = isRequired
+            IsRequired = isRequired,
+            IsOneToOne = isOneToOne
         });
     }
 
@@ -73,6 +77,12 @@ public class ModelBuilder
     {
         var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
         if (rel != null) rel.DeleteBehavior = deleteBehavior;
+    }
+
+    // Called by entity builder for HasKey
+    internal void SetEntityKey(Type entityType, IEnumerable<string> propertyNames)
+    {
+        _keys[entityType] = propertyNames.ToList();
     }
 
     // Called by index builders
@@ -171,6 +181,43 @@ public class ModelBuilder
             }
         }
 
+        // Apply fluent HasKey configuration if present
+        if (_keys.TryGetValue(entityType, out var keyProps) && keyProps.Count > 0)
+        {
+            // Reset any prior PK flags
+            foreach (var p in metadata.Properties)
+            {
+                p.IsPrimaryKey = false;
+                p.IsAutoIncrement = false;
+            }
+
+            foreach (var keyName in keyProps)
+            {
+                var pm = metadata.Properties.FirstOrDefault(p => p.PropertyInfo.Name.Equals(keyName, StringComparison.OrdinalIgnoreCase));
+                if (pm != null)
+                {
+                    pm.IsPrimaryKey = true;
+                }
+            }
+
+            // If single integer key, mark as autoincrement by convention
+            if (metadata.Properties.Count(p => p.IsPrimaryKey) == 1)
+            {
+                var pk = metadata.Properties.First(p => p.IsPrimaryKey);
+                if (IsIntegerType(pk.PropertyInfo.PropertyType))
+                {
+                    pk.IsAutoIncrement = true;
+                }
+            }
+
+            // Rebuild PrimaryKey list from property flags
+            metadata.PrimaryKey.Clear();
+            foreach (var p in metadata.Properties.Where(p => p.IsPrimaryKey))
+            {
+                metadata.PrimaryKey.Add(p);
+            }
+        }
+
         // If no primary key was explicitly configured, look for Id or [EntityName]Id
         if (metadata.PrimaryKey.Count == 0)
         {
@@ -186,7 +233,7 @@ public class ModelBuilder
             }
         }
 
-        // Build foreign keys
+    // Build foreign keys
         BuildForeignKeys(metadata, builder);
 
         // Build indexes
@@ -250,6 +297,28 @@ public class ModelBuilder
                 {
                     fkProp.IsRequired = true;
                 }
+
+                // For one-to-one relationships, enforce a unique constraint on the FK column
+                if (rel.IsOneToOne)
+                {
+                    // Add a unique index on the FK column if not already present
+                    var exists = metadata.Indexes.Any(ix => ix.IsUnique && ix.Properties.Count == 1 && ix.Properties[0] == fkProp);
+                    if (!exists)
+                    {
+                        metadata.Indexes.Add(new IndexMetadata
+                        {
+                            IsUnique = true,
+                            Name = $"ux_{metadata.TableName}_{fkProp.ColumnName}",
+                            Properties = { fkProp }
+                        });
+                    }
+                }
+            }
+
+            // Principal key override if specified
+            if (!string.IsNullOrWhiteSpace(rel.PrincipalKeyProperty))
+            {
+                fk.PrincipalKeyPropertyName = rel.PrincipalKeyProperty;
             }
 
             metadata.ForeignKeys.Add(fk);

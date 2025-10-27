@@ -104,6 +104,42 @@ Pages:
 
 ---
 
+## 🧩 Code-First (ORM) Package
+
+### Implementation Status: IN PROGRESS
+
+The Code-First experience for Cloudflare D1 is actively developed on branch `feature/db-scaffold`.
+
+Completed so far:
+- ✅ Model discovery via attributes and fluent API (Table, Column, Key, Required, NotMapped)
+- ✅ Relationships: one-to-many and many-to-one via HasOne/HasMany/WithOne/WithMany
+- ✅ Delete behaviors: NoAction, Cascade, SetNull, Restrict
+- ✅ Indexes: attribute + fluent, unique and composite; emitted in migrations
+- ✅ CLI diff invokes OnModelCreating when context has D1Client constructor
+- ✅ Docs site updated: Code-First overview and recipes
+
+New in this iteration:
+- ✅ One-to-one relationships: WithOne now enforces uniqueness on the FK via a unique index in migrations
+- ✅ Composite primary keys: Fluent HasKey(e => new { ... }) emits a table-level composite PRIMARY KEY
+- ✅ Scaffolder improvements: composite index columns are preserved in CreateIndex generation
+
+In progress next (high impact):
+- ▶️ Tighten composite index scaffolding across all code paths (apply/diff) and samples
+- ▶️ Additional E2E coverage with live D1 for composite PK + 1:1
+
+Planned backlog (post-1/2):
+- ◻️ Migration history and apply/rollback/idempotent scripts
+- ◻️ Value generation/defaults (HasDefaultValue / HasDefaultValueSql)
+- ◻️ Value converters (enums, custom)
+- ◻️ Many-to-many convenience
+- ◻️ Check constraints, owned types
+
+Docs links:
+- Code-First Overview: docs/docs/code-first/overview.md
+- Code-First Recipes: docs/docs/code-first/recipes.md
+
+---
+
 ## ✅ CI/CD Pipeline
 
 ### GitHub Actions
