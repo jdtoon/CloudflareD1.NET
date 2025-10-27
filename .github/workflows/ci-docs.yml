@@ -2,7 +2,7 @@ name: CI Docs
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, main, develop, dev ]
   pull_request:
     branches: [ master, develop ]
 
