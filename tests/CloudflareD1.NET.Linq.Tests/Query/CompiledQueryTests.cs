@@ -22,6 +22,9 @@ namespace CloudflareD1.NET.Linq.Tests.Query
 
         public CompiledQueryTests()
         {
+            // Clear cache before each test to avoid interference
+            CompiledQuery.ClearCache();
+
             var mockLogger = new Mock<ILogger<D1Client>>();
             var options = new D1Options
             {
@@ -132,7 +135,7 @@ namespace CloudflareD1.NET.Linq.Tests.Query
             // Assert
             Assert.NotNull(results);
             Assert.True(results.Count > 1);
-            
+
             // Verify ordering
             for (int i = 1; i < results.Count; i++)
             {
@@ -343,7 +346,7 @@ namespace CloudflareD1.NET.Linq.Tests.Query
             // Assert
             Assert.NotNull(results);
             Assert.True(results.Count > 1);
-            
+
             // Verify primary ordering by IsActive, then by Age
             for (int i = 1; i < results.Count; i++)
             {
@@ -352,6 +355,160 @@ namespace CloudflareD1.NET.Linq.Tests.Query
                     Assert.True(results[i - 1].Age <= results[i].Age);
                 }
             }
+        }
+
+        [Fact]
+        public void CompiledQuery_Cache_PreventsRecompilation()
+        {
+            // Clear cache to start fresh
+            CompiledQuery.ClearCache();
+            var initialStats = CompiledQuery.GetStatistics();
+            Assert.Equal(0, initialStats.CacheHits);
+            Assert.Equal(0, initialStats.CacheMisses);
+            Assert.Equal(0, initialStats.CacheSize);
+
+            // First compilation - should be a cache miss
+            var query1 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 25)
+            );
+
+            var stats1 = CompiledQuery.GetStatistics();
+            Assert.Equal(0, stats1.CacheHits);
+            Assert.Equal(1, stats1.CacheMisses);
+            Assert.Equal(1, stats1.CacheSize);
+
+            // Second compilation with same query - should be a cache hit
+            var query2 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 25)
+            );
+
+            var stats2 = CompiledQuery.GetStatistics();
+            Assert.Equal(1, stats2.CacheHits);
+            Assert.Equal(1, stats2.CacheMisses);
+            Assert.Equal(1, stats2.CacheSize);
+
+            // Verify both queries produce same SQL
+            Assert.Equal(query1.Sql, query2.Sql);
+        }
+
+        [Fact]
+        public async Task CompiledQuery_CacheHit_ProducesSameResults()
+        {
+            CompiledQuery.ClearCache();
+
+            // Create query twice (first should cache, second should hit cache)
+            var query1 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 25).OrderBy(u => u.Age).Take(5)
+            );
+
+            var query2 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 25).OrderBy(u => u.Age).Take(5)
+            );
+
+            // Execute both and verify results match
+            var results1 = await query1.ExecuteAsync(_client);
+            var results2 = await query2.ExecuteAsync(_client);
+
+            Assert.Equal(results1.Count, results2.Count);
+            for (int i = 0; i < results1.Count; i++)
+            {
+                Assert.Equal(results1[i].Id, results2[i].Id);
+                Assert.Equal(results1[i].Name, results2[i].Name);
+                Assert.Equal(results1[i].Age, results2[i].Age);
+            }
+        }
+
+        [Fact]
+        public void CompiledQuery_DifferentQueries_CreateSeparateCacheEntries()
+        {
+            CompiledQuery.ClearCache();
+
+            // Create three different queries with visibly different SQL
+            var query1 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 25)
+            );
+
+            var query2 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 30)
+            );
+
+            var query3 = CompiledQuery.Create<User>(
+                _tableName,
+                q => q.Where(u => u.Age > 35)
+            );
+
+            var stats = CompiledQuery.GetStatistics();
+            
+            // Debug: print SQL of each query to see if any are duplicates
+            System.Diagnostics.Debug.WriteLine($"Query1 SQL: {query1.Sql}");
+            System.Diagnostics.Debug.WriteLine($"Query2 SQL: {query2.Sql}");
+            System.Diagnostics.Debug.WriteLine($"Query3 SQL: {query3.Sql}");
+            System.Diagnostics.Debug.WriteLine($"Cache stats: Hits={stats.CacheHits}, Misses={stats.CacheMisses}, Size={stats.CacheSize}");
+            
+            Assert.Equal(0, stats.CacheHits);
+            Assert.Equal(3, stats.CacheMisses);
+            Assert.Equal(3, stats.CacheSize);
+        }
+
+        [Fact]
+        public void CompiledQuery_ClearCache_ResetsStatistics()
+        {
+            // Create some queries to populate cache
+            CompiledQuery.Create<User>(_tableName, q => q.Where(u => u.Age > 25));
+            CompiledQuery.Create<User>(_tableName, q => q.Where(u => u.Age > 30));
+
+            var statsBeforeClear = CompiledQuery.GetStatistics();
+            Assert.True(statsBeforeClear.CacheSize > 0);
+
+            // Clear cache
+            CompiledQuery.ClearCache();
+
+            var statsAfterClear = CompiledQuery.GetStatistics();
+            Assert.Equal(0, statsAfterClear.CacheHits);
+            Assert.Equal(0, statsAfterClear.CacheMisses);
+            Assert.Equal(0, statsAfterClear.CacheSize);
+        }
+
+        [Fact]
+        public void CompiledQuery_ProjectionCache_WorksCorrectly()
+        {
+            CompiledQuery.ClearCache();
+
+            // First projection compilation - should be a cache miss
+            var query1 = CompiledQuery.Create<User, UserSummary>(
+                _tableName,
+                q => q.Where(u => u.Age > 25).Select(u => new UserSummary
+                {
+                    Id = u.Id,
+                    Name = u.Name
+                })
+            );
+
+            var stats1 = CompiledQuery.GetStatistics();
+            Assert.Equal(0, stats1.CacheHits);
+            Assert.Equal(1, stats1.CacheMisses);
+            Assert.Equal(1, stats1.CacheSize);
+
+            // Second projection compilation with same query - should be a cache hit
+            var query2 = CompiledQuery.Create<User, UserSummary>(
+                _tableName,
+                q => q.Where(u => u.Age > 25).Select(u => new UserSummary
+                {
+                    Id = u.Id,
+                    Name = u.Name
+                })
+            );
+
+            var stats2 = CompiledQuery.GetStatistics();
+            Assert.Equal(1, stats2.CacheHits);
+            Assert.Equal(1, stats2.CacheMisses);
+            Assert.Equal(1, stats2.CacheSize);
         }
     }
 

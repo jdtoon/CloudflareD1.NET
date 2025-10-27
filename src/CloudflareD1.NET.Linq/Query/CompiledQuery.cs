@@ -136,11 +136,31 @@ namespace CloudflareD1.NET.Linq.Query
             // Extract SQL and parameters
             var (sql, parameters) = ExtractQueryInfo(finalBuilder as QueryBuilder<T>);
 
-            return new CompiledQuery<T, List<T>>(
+            // Generate cache key from table name, entity type, SQL, and parameters
+            var paramString = string.Join("|", parameters.Select(p => p?.ToString() ?? "null"));
+            var cacheKey = new ExpressionCacheKey(
+                $"{tableName}:{sql}:{paramString}",
+                typeof(T));
+
+            // Try to get from cache
+            if (_cache.TryGetValue(cacheKey, out var cached))
+            {
+                Interlocked.Increment(ref _cacheHits);
+                return (CompiledQuery<T, List<T>>)cached;
+            }
+
+            Interlocked.Increment(ref _cacheMisses);
+
+            var compiledQuery = new CompiledQuery<T, List<T>>(
                 sql,
                 parameters,
                 mapper,
                 typeof(List<T>));
+
+            // Cache the compiled query
+            _cache.TryAdd(cacheKey, compiledQuery);
+
+            return compiledQuery;
         }
 
         /// <summary>
@@ -167,11 +187,31 @@ namespace CloudflareD1.NET.Linq.Query
 
             var (sql, parameters) = ExtractProjectionQueryInfo(finalBuilder as ProjectionQueryBuilder<TResult>);
 
-            return new CompiledQuery<T, List<TResult>>(
+            // Generate cache key from table name, entity type, result type, SQL, and parameters
+            var paramString = string.Join("|", parameters.Select(p => p?.ToString() ?? "null"));
+            var cacheKey = new ExpressionCacheKey(
+                $"{tableName}:{typeof(TResult).Name}:{sql}:{paramString}",
+                typeof(T));
+
+            // Try to get from cache
+            if (_cache.TryGetValue(cacheKey, out var cached))
+            {
+                Interlocked.Increment(ref _cacheHits);
+                return (CompiledQuery<T, List<TResult>>)cached;
+            }
+
+            Interlocked.Increment(ref _cacheMisses);
+
+            var compiledQuery = new CompiledQuery<T, List<TResult>>(
                 sql,
                 parameters,
                 mapper,
                 typeof(List<TResult>));
+
+            // Cache the compiled query
+            _cache.TryAdd(cacheKey, compiledQuery);
+
+            return compiledQuery;
         }
 
         /// <summary>
