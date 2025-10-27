@@ -12,7 +12,7 @@
   - Database management
 
 #### LINQ Package (CloudflareD1.NET.Linq)
-- **v1.9.0-beta** - Async Streaming & Cancellation ✅ **CURRENT**
+- **v1.9.0** - Async Streaming & Cancellation ✅ **CURRENT**
   - ToAsyncEnumerable() for memory-efficient streaming
   - IAsyncEnumerable<T> support with await foreach
   - CancellationToken support for all async methods
@@ -259,7 +259,7 @@ var allActiveOrYoung = await client.Query<User>("users")
 ### Phase 2: Performance & Async (v1.9.0 - v1.10.0)
 
 #### v1.9.0 - Async Streaming ✅ **COMPLETE**
-**Released**: January 2026
+**Released**: October 2025
 
 Memory-efficient streaming with `IAsyncEnumerable<T>` and comprehensive cancellation support.
 

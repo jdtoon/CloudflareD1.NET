@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.9.0-beta] - 2025-01-26
+## [1.9.0] - 2025-10-27
 
 ### Added - CloudflareD1.NET.Linq
 

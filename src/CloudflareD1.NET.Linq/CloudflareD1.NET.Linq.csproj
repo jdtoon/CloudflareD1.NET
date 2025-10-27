@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.9.0-beta</Version>
+    <Version>1.9.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.9.0-beta: Async Streaming - Added ToAsyncEnumerable() for memory-efficient streaming of large result sets using IAsyncEnumerable&lt;T&gt;. Added CancellationToken support to all async methods (ToListAsync, FirstOrDefaultAsync, CountAsync, AnyAsync, AllAsync, etc.). Memory-efficient one-at-a-time entity yielding. Supports early termination and cancellation. 16 new unit tests + 5 integration tests. 211 total tests passing. v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.9.0: Async Streaming - Added ToAsyncEnumerable() for memory-efficient streaming of large result sets using IAsyncEnumerable&lt;T&gt;. Added CancellationToken support to all async methods (ToListAsync, FirstOrDefaultAsync, CountAsync, AnyAsync, AllAsync, etc.). Memory-efficient one-at-a-time entity yielding. Supports early termination and cancellation. 16 new unit tests + 5 integration tests. 211 total tests passing. v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

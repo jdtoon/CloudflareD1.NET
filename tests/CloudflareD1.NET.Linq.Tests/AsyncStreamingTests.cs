@@ -280,7 +280,7 @@ public class AsyncStreamingTests : IDisposable
     {
         // Arrange - First insert a duplicate
         await _client.ExecuteAsync("INSERT INTO users (id, name, age, email, is_active) VALUES (100, 'User1', 21, 'duplicate@example.com', 1)");
-        
+
         var queryBuilder = _client.Query<User>("users")
             .Where(u => u.Name == "User1");
         var count = 0;
