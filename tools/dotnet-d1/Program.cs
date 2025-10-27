@@ -83,7 +83,7 @@ class Program
     {
         Console.WriteLine("📋 Migrations:");
         Console.WriteLine();
-        
+
         var migrationsDir = FindMigrationsDirectory();
         if (migrationsDir == null)
         {
@@ -119,7 +119,7 @@ class Program
     {
         Console.WriteLine("🚀 Applying migrations...");
         Console.WriteLine();
-        
+
         if (target != null)
         {
             Console.WriteLine($"Target: {target}");
@@ -142,7 +142,7 @@ class Program
     {
         Console.WriteLine("⏪ Rolling back migrations...");
         Console.WriteLine();
-        
+
         if (target != null)
         {
             Console.WriteLine($"Target: {target}");
@@ -171,7 +171,7 @@ class Program
     static string? FindMigrationsDirectory()
     {
         var currentDir = Directory.GetCurrentDirectory();
-        
+
         // Look for Migrations directory in current directory
         var migrationsDir = Path.Combine(currentDir, "Migrations");
         if (Directory.Exists(migrationsDir))

@@ -299,6 +299,6 @@ var compiledQuery = CompiledQuery.Create<User, AgeGroup>(
 ## See Also
 
 - [LINQ Query Builder](query-builder.md)
-- [IQueryable<T>](iqueryable.md)
+- [IQueryable&lt;T&gt;](iqueryable.md)
 - [Async Streaming](async-streaming.md)
 - [Expression Trees](expression-trees.md)

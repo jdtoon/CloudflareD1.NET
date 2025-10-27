@@ -25,6 +25,13 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Database Migrations',
+      items: [
+        'migrations/overview',
+      ],
+    },
+    {
+      type: 'category',
       label: 'LINQ Package',
       items: [
         'linq/intro',

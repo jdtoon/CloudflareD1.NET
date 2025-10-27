@@ -349,7 +349,7 @@ if (errors.Any())
 | Method | Memory Usage | Time to First Result | Total Time |
 |--------|--------------|---------------------|------------|
 | `ToListAsync()` | ~500 MB | 5 seconds | 10 seconds |
-| `ToAsyncEnumerable()` | ~5 KB | <1 ms | 10 seconds |
+| `ToAsyncEnumerable()` | ~5 KB | &lt;1 ms | 10 seconds |
 
 **Key Benefits:**
 - **99% less memory** - only current record in memory

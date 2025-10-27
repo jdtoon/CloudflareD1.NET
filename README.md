@@ -12,6 +12,8 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 |---------|-------------|---------|
 | **CloudflareD1.NET** | Core package with raw SQL support | `dotnet add package CloudflareD1.NET` |
 | **CloudflareD1.NET.Linq** | LINQ queries and object mapping | `dotnet add package CloudflareD1.NET.Linq` |
+| **CloudflareD1.NET.Migrations** | Database migrations and schema management | `dotnet add package CloudflareD1.NET.Migrations` |
+| **dotnet-d1** | CLI tool for managing migrations | `dotnet tool install -g dotnet-d1` |
 
 ## ✨ Features
 
@@ -30,7 +32,7 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🧪 **Well Tested** - Comprehensive test coverage
 
 ### LINQ Package (CloudflareD1.NET.Linq)
-- ✨ **IQueryable<T> Support** - Standard LINQ with deferred execution (v1.3.0+)
+- ✨ **IQueryable&lt;T&gt; Support** - Standard LINQ with deferred execution (v1.3.0+)
 - 🔗 **Join Operations** - INNER JOIN and LEFT JOIN support (v1.6.0)
 - 📊 **GroupBy & Having** - Group results with aggregate filters (v1.5.0+)
 - 🎯 **Select() Projections** - Project to DTOs with computed properties (v1.4.0)
@@ -44,6 +46,18 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🎨 **Custom Mappers** - Implement `IEntityMapper` for custom logic
 - 📋 **LINQ Methods** - QueryFirstOrDefaultAsync, QuerySingleAsync, etc.
 
+### Migrations Package (CloudflareD1.NET.Migrations)
+- 🔄 **Version Control** - Track database schema changes over time
+- 📝 **Fluent API** - Intuitive builder for creating tables and indexes
+- ⬆️ **Up/Down Migrations** - Forward and rollback support
+- 📜 **Migration History** - Automatic tracking of applied migrations
+- 🛠️ **CLI Tool** - dotnet-d1 command-line tool for migration management
+- 🎯 **Type-Safe** - Strongly typed schema definitions
+- 🔧 **Schema Operations** - CREATE/DROP tables, ADD/DROP columns, indexes
+- 🔑 **Constraints** - Primary keys, foreign keys, unique, check constraints
+- 📦 **Programmatic API** - Apply migrations from code
+- ✅ **Well Tested** - Comprehensive unit test coverage
+
 ## 📦 Installation
 
 ### Core Package
@@ -54,6 +68,15 @@ dotnet add package CloudflareD1.NET
 ### With LINQ Support  
 ```bash
 dotnet add package CloudflareD1.NET.Linq
+```
+
+### With Migrations Support
+```bash
+# Install the migrations package
+dotnet add package CloudflareD1.NET.Migrations
+
+# Install the CLI tool globally
+dotnet tool install -g dotnet-d1
 ```
 
 Or via Package Manager Console:
@@ -307,7 +330,95 @@ The library includes a comprehensive test suite. Run tests with:
 dotnet test
 ```
 
-## 🔮 Future Enhancements
+## � Database Migrations
+
+CloudflareD1.NET.Migrations provides a complete database migration system for managing schema changes over time.
+
+### Quick Start with Migrations
+
+```bash
+# Install the CLI tool
+dotnet tool install -g dotnet-d1
+
+# Create a new migration
+dotnet d1 migrations add CreateUsersTable
+
+# Apply migrations
+dotnet d1 database update
+
+# Rollback last migration
+dotnet d1 database rollback
+```
+
+### Creating Migrations
+
+Migrations use a fluent API for defining schema changes:
+
+```csharp
+using CloudflareD1.NET.Migrations;
+
+public class CreateUsersTable_20241027120000 : Migration
+{
+    public override string Id => "20241027120000";
+    public override string Name => "CreateUsersTable";
+
+    public override void Up(MigrationBuilder builder)
+    {
+        builder.CreateTable("users", t =>
+        {
+            t.Integer("id").PrimaryKey().AutoIncrement();
+            t.Text("name").NotNull();
+            t.Text("email").NotNull().Unique();
+            t.Integer("age");
+            t.Text("created_at").Default("CURRENT_TIMESTAMP");
+        });
+
+        builder.CreateIndex("idx_users_email", "users", new[] { "email" }, unique: true);
+    }
+
+    public override void Down(MigrationBuilder builder)
+    {
+        builder.DropIndex("idx_users_email");
+        builder.DropTable("users");
+    }
+}
+```
+
+### Programmatic Usage
+
+```csharp
+using CloudflareD1.NET.Migrations;
+
+// Get migrations from assembly
+var migrations = Assembly.GetExecutingAssembly()
+    .GetTypes()
+    .Where(t => t.IsSubclassOf(typeof(Migration)) && !t.IsAbstract)
+    .Select(t => (Migration)Activator.CreateInstance(t)!)
+    .ToList();
+
+// Create migration runner
+var runner = new MigrationRunner(client, migrations);
+
+// Apply all pending migrations
+var applied = await runner.MigrateAsync();
+
+// Rollback last migration
+var rolledBack = await runner.RollbackAsync();
+```
+
+### Features
+
+- ✅ **Fluent API** - Intuitive builder for schema changes
+- ✅ **Up/Down Migrations** - Full rollback support
+- ✅ **Migration History** - Automatic tracking in `__migrations` table
+- ✅ **CLI Tool** - `dotnet-d1` for managing migrations
+- ✅ **Type-Safe** - Strongly typed schema definitions
+- ✅ **Schema Operations** - CREATE/DROP tables, ADD/DROP columns, indexes
+- ✅ **Constraints** - Primary keys, foreign keys, unique, check constraints
+
+For complete documentation, see the [Migrations Guide](https://cloudflareb1-net-docs.pages.dev/docs/migrations/overview).
+
+## �🔮 Future Enhancements
 
 The following features are planned for future releases, pending Cloudflare D1 REST API support:
 

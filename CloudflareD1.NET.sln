@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareD1.NET.Linq.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareD1.NET.Migrations", "src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj", "{BE45F300-DF2A-4801-97C5-1EE2EC421715}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareD1.NET.Migrations.Tests", "tests\CloudflareD1.NET.Migrations.Tests\CloudflareD1.NET.Migrations.Tests.csproj", "{B1A85F05-9BD7-484A-B67C-473E4546BE67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,18 @@ Global
 		{BE45F300-DF2A-4801-97C5-1EE2EC421715}.Release|x64.Build.0 = Release|Any CPU
 		{BE45F300-DF2A-4801-97C5-1EE2EC421715}.Release|x86.ActiveCfg = Release|Any CPU
 		{BE45F300-DF2A-4801-97C5-1EE2EC421715}.Release|x86.Build.0 = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|x64.Build.0 = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Debug|x86.Build.0 = Debug|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|x64.ActiveCfg = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|x64.Build.0 = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|x86.ActiveCfg = Release|Any CPU
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,5 +143,6 @@ Global
 		{F1262C0B-14EA-4FC6-A3E9-0FE9E6213E27} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{E3B0C7C1-10F7-45B6-AE25-5A5BC05058FE} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{BE45F300-DF2A-4801-97C5-1EE2EC421715} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{B1A85F05-9BD7-484A-B67C-473E4546BE67} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal
