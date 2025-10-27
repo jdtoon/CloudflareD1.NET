@@ -13,7 +13,7 @@ env:
   CORE_PROJECT_PATH: 'src/CloudflareD1.NET/CloudflareD1.NET.csproj'
   LINQ_PROJECT_PATH: 'src/CloudflareD1.NET.Linq/CloudflareD1.NET.Linq.csproj'
   MIGRATIONS_PROJECT_PATH: 'src/CloudflareD1.NET.Migrations/CloudflareD1.NET.Migrations.csproj'
-  CLI_PROJECT_PATH: 'src/dotnet-d1/dotnet-d1.csproj'
+  CLI_PROJECT_PATH: 'tools/dotnet-d1/dotnet-d1.csproj'
 
 jobs:
   build-and-test:

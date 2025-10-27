@@ -596,4 +596,4 @@ dotnet d1 database update
 
 - [Getting Started](../getting-started/installation.md)
 - [Quick Start Guide](../getting-started/quick-start.md)
-- [LINQ Package](../linq/overview.md)
+- [LINQ Package](../linq/intro.md)
