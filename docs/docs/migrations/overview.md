@@ -268,6 +268,46 @@ dotnet d1 migrations add AddEmailIndexToUsers
 dotnet d1 migrations add AddPostsTable
 ```
 
+#### Scaffold from Database
+
+Generate migrations automatically by comparing your database schema:
+
+```bash
+# Scaffold migration from database changes
+dotnet d1 migrations scaffold <MigrationName> --connection <database-path>
+```
+
+Example workflow:
+```bash
+# 1. Make changes to your SQLite database
+sqlite3 local.db "CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT)"
+
+# 2. Scaffold a migration from those changes
+dotnet d1 migrations scaffold AddProductsTable --connection local.db
+
+# 3. Review the generated migration file
+# The tool will create Migrations/20241027120000_AddProductsTable.cs
+
+# 4. Make more changes
+sqlite3 local.db "ALTER TABLE products ADD COLUMN price REAL"
+
+# 5. Scaffold again - only detects NEW changes
+dotnet d1 migrations scaffold AddProductPrice --connection local.db
+```
+
+**How it works:**
+- First scaffold creates a snapshot of your database schema
+- Subsequent scaffolds compare current schema to the snapshot
+- Only generates migrations for the differences
+- Automatically creates `.migrations-snapshot.json` to track state
+
+**What it detects:**
+- ✅ New tables
+- ✅ New columns (ALTER TABLE ADD COLUMN)
+- ✅ Dropped tables
+- ✅ New/dropped indexes
+- ✅ Column types, constraints (PRIMARY KEY, NOT NULL, UNIQUE, DEFAULT)
+
 #### List Migrations
 
 ```bash
