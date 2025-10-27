@@ -36,6 +36,7 @@ const sidebars = {
         'linq/joins',
         'linq/set-operations',
         'linq/existence-checks',
+        'linq/async-streaming',
         'linq/expression-trees',
         'linq/entity-mapping',
       ],

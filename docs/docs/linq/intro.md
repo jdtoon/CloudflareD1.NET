@@ -18,6 +18,50 @@ Installing CloudflareD1.NET.Linq automatically includes CloudflareD1.NET as a de
 
 ## What's New
 
+### v1.9.0 - Async Streaming & Cancellation
+
+Process large datasets efficiently with async streaming and cancellation support:
+
+```csharp
+// Async Streaming - Memory-efficient result processing
+await foreach (var user in client.Query<User>("users")
+    .Where(u => u.IsActive)
+    .ToAsyncEnumerable(cancellationToken))
+{
+    await ProcessUserAsync(user); // Process one at a time
+}
+
+// Early Termination - Stop when you find what you need
+var count = 0;
+await foreach (var user in client.Query<User>("users").ToAsyncEnumerable())
+{
+    await ProcessAsync(user);
+    if (++count >= 100) break; // Stop after 100
+}
+
+// Cancellation Support - All async methods
+var users = await client.Query<User>("users")
+    .ToListAsync(cancellationToken);
+```
+
+**Async Streaming:**
+- ✅ **ToAsyncEnumerable()** - Stream results with `IAsyncEnumerable<T>`
+- ✅ **Memory Efficient** - Process one entity at a time (O(1) memory)
+- ✅ **Early Termination** - Break from `await foreach` to stop
+- ✅ **Real-time Processing** - Start processing immediately
+- ✅ **Works with all queries** - WHERE, OrderBy, Take, Skip, etc.
+
+**Cancellation Support:**
+- ✅ **CancellationToken parameter** added to all async methods
+- ✅ **ToListAsync(token)** - Cancel query execution
+- ✅ **FirstOrDefaultAsync(token)** - Cancel first result fetch
+- ✅ **CountAsync(token), AnyAsync(token), AllAsync(token)** - All support cancellation
+- ✅ **Backwards compatible** - All default to `CancellationToken.None`
+
+Learn more: [Async Streaming](./async-streaming.md)
+
+---
+
 ### v1.8.0 - Set Operations & Existence Checks
 
 Combine multiple queries and perform efficient existence checks:
