@@ -12,12 +12,13 @@
   - Database management
 
 #### LINQ Package (CloudflareD1.NET.Linq)
-- **v1.6.0** - Join Operations ✅ **CURRENT**
-  - Join() and LeftJoin() support
-  - Multi-table projections
-  - Type-safe key selectors
-  - Having() clause for filtered aggregations
-  - Full WHERE/ORDER BY/LIMIT support on joins
+- **v1.8.0** - Set Operations & Existence Checks ✅ **CURRENT**
+  - Union(), UnionAll(), Intersect(), Except() for set operations
+  - AnyAsync(predicate), AllAsync(predicate) for existence checks
+  - ISetOperationQueryBuilder<T> fluent interface
+  - EXISTS/NOT EXISTS SQL patterns
+  - Chainable set operations
+  - Full WHERE/ORDER BY/LIMIT support
 
 ---
 
@@ -210,8 +211,48 @@ var nonMiddleAge = await young.Union(senior).ToListAsync();
 - Full documentation and examples
 - 183 total tests passing
 
-**Deferred to full v1.8.0**:
-- Any()/All() with predicates (EXISTS/NOT EXISTS)
+---
+
+#### v1.8.0 - Set Operations & Existence Checks ✅ **COMPLETE**
+**Released**: January 2025
+
+Completes the v1.8.0 release by adding existence check methods with predicates.
+
+**New Features**:
+- ✅ `AnyAsync(Expression<Func<T, bool>> predicate)` - Check if any rows match a condition
+- ✅ `AllAsync(Expression<Func<T, bool>> predicate)` - Check if all rows match a condition
+- ✅ EXISTS/NOT EXISTS SQL patterns for optimal performance
+- ✅ Combines with existing Where() clauses
+- ✅ Full expression tree translation support
+
+**Example**:
+```csharp
+// Check if any users are over 35
+var hasOldUsers = await client.Query<User>("users")
+    .AnyAsync(u => u.Age > 35);
+
+// Check if all users are over 18
+var allAdults = await client.Query<User>("users")
+    .AllAsync(u => u.Age > 18);
+
+// Combine with existing filters
+var hasYoungAlice = await client.Query<User>("users")
+    .Where(u => u.Name == "Alice")
+    .AnyAsync(u => u.Age < 30);
+
+// Complex predicates
+var allActiveOrYoung = await client.Query<User>("users")
+    .AllAsync(u => u.IsActive || u.Age < 25);
+```
+
+**Completed**: January 2025
+- AnyAsync(predicate) using EXISTS SQL pattern
+- AllAsync(predicate) using NOT EXISTS with negated predicate
+- Expression tree translation for lambda predicates
+- 12 new unit tests for existence checks
+- 6 integration tests in test-app
+- Full documentation and examples
+- **195 total tests passing** (183 + 12 new)
 
 ---
 
