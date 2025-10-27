@@ -43,6 +43,52 @@ public class OnModelCreatingE2ETests
         Assert.True(File.Exists(Path.Combine(tmp.Path, ".migrations-snapshot.json")));
     }
 
+    [Fact]
+    public async Task ModelDiff_Honors_OnModelCreating_Indexes()
+    {
+        using var tmp = new TempWorkspace();
+
+        // Build the IndexesSample project
+        var proj = Path.Combine(RepoRoot, "examples", "IndexesSample", "IndexesSample.csproj");
+        var (exitBuild, outBuild, errBuild) = await RunWithOutput("dotnet", new[]{"build", proj, "-c","Debug"}, RepoRoot);
+        Assert.Equal(0, exitBuild);
+        var dll = Path.Combine(RepoRoot, "examples","IndexesSample","bin","Debug","net8.0","IndexesSample.dll");
+        Assert.True(File.Exists(dll));
+
+        // Run CLI migrations diff
+        var (exit, stdout, stderr) = await RunCliAsync(tmp.Path, "migrations","diff","InitIndexes","--context","IndexesSample.AppDbContext","--assembly", dll);
+        if (exit != 0)
+        {
+            throw new Exception($"CLI failed with exit {exit}\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        }
+        Assert.Contains("Model diff migration generated", stdout);
+
+        // Assert: migration includes tables and indexes
+        var migrationsDir = Path.Combine(tmp.Path, "Migrations");
+        var files = Directory.GetFiles(migrationsDir, "*_InitIndexes.cs");
+        Assert.Single(files);
+        var content = await File.ReadAllTextAsync(files[0]);
+
+        // Tables
+        Assert.Contains("CreateTable(\"customers\"", content);
+        Assert.Contains("CreateTable(\"products\"", content);
+
+        // Indexes from attributes on Customer
+        Assert.Contains("idx_unique_email", content);
+        Assert.Contains("CreateUniqueIndex(\"customers\", \"idx_unique_email\"", content);
+        // Composite index name will be generated automatically
+        Assert.Matches(new System.Text.RegularExpressions.Regex("ix_customers.*first.*last",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase), content);
+
+        // Indexes from fluent API on Product
+        Assert.Contains("idx_unique_sku", content);
+        Assert.Contains("CreateUniqueIndex(\"products\", \"idx_unique_sku\"", content);
+        Assert.Contains("ix_products_name", content);
+
+        // Snapshot saved
+        Assert.True(File.Exists(Path.Combine(tmp.Path, ".migrations-snapshot.json")));
+    }
+
     private sealed class TempWorkspace : IDisposable
     {
         public string Path { get; }

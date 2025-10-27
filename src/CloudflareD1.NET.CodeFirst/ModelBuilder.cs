@@ -15,6 +15,8 @@ public class ModelBuilder
     private readonly Dictionary<Type, EntityTypeBuilder> _entityBuilders = new();
     // Stores fluent relationship configurations collected via HasOne/HasMany
     private readonly List<RelationshipConfiguration> _relationships = new();
+    // Stores fluent index configurations collected via HasIndex
+    private readonly List<IndexConfiguration> _indexes = new();
 
     internal class RelationshipConfiguration
     {
@@ -26,6 +28,14 @@ public class ModelBuilder
         public string? PrincipalKeyProperty { get; set; }
         public bool IsRequired { get; set; }
         public DeleteBehavior DeleteBehavior { get; set; } = DeleteBehavior.NoAction;
+    }
+
+    internal class IndexConfiguration
+    {
+        public Type EntityType { get; set; } = null!;
+        public string[] PropertyNames { get; set; } = Array.Empty<string>();
+        public bool IsUnique { get; set; }
+        public string? Name { get; set; }
     }
 
     // Called by relationship builders
@@ -63,6 +73,30 @@ public class ModelBuilder
     {
         var rel = _relationships.LastOrDefault(r => r.DependentType == dependentType && r.PrincipalType == principalType);
         if (rel != null) rel.DeleteBehavior = deleteBehavior;
+    }
+
+    // Called by index builders
+    internal void AddIndex(Type entityType, string[] propertyNames)
+    {
+        _indexes.Add(new IndexConfiguration
+        {
+            EntityType = entityType,
+            PropertyNames = propertyNames
+        });
+    }
+
+    internal void SetIndexUnique(Type entityType, string[] propertyNames)
+    {
+        var idx = _indexes.LastOrDefault(i => i.EntityType == entityType &&
+            i.PropertyNames.SequenceEqual(propertyNames));
+        if (idx != null) idx.IsUnique = true;
+    }
+
+    internal void SetIndexName(Type entityType, string[] propertyNames, string name)
+    {
+        var idx = _indexes.LastOrDefault(i => i.EntityType == entityType &&
+            i.PropertyNames.SequenceEqual(propertyNames));
+        if (idx != null) idx.Name = name;
     }
 
     /// <summary>
@@ -155,6 +189,9 @@ public class ModelBuilder
         // Build foreign keys
         BuildForeignKeys(metadata, builder);
 
+        // Build indexes
+        BuildIndexes(metadata, builder);
+
         return metadata;
     }
 
@@ -244,6 +281,79 @@ public class ModelBuilder
             }
 
             metadata.ForeignKeys.Add(fkMetadata);
+        }
+    }
+
+    private void BuildIndexes(EntityTypeMetadata metadata, EntityTypeBuilder builder)
+    {
+        // 1) Fluent API indexes
+        foreach (var idx in _indexes.Where(i => i.EntityType == metadata.ClrType))
+        {
+            var indexMetadata = new IndexMetadata
+            {
+                IsUnique = idx.IsUnique,
+                Name = idx.Name
+            };
+
+            // Resolve properties
+            foreach (var propName in idx.PropertyNames)
+            {
+                var prop = metadata.Properties.FirstOrDefault(p =>
+                    p.PropertyInfo.Name.Equals(propName, StringComparison.OrdinalIgnoreCase));
+                if (prop != null)
+                {
+                    indexMetadata.Properties.Add(prop);
+                }
+            }
+
+            // Generate name if not specified
+            if (string.IsNullOrWhiteSpace(indexMetadata.Name))
+            {
+                var columnNames = string.Join("_", indexMetadata.Properties.Select(p => p.ColumnName));
+                indexMetadata.Name = $"ix_{metadata.TableName}_{columnNames}";
+            }
+
+            metadata.Indexes.Add(indexMetadata);
+        }
+
+        // 2) [Index] attributes
+        var indexAttrs = metadata.ClrType.GetCustomAttributes<IndexAttribute>();
+        foreach (var attr in indexAttrs)
+        {
+            // Check if this index already exists from fluent config (by property names)
+            var propertyNames = attr.PropertyNames;
+            var alreadyExists = _indexes.Any(i =>
+                i.EntityType == metadata.ClrType &&
+                i.PropertyNames.SequenceEqual(propertyNames, StringComparer.OrdinalIgnoreCase));
+
+            if (alreadyExists)
+                continue; // Fluent takes precedence
+
+            var indexMetadata = new IndexMetadata
+            {
+                IsUnique = attr.IsUnique,
+                Name = attr.Name
+            };
+
+            // Resolve properties
+            foreach (var propName in propertyNames)
+            {
+                var prop = metadata.Properties.FirstOrDefault(p =>
+                    p.PropertyInfo.Name.Equals(propName, StringComparison.OrdinalIgnoreCase));
+                if (prop != null)
+                {
+                    indexMetadata.Properties.Add(prop);
+                }
+            }
+
+            // Generate name if not specified
+            if (string.IsNullOrWhiteSpace(indexMetadata.Name))
+            {
+                var columnNames = string.Join("_", indexMetadata.Properties.Select(p => p.ColumnName));
+                indexMetadata.Name = $"ix_{metadata.TableName}_{columnNames}";
+            }
+
+            metadata.Indexes.Add(indexMetadata);
         }
     }
 

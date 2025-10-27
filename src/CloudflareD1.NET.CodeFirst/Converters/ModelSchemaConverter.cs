@@ -55,6 +55,25 @@ public static class ModelSchemaConverter
                 });
             }
 
+            // Indexes (if any)
+            foreach (var idx in entity.Indexes)
+            {
+                // Build column list
+                var columns = idx.Properties.Select(p => p.ColumnName).ToArray();
+                if (columns.Length == 0) continue;
+
+                // Generate CREATE INDEX SQL
+                var unique = idx.IsUnique ? "UNIQUE " : "";
+                var columnList = string.Join(", ", columns);
+                var sql = $"CREATE {unique}INDEX {idx.Name} ON {entity.TableName} ({columnList})";
+
+                table.Indexes.Add(new IndexSchema
+                {
+                    Name = idx.Name,
+                    Sql = sql
+                });
+            }
+
             db.Tables.Add(table);
         }
 

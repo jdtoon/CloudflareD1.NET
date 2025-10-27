@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace CloudflareD1.NET.CodeFirst;
@@ -92,6 +93,49 @@ public class EntityTypeBuilder<TEntity> : EntityTypeBuilder where TEntity : clas
             throw new ArgumentNullException(nameof(navigationExpression));
 
         return new ReferenceReferenceBuilder<TRelated, TEntity>(_modelBuilder, navigationExpression);
+    }
+
+    /// <summary>
+    /// Configures an index on a single property
+    /// </summary>
+    public IndexBuilder<TEntity> HasIndex<TProperty>(
+        Expression<Func<TEntity, TProperty>> propertyExpression)
+    {
+        if (propertyExpression == null)
+            throw new ArgumentNullException(nameof(propertyExpression));
+
+        var propertyName = GetPropertyName(propertyExpression);
+        _modelBuilder.AddIndex(typeof(TEntity), new[] { propertyName });
+        return new IndexBuilder<TEntity>(_modelBuilder, new[] { propertyName });
+    }
+
+    /// <summary>
+    /// Configures a composite index on multiple properties
+    /// </summary>
+    public IndexBuilder<TEntity> HasIndex(params Expression<Func<TEntity, object>>[] propertyExpressions)
+    {
+        if (propertyExpressions == null || propertyExpressions.Length == 0)
+            throw new ArgumentException("At least one property expression is required", nameof(propertyExpressions));
+
+        var propertyNames = propertyExpressions.Select(GetPropertyName).ToArray();
+        _modelBuilder.AddIndex(typeof(TEntity), propertyNames);
+        return new IndexBuilder<TEntity>(_modelBuilder, propertyNames);
+    }
+
+    private static string GetPropertyName<T>(Expression<T> expression)
+    {
+        if (expression.Body is MemberExpression memberExpression)
+        {
+            return memberExpression.Member.Name;
+        }
+
+        if (expression.Body is UnaryExpression unaryExpression &&
+            unaryExpression.Operand is MemberExpression innerMemberExpression)
+        {
+            return innerMemberExpression.Member.Name;
+        }
+
+        throw new ArgumentException($"Expression '{expression}' is not a valid property expression");
     }
 }
 
