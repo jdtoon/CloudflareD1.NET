@@ -1,10 +1,9 @@
-name: Deploy Documentation
+name: CD Deploy Docs
 
 on:
   push:
     branches:
       - master
-  workflow_dispatch: # Allow manual trigger
 
 permissions:
   contents: read
@@ -24,28 +23,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install dependencies
         run: npm install
         working-directory: ./docs
-
       - name: Build documentation
         run: npm run build
         working-directory: ./docs
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs/build
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
