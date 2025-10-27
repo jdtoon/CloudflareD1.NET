@@ -1395,7 +1395,7 @@ try
         .Select(t => (Migration)Activator.CreateInstance(t)!)
         .OrderBy(m => m.Id)
         .ToList();
-    
+
     Console.WriteLine($"✓ Loaded {migrations.Count} migrations:");
     foreach (var migration in migrations)
     {
@@ -1422,7 +1422,7 @@ try
             Console.WriteLine($"    {stmt}");
         }
     }
-    
+
     var appliedMigrations = await runner.MigrateAsync();
     Console.WriteLine($"\n✓ Applied {appliedMigrations.Count} migrations:");
     foreach (var migrationId in appliedMigrations)

@@ -594,6 +594,6 @@ dotnet d1 database update
 
 ## See Also
 
-- [Getting Started](../getting-started.md)
-- [Configuration](../configuration.md)
-- [CRUD Operations](../crud-operations.md)
+- [Getting Started](../getting-started/installation.md)
+- [Quick Start Guide](../getting-started/quick-start.md)
+- [LINQ Package](../linq/overview.md)
