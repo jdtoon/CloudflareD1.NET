@@ -1,5 +1,10 @@
 ﻿using System.CommandLine;
 using System.Text;
+using CloudflareD1.NET;
+using CloudflareD1.NET.Configuration;
+using CloudflareD1.NET.Migrations;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DotnetD1;
 
@@ -19,6 +24,14 @@ class Program
         var listCommand = new Command("list", "List all migrations and their status");
         listCommand.SetHandler(async () => await ListMigrations());
 
+        // migrations scaffold command
+        var scaffoldCommand = new Command("scaffold", "Generate a migration from database schema changes");
+        var scaffoldNameArg = new Argument<string>("name", "Name of the migration (e.g., AddUserColumns)");
+        var connectionOption = new Option<string>("--connection", "SQLite database connection string or file path") { IsRequired = true };
+        scaffoldCommand.AddArgument(scaffoldNameArg);
+        scaffoldCommand.AddOption(connectionOption);
+        scaffoldCommand.SetHandler(async (string name, string connection) => await ScaffoldMigration(name, connection), scaffoldNameArg, connectionOption);
+
         // database update command
         var updateCommand = new Command("update", "Apply all pending migrations");
         var targetOption = new Option<string?>("--target", "Target migration to update to");
@@ -35,6 +48,7 @@ class Program
         var migrationsCommand = new Command("migrations", "Manage database migrations");
         migrationsCommand.AddCommand(addCommand);
         migrationsCommand.AddCommand(listCommand);
+        migrationsCommand.AddCommand(scaffoldCommand);
 
         // database command group
         var databaseCommand = new Command("database", "Manage database state");
@@ -260,5 +274,97 @@ public class Migration{migrationId}_{className} : Migration
     }}
 }}
 ";
+    }
+
+    static async Task ScaffoldMigration(string name, string connection)
+    {
+        try
+        {
+            Console.WriteLine("🔍 Scaffolding migration from database schema...");
+            Console.WriteLine();
+
+            // Normalize connection string
+            if (!connection.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))
+            {
+                connection = $"Data Source={connection}";
+            }
+
+            // Create D1Client for local SQLite
+            var options = Options.Create(new D1Options
+            {
+                UseLocalMode = true,
+                LocalDatabasePath = connection.Replace("Data Source=", "").Trim()
+            });
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Warning));
+            var logger = loggerFactory.CreateLogger<D1Client>();
+
+            var client = new D1Client(options, logger);
+            var introspector = new SchemaIntrospector(client);
+
+            // Get current database schema
+            Console.WriteLine("Reading database schema...");
+            var currentSchema = await introspector.GetSchemaAsync();
+            Console.WriteLine($"✓ Found {currentSchema.Tables.Count} table(s)");
+            Console.WriteLine();
+
+            // Load previous snapshot (if exists)
+            DatabaseSchema? previousSchema = null;
+            if (SchemaSnapshot.Exists())
+            {
+                Console.WriteLine("Loading previous schema snapshot...");
+                previousSchema = await SchemaSnapshot.LoadAsync();
+                Console.WriteLine($"✓ Loaded snapshot with {previousSchema?.Tables.Count ?? 0} table(s)");
+            }
+            else
+            {
+                Console.WriteLine("ℹ️  No previous snapshot found - treating this as initial migration");
+            }
+            Console.WriteLine();
+
+            // Generate migration
+            Console.WriteLine("Generating migration code...");
+            var scaffolder = new MigrationScaffolder();
+            var migrationCode = scaffolder.GenerateMigration(previousSchema, currentSchema, name);
+
+            // Save migration file
+            var migrationsDir = FindOrCreateMigrationsDirectory();
+            if (migrationsDir == null)
+            {
+                Console.WriteLine("Error: Could not find or create Migrations directory.");
+                return;
+            }
+
+            var migrationId = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var className = ToPascalCase(name);
+            var fileName = $"{migrationId}_{className}.cs";
+            var filePath = Path.Combine(migrationsDir, fileName);
+
+            await File.WriteAllTextAsync(filePath, migrationCode);
+
+            Console.WriteLine($"✓ Created migration: {fileName}");
+            Console.WriteLine($"  Location: {filePath}");
+            Console.WriteLine();
+
+            // Save current schema as snapshot
+            Console.WriteLine("Saving schema snapshot...");
+            await SchemaSnapshot.SaveAsync(currentSchema);
+            Console.WriteLine("✓ Schema snapshot saved");
+            Console.WriteLine();
+
+            Console.WriteLine("✨ Migration scaffolded successfully!");
+            Console.WriteLine();
+            Console.WriteLine("Next steps:");
+            Console.WriteLine("  1. Review the generated migration file");
+            Console.WriteLine("  2. Run migrations with: dotnet d1 database update");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   Inner: {ex.InnerException.Message}");
+            }
+        }
     }
 }
