@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>CloudflareD1.NET.CodeFirst</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Junaid Desai</Authors>
+    <Company>CloudflareD1.NET</Company>
+    <Product>CloudflareD1.NET.CodeFirst</Product>
+    <Description>Code-First ORM for CloudflareD1.NET. Define your database schema using C# classes and attributes, with automatic migration generation. Includes DbContext pattern, entity relationships, and model-driven development similar to Entity Framework Core but optimized for Cloudflare D1 and SQLite.</Description>
+    <PackageTags>cloudflare;d1;orm;code-first;dbcontext;entity;models;migrations;sqlite;relationships;fluent-api</PackageTags>
+    <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>v1.0.0: Initial release with D1Context, model attributes, relationships, and code-first migration generation.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj" />
+    <ProjectReference Include="..\CloudflareD1.NET.Linq\CloudflareD1.NET.Linq.csproj" />
+    <ProjectReference Include="..\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
