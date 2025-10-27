@@ -2,6 +2,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/CloudflareD1.NET.svg)](https://www.nuget.org/packages/CloudflareD1.NET/)
 [![NuGet - Linq](https://img.shields.io/nuget/v/CloudflareD1.NET.Linq.svg?label=Linq)](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)
+[![NuGet - Migrations](https://img.shields.io/nuget/v/CloudflareD1.NET.Migrations.svg?label=Migrations)](https://www.nuget.org/packages/CloudflareD1.NET.Migrations/)
+[![NuGet - CLI](https://img.shields.io/nuget/v/dotnet-d1.svg?label=CLI%20Tool)](https://www.nuget.org/packages/dotnet-d1/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A complete .NET adapter for **Cloudflare D1** - the serverless SQL database running on Cloudflare's edge network. This library provides seamless integration with Cloudflare's D1 database, supporting both **local SQLite development** and **remote D1 production deployments**.
