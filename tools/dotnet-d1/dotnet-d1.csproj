@@ -11,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-d1</ToolCommandName>
     <PackageId>dotnet-d1</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>dotnet-d1</Product>
@@ -21,8 +21,12 @@
     <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>v1.0.0: Initial release with migration commands: add, update, list, rollback.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.0.1: Documentation improvements and package README. v1.0.0: Initial release with migration commands: add, update, list, rollback.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CloudflareD1.NET.Migrations\CloudflareD1.NET.Migrations.csproj" />

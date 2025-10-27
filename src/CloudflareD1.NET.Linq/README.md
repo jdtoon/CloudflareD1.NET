@@ -870,9 +870,13 @@ var expensiveElectronics = await client.AsQueryable<Product>("products")
 
 ## Related Packages
 
-- **CloudflareD1.NET** - Core D1 client ([NuGet](https://www.nuget.org/packages/CloudflareD1.NET))
-- **CloudflareD1.NET.Migrations** - Schema migrations (coming soon)
-- **CloudflareD1.NET.Testing** - Testing helpers (coming soon)
+- **[CloudflareD1.NET](https://www.nuget.org/packages/CloudflareD1.NET/)** - Core database client
+- **[CloudflareD1.NET.Migrations](https://www.nuget.org/packages/CloudflareD1.NET.Migrations/)** - Database migration system
+- **[dotnet-d1](https://www.nuget.org/packages/dotnet-d1/)** - CLI tool for managing migrations
+
+## Documentation
+
+Full documentation is available at [https://jdtoon.github.io/CloudflareD1.NET](https://jdtoon.github.io/CloudflareD1.NET)
 
 ## License
 
