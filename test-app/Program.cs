@@ -1,6 +1,7 @@
 ﻿using CloudflareD1.NET;
 using CloudflareD1.NET.Configuration;
 using CloudflareD1.NET.Linq;
+using CloudflareD1.NET.Linq.Query;
 using CloudflareD1.NET.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -1252,10 +1253,97 @@ try
 
     Console.WriteLine("\n✅ Async Streaming Tests Completed!");
 
+    // ============================================
+    // COMPILED QUERY TESTS (v1.10.0)
+    // ============================================
+    Console.WriteLine("\n========================================");
+    Console.WriteLine("Testing CompiledQuery (v1.10.0)...");
+    Console.WriteLine("========================================");
+
+    Console.WriteLine("\nStep 96: CompiledQuery - Basic query compilation...");
+    var compiledQuery1 = CompiledQuery.Create<TestUser>(
+        "test_users",
+        q => q.Where(u => u.Age > 25)
+    );
+    Console.WriteLine($"✓ Compiled SQL: {compiledQuery1.Sql}");
+    var results96 = await compiledQuery1.ExecuteAsync(client);
+    Console.WriteLine($"✓ Retrieved {results96.Count} users with age > 25");
+    if (results96.Count == 0)
+    {
+        throw new Exception("Expected users with age > 25");
+    }
+    if (results96.Any(u => u.Age <= 25))
+    {
+        throw new Exception("Found user with age <= 25");
+    }
+
+    Console.WriteLine("\nStep 97: CompiledQuery - Query with ordering...");
+    var compiledQuery2 = CompiledQuery.Create<TestUser>(
+        "test_users",
+        q => q.Where(u => u.Age > 20).OrderBy(u => u.Age).Take(3)
+    );
+    Console.WriteLine($"✓ Compiled SQL: {compiledQuery2.Sql}");
+    var results97 = await compiledQuery2.ExecuteAsync(client);
+    Console.WriteLine($"✓ Retrieved {results97.Count} users ordered by age");
+    if (results97.Count != 3)
+    {
+        throw new Exception($"Expected 3 users, got {results97.Count}");
+    }
+    // Verify ordering
+    for (int i = 1; i < results97.Count; i++)
+    {
+        if (results97[i - 1].Age > results97[i].Age)
+        {
+            throw new Exception("Results not properly ordered by age");
+        }
+    }
+
+    Console.WriteLine("\nStep 98: CompiledQuery - Reuse compiled query...");
+    var results98a = await compiledQuery1.ExecuteAsync(client);
+    var results98b = await compiledQuery1.ExecuteAsync(client);
+    Console.WriteLine($"✓ First execution: {results98a.Count} users");
+    Console.WriteLine($"✓ Second execution: {results98b.Count} users");
+    if (results98a.Count != results98b.Count)
+    {
+        throw new Exception("Compiled query produced different results on reuse");
+    }
+
+    Console.WriteLine("\nStep 99: CompiledQuery - Complex filter...");
+    var compiledQuery3 = CompiledQuery.Create<TestUser>(
+        "test_users",
+        q => q.Where(u => u.Age > 25 && u.Name.StartsWith("Test"))
+    );
+    var results99 = await compiledQuery3.ExecuteAsync(client);
+    Console.WriteLine($"✓ Retrieved {results99.Count} users over 25 with name starting with 'Test'");
+    if (results99.Any(u => u.Age <= 25 || !u.Name.StartsWith("Test")))
+    {
+        throw new Exception("Filter conditions not met");
+    }
+
+    Console.WriteLine("\nStep 100: CompiledQuery - With projection...");
+    var compiledQuery4 = CompiledQuery.Create<TestUser, TestUserProjection>(
+        "test_users",
+        q => q.Where(u => u.Age > 25)
+              .Select(u => new TestUserProjection { Id = u.Id, Name = u.Name })
+    );
+    Console.WriteLine($"✓ Compiled projection SQL: {compiledQuery4.Sql}");
+    var results100 = await compiledQuery4.ExecuteAsync(client);
+    Console.WriteLine($"✓ Retrieved {results100.Count} projected users");
+    if (results100.Count == 0)
+    {
+        throw new Exception("Expected projected results");
+    }
+    if (results100.Any(u => u.Id == 0 || string.IsNullOrEmpty(u.Name)))
+    {
+        throw new Exception("Projection incomplete");
+    }
+
+    Console.WriteLine("\n✅ CompiledQuery Tests Completed!");
+
     Console.WriteLine("\n========================================");
     Console.WriteLine("🎉 ALL TESTS PASSED SUCCESSFULLY!");
     Console.WriteLine("========================================");
-    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, existence checks, and async streaming) is working correctly with Cloudflare D1!");
+    Console.WriteLine("\nYour CloudflareD1.NET package (with LINQ expression trees, computed properties, set operations, existence checks, async streaming, and compiled queries) is working correctly with Cloudflare D1!");
 }
 catch (Exception ex)
 {
@@ -1284,6 +1372,13 @@ public class TestUser
 
 // DTO for Select() projection tests
 public class UserSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+}
+
+// DTO for CompiledQuery projection tests
+public class TestUserProjection
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
