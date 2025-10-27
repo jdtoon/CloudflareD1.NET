@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Package Metadata -->
+    <PackageId>CloudflareD1.NET.Migrations</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Junaid Desai</Authors>
+    <Company>CloudflareD1.NET</Company>
+    <Product>CloudflareD1.NET.Migrations</Product>
+    <Description>Database migration support for CloudflareD1.NET. Provides schema versioning, migration tracking, and fluent API for defining database changes. Works with both local SQLite and remote Cloudflare D1 databases.</Description>
+    <PackageTags>cloudflare;d1;database;migrations;schema;versioning;sqlite</PackageTags>
+    <PackageProjectUrl>https://github.com/jdtoon/CloudflareD1.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jdtoon/CloudflareD1.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>v1.0.0: Initial release with migration support, fluent MigrationBuilder API, history tracking, and rollback capabilities.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CloudflareD1.NET\CloudflareD1.NET.csproj" />
+  </ItemGroup>
+
+</Project>
