@@ -137,15 +137,27 @@ context.Users.Add(user);
 await context.SaveChangesAsync();
 // user.Id is populated if it's an auto-increment key
 
-// Update
-user.Email = "new@example.com";
+// Update - only changed properties
+user.Email = "new@example.com";  // Only Email changed
 context.Users.Update(user);
-await context.SaveChangesAsync();
+await context.SaveChangesAsync();  // Generates: UPDATE users SET email = ? WHERE id = ?
+
+// Update multiple properties
+user.Email = "another@example.com";
+user.Username = "jane_doe";
+context.Users.Update(user);
+await context.SaveChangesAsync();  // Generates: UPDATE users SET email = ?, username = ? WHERE id = ?
+
+// No changes - no UPDATE generated
+context.Users.Update(user);  // No properties modified
+await context.SaveChangesAsync();  // 0 rows affected, no SQL executed
 
 // Delete
 context.Users.Remove(user);
 await context.SaveChangesAsync();
 ```
+
+**Per-Property Change Detection**: `Update` intelligently detects which properties have changed since the entity was last saved (via snapshot comparison). Only changed columns are included in the UPDATE statement, improving performance and reducing unnecessary writes.
 
 #### Foreign Key-Aware Operation Ordering
 
@@ -176,7 +188,7 @@ await context.SaveChangesAsync();    // Order → Customer (deletes child first)
 Notes:
 - Primary keys are required for updates and deletes.
 - For auto-increment keys, if you don't set the key before insert, it will be populated from the database.
-- Current implementation updates all non-key columns for `Update` (no per-property change detection yet).
+- **Per-property change detection**: `Update` only modifies columns that have changed since the entity was last saved. If no properties change, no UPDATE statement is generated.
 - Insert/Update/Delete are executed sequentially when you call `SaveChangesAsync` (to satisfy the Cloudflare D1 API semantics).
 
 ## Attributes

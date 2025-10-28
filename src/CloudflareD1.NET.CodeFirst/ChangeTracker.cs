@@ -39,6 +39,14 @@ public class ChangeTracker
         }
         else
         {
+            // If transitioning from Added/Unchanged to Modified, capture original values if not already captured
+            if (entry.OriginalValues.Count == 0)
+            {
+                foreach (var prop in metadata.Properties)
+                {
+                    entry.OriginalValues[prop] = prop.PropertyInfo.GetValue(entity);
+                }
+            }
             ((ITrackedEntry)entry).SetState(EntityState.Modified);
         }
         return entry;
@@ -80,7 +88,12 @@ public class ChangeTracker
             else if (e.State == EntityState.Added || e.State == EntityState.Modified)
             {
                 e.SetState(EntityState.Unchanged);
+                // Capture snapshot of current values for future change tracking
                 e.OriginalValues.Clear();
+                foreach (var prop in e.Metadata.Properties)
+                {
+                    e.OriginalValues[prop] = prop.PropertyInfo.GetValue(e.EntityObject);
+                }
             }
         }
     }

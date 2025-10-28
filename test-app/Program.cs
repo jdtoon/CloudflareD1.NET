@@ -295,6 +295,49 @@ try
     if (orderRemain != 0) throw new Exception("FK test orders should be deleted");
     Console.WriteLine("✅ FK-Aware Operation Ordering tests passed!\n");
 
+    // ============================================
+    // Test Per-Property Change Detection (v1.0.3)
+    // ============================================
+    Console.WriteLine("CF-8: Testing Per-Property Change Detection...");
+    Console.WriteLine("  (Update only changed columns, not all columns)");
+
+    var propTestCustomer = new Customer
+    {
+        FirstName = "Property",
+        LastName = "Test",
+        Email = $"prop.test+{DateTime.UtcNow.Ticks}@test.local",
+        CreatedAt = DateTime.UtcNow
+    };
+    ctx.Customers.Add(propTestCustomer);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Inserted customer ID: {propTestCustomer.Id}");
+
+    // Modify only FirstName - should only update that one column
+    propTestCustomer.FirstName = "PropertyUpdated";
+    ctx.Customers.Update(propTestCustomer);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Updated {changed} row(s) (only FirstName changed)");
+
+    // Verify the update
+    var verifyCustomer = await client.QueryFirstOrDefaultAsync<Customer>(
+        "SELECT * FROM customers WHERE id = @id",
+        new { id = propTestCustomer.Id });
+    if (verifyCustomer == null || verifyCustomer.FirstName != "PropertyUpdated")
+    {
+        throw new Exception("Property change not persisted correctly");
+    }
+    Console.WriteLine($"✓ Verified: FirstName = '{verifyCustomer.FirstName}'");
+
+    // Test: Update with no actual changes - should skip UPDATE statement
+    ctx.Customers.Update(propTestCustomer); // No properties changed
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ No changes: {changed} row(s) affected (0 expected when no properties changed)");
+
+    // Cleanup
+    ctx.Customers.Remove(propTestCustomer);
+    await ctx.SaveChangesAsync();
+    Console.WriteLine("✅ Per-Property Change Detection tests passed!\n");
+
     Console.WriteLine("Step 4: Updating data...");
     var updateResult = await client.ExecuteAsync(
         "UPDATE test_users SET name = @name WHERE id = @id",

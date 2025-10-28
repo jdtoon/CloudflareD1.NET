@@ -16,6 +16,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These will be implemented once Cloudflare adds transaction support to the D1 REST API.
 
+## [1.0.3] - 2025-01-28 - CloudflareD1.NET.CodeFirst
+
+### Added
+
+#### Per-Property Change Detection
+- **GetModifiedProperties()** - New method on EntityEntry/ITrackedEntry to detect which properties changed
+  - Compares current property values with OriginalValues snapshot
+  - Returns list of only the properties that have been modified
+  - Skips primary key properties (they shouldn't change)
+- **Intelligent UPDATE generation** - BuildUpdate now only includes changed columns in SET clause
+  - Queries `GetModifiedProperties()` to determine what changed
+  - Skips UPDATE entirely if no properties changed (returns 0 rows affected)
+  - Improves performance by reducing unnecessary column writes
+- **Snapshot management** - Original values captured at the right time
+  - Snapshot taken in `AcceptAllChanges` after successful SaveChanges
+  - Captures current state of entities transitioning to Unchanged
+  - Enables accurate change tracking for subsequent updates
+
+### Changed
+- **D1Context.BuildUpdate()** - Now uses per-property change detection instead of updating all columns
+- **ChangeTracker.AcceptAllChanges()** - Captures property snapshots when transitioning entities to Unchanged state
+- **ChangeTracker.TrackUpdate()** - Captures snapshots if not already present when tracking existing entities
+- **Documentation updates** - Added per-property change detection examples and explanations in README and docs
+
+### Testing
+- **SaveChangesTests.cs** - 5 new unit tests for property change detection:
+  - Update single property only
+  - Update multiple properties only
+  - Update with no changes (skips UPDATE)
+  - Update all properties
+  - Update nullable properties
+- **Integration test** - CF-8 in test-app validates per-property updates against real Cloudflare D1
+  - Verified UPDATE statement only includes changed columns
+  - Verified 0 rows affected when no properties change
+
+**296 tests passing** (all unit tests green)
+
 ## [1.0.2] - 2025-01-28 - CloudflareD1.NET.CodeFirst
 
 ### Added

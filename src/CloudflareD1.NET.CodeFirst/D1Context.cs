@@ -316,16 +316,26 @@ public abstract class D1Context
         if (meta.PrimaryKey.Count == 0)
             throw new InvalidOperationException($"Entity {meta.ClrType.Name} does not have a primary key configured.");
 
+        // Get only the properties that have been modified
+        var modifiedProps = entry.GetModifiedProperties();
+
+        // If no properties changed, skip the update
+        if (modifiedProps.Count == 0)
+        {
+            return;
+        }
+
         var setColumns = new List<string>();
         var paramList = new List<object?>();
 
-        foreach (var prop in meta.Properties)
+        // Only include modified properties in SET clause
+        foreach (var prop in modifiedProps)
         {
-            if (prop.IsPrimaryKey) continue;
             setColumns.Add($"{prop.ColumnName} = ?");
             paramList.Add(prop.PropertyInfo.GetValue(entity));
         }
 
+        // Add WHERE clause using primary key(s)
         var whereParts = new List<string>();
         foreach (var pk in meta.PrimaryKey)
         {
