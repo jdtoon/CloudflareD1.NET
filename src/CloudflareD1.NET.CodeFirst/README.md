@@ -126,6 +126,33 @@ var user = await context.Users.FindAsync(1);
 var allOrders = await context.Orders.ToListAsync();
 ```
 
+### Change tracking and SaveChanges
+
+You can add, update, and remove entities and persist changes with `SaveChangesAsync`:
+
+```csharp
+// Insert
+var user = new User { Username = "john_doe", Email = "john@example.com", CreatedAt = DateTime.UtcNow };
+context.Users.Add(user);
+await context.SaveChangesAsync();
+// user.Id is populated if it's an auto-increment key
+
+// Update
+user.Email = "new@example.com";
+context.Users.Update(user);
+await context.SaveChangesAsync();
+
+// Delete
+context.Users.Remove(user);
+await context.SaveChangesAsync();
+```
+
+Notes:
+- Primary keys are required for updates and deletes.
+- For auto-increment keys, if you don't set the key before insert, it will be populated from the database.
+- Current implementation updates all non-key columns for `Update` (no per-property change detection yet).
+- Insert/Update/Delete are executed in a single transaction via batch when you call `SaveChangesAsync`.
+
 ## Attributes
 
 ### Table Attributes
@@ -201,6 +228,7 @@ dotnet d1 migrations apply
 - ✅ Fluent configuration API
 - ✅ Code-first migration generation (snapshot-based)
 - ✅ Foreign keys via Fluent API
+- ✅ Basic change tracking (Add/Update/Remove) and SaveChanges
 - ⏳ Index configuration helpers
 - ⏳ Data annotations validation
 

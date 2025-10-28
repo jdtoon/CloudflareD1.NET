@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CloudflareD1.NET.Linq;
 using CloudflareD1.NET.Linq.Query;
+using CloudflareD1.NET.CodeFirst.Metadata;
 
 namespace CloudflareD1.NET.CodeFirst;
 
@@ -16,16 +17,20 @@ public class D1Set<TEntity> where TEntity : class, new()
 {
     private readonly D1Client _client;
     private readonly string _tableName;
+    private readonly ChangeTracker _changeTracker;
+    private readonly Func<ModelMetadata> _getModel;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="D1Set{TEntity}"/> class
     /// </summary>
     /// <param name="client">The D1 client</param>
     /// <param name="tableName">The table name</param>
-    internal D1Set(D1Client client, string tableName)
+    internal D1Set(D1Client client, string tableName, ChangeTracker changeTracker, Func<ModelMetadata> getModel)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+        _changeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
+        _getModel = getModel ?? throw new ArgumentNullException(nameof(getModel));
     }
 
     /// <summary>
@@ -59,4 +64,34 @@ public class D1Set<TEntity> where TEntity : class, new()
     /// Gets the table name for this entity set
     /// </summary>
     public string TableName => _tableName;
+
+    /// <summary>
+    /// Begins tracking a new entity as Added
+    /// </summary>
+    public EntityEntry<TEntity> Add(TEntity entity)
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        var metadata = _getModel().GetEntity<TEntity>() ?? throw new InvalidOperationException($"No metadata found for entity type {typeof(TEntity).Name}");
+        return _changeTracker.TrackAdd(entity, metadata);
+    }
+
+    /// <summary>
+    /// Begins tracking an existing entity as Modified
+    /// </summary>
+    public EntityEntry<TEntity> Update(TEntity entity)
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        var metadata = _getModel().GetEntity<TEntity>() ?? throw new InvalidOperationException($"No metadata found for entity type {typeof(TEntity).Name}");
+        return _changeTracker.TrackUpdate(entity, metadata);
+    }
+
+    /// <summary>
+    /// Begins tracking an entity as Deleted
+    /// </summary>
+    public EntityEntry<TEntity> Remove(TEntity entity)
+    {
+        if (entity == null) throw new ArgumentNullException(nameof(entity));
+        var metadata = _getModel().GetEntity<TEntity>() ?? throw new InvalidOperationException($"No metadata found for entity type {typeof(TEntity).Name}");
+        return _changeTracker.TrackRemove(entity, metadata);
+    }
 }
