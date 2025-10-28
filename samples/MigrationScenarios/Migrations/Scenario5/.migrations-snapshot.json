@@ -1,0 +1,61 @@
+{
+  "Tables": [
+    {
+      "Name": "products",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "name",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": []
+    },
+    {
+      "Name": "order_items",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "product_id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "quantity",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "product",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": [
+        {
+          "Column": "product_id",
+          "ReferencedTable": "products",
+          "ReferencedColumn": "id",
+          "OnDelete": "NO ACTION"
+        }
+      ]
+    }
+  ]
+}

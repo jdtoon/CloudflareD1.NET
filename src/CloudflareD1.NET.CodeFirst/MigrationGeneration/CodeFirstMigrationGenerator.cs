@@ -180,6 +180,33 @@ public class CodeFirstMigrationGenerator
                     summary.AppendLine($"  - Drop index '{currentIndex.Name}' on '{modelTable.Name}'");
                 }
             }
+
+            // Foreign keys
+            foreach (var modelFk in modelTable.ForeignKeys)
+            {
+                var fkExists = currentTable.ForeignKeys.Exists(fk =>
+                    fk.Column == modelFk.Column &&
+                    fk.ReferencedTable == modelFk.ReferencedTable &&
+                    fk.ReferencedColumn == modelFk.ReferencedColumn);
+
+                if (!fkExists)
+                {
+                    summary.AppendLine($"  + Add foreign key '{modelTable.Name}.{modelFk.Column}' -> '{modelFk.ReferencedTable}.{modelFk.ReferencedColumn}'");
+                }
+            }
+
+            foreach (var currentFk in currentTable.ForeignKeys)
+            {
+                var fkExists = modelTable.ForeignKeys.Exists(fk =>
+                    fk.Column == currentFk.Column &&
+                    fk.ReferencedTable == currentFk.ReferencedTable &&
+                    fk.ReferencedColumn == currentFk.ReferencedColumn);
+
+                if (!fkExists)
+                {
+                    summary.AppendLine($"  - Drop foreign key '{modelTable.Name}.{currentFk.Column}' -> '{currentFk.ReferencedTable}.{currentFk.ReferencedColumn}'");
+                }
+            }
         }
 
         if (summary.Length == "Pending model changes:\n\n".Length)
