@@ -6,6 +6,8 @@
 
 CloudflareD1.NET is a comprehensive toolkit for working with Cloudflare D1 databases from .NET applications. It provides seamless integration supporting both local SQLite development and remote D1 production deployments.
 
+Docs status: Stable documentation is now versioned at v2.0 (as of 2025-10-28). Links under /docs/ resolve to v2.0. Unreleased docs are available at /docs/next.
+
 ## Packages
 
 - **CloudflareD1.NET** - Core package with raw SQL support
@@ -27,6 +29,13 @@ CloudflareD1.NET is a comprehensive toolkit for working with Cloudflare D1 datab
 - **dotnet-d1** - CLI tool for managing migrations
   - NuGet: https://www.nuget.org/packages/dotnet-d1/
   - Install: `dotnet tool install -g dotnet-d1`
+
+Current package versions (semantic):
+- CloudflareD1.NET (core): 1.12.0
+- CloudflareD1.NET.Linq: 1.11.0
+- CloudflareD1.NET.CodeFirst: 1.1.0
+- CloudflareD1.NET.Migrations: 1.1.0
+- dotnet-d1 (CLI): 1.1.0
 
 ## Repository
 

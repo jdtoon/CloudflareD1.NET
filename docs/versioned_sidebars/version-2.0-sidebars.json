@@ -1,0 +1,56 @@
+{
+  "tutorialSidebar": [
+    "intro",
+    {
+      "type": "category",
+      "label": "Getting Started",
+      "items": [
+        "getting-started/installation",
+        "getting-started/quick-start"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Database Migrations",
+      "items": [
+        "migrations/overview"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Code-First",
+      "items": [
+        "code-first/overview",
+        "code-first/migration-generation",
+        "code-first/recipes"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "LINQ Package",
+      "items": [
+        "linq/intro",
+        "linq/installation",
+        "linq/iqueryable",
+        "linq/query-builder",
+        "linq/groupby",
+        "linq/having",
+        "linq/joins",
+        "linq/set-operations",
+        "linq/existence-checks",
+        "linq/async-streaming",
+        "linq/expression-trees",
+        "linq/entity-mapping"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Production",
+      "items": [
+        "production/deployment",
+        "production/troubleshooting",
+        "production/performance"
+      ]
+    }
+  ]
+}

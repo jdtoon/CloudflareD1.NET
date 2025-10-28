@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.Linq</PackageId>
-    <Version>1.10.1</Version>
+  <Version>1.11.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.Linq</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.10.1: Documentation improvements and related package links. v1.10.0: Query Optimization - Added CompiledQuery for 95% faster repeated query execution. Pre-compile LINQ expressions to SQL once and reuse. Automatic caching with statistics (GetStatistics, ClearCache). Thread-safe concurrent execution. 19 new unit tests + 5 integration tests. 230 total tests passing. v1.9.0: Async Streaming with ToAsyncEnumerable(). v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
+  <PackageReleaseNotes>v1.11.0: Minor release aligned with Docs v2.0; general documentation and samples refresh. v1.10.1: Documentation improvements and related package links. v1.10.0: Query Optimization - Added CompiledQuery for 95% faster repeated query execution. Pre-compile LINQ expressions to SQL once and reuse. Automatic caching with statistics (GetStatistics, ClearCache). Thread-safe concurrent execution. 19 new unit tests + 5 integration tests. 230 total tests passing. v1.9.0: Async Streaming with ToAsyncEnumerable(). v1.8.0: Existence checks with Any/All predicates. v1.7.0: Distinct() and Contains()/IN clause.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

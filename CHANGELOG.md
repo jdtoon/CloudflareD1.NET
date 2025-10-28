@@ -8,6 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Future Enhancements (Pending Cloudflare API Support)
+## [Docs v2.0] - 2025-10-28 - Documentation
+
+### Added
+- Versioned the documentation to **v2.0** using Docusaurus. Stable documentation now reflects the latest production-ready features (health checks, retry policy, structured logging) and comprehensive production guides (Deployment, Troubleshooting, Performance).
+
+### Notes
+- Existing links to `/docs/...` now resolve to the v2.0 stable docs. The "next" (unreleased) docs remain available at `/docs/next`.
+
+## [1.12.0] - 2025-10-28 - CloudflareD1.NET (Core)
+
+### Changed
+- Minor version bump aligned with Docs v2.0. No breaking API changes.
+- Release notes and package metadata refreshed.
+
+## [1.11.0] - 2025-10-28 - CloudflareD1.NET.Linq
+
+### Changed
+- Minor version bump aligned with Docs v2.0. No breaking API changes.
+- Documentation and samples refreshed.
+
+## [1.1.0] - 2025-10-28 - CloudflareD1.NET.CodeFirst
+
+### Changed
+- Minor version bump aligned with Docs v2.0. No breaking API changes.
+- Code-first documentation updated and clarified.
+
+## [1.1.0] - 2025-10-28 - CloudflareD1.NET.Migrations
+
+### Changed
+- Minor version bump aligned with Docs v2.0. No breaking API changes.
+- Migration docs and examples refreshed.
+
+## [1.1.0] - 2025-10-28 - dotnet-d1 (CLI)
+
+### Changed
+- Minor version bump aligned with Docs v2.0. No breaking command-line changes.
+- Help text and examples refreshed.
+
 
 **Note:** The following features require Cloudflare D1 REST API support for transactions, which is currently only available in the Workers environment.
 
