@@ -194,12 +194,38 @@ int rowsAffected = await context.SaveChangesAsync();
 **Features:**
 - Automatically populates auto-increment primary keys after INSERT
 - Executes operations sequentially to satisfy Cloudflare D1 API semantics
+- **Foreign Key-Aware Ordering**: Automatically orders INSERT and DELETE operations based on FK dependencies
 - Navigation properties and collections are ignored (not mapped to columns)
+
+### Foreign Key-Aware Operation Ordering
+
+`SaveChangesAsync` automatically analyzes foreign key relationships and orders operations to prevent constraint violations:
+
+```csharp
+// Example: Adding related entities in any order
+var customer = new Customer { Name = "Acme Corp", Email = "contact@acme.com" };
+var order = new Order { OrderNumber = "ORD-001", CustomerId = customer.Id, Total = 99.99m };
+
+// Add in any order - SaveChanges will insert Customer first automatically
+context.Orders.Add(order);
+context.Customers.Add(customer);  // Added second, but will be inserted first!
+await context.SaveChangesAsync();  // Customer → Order (correct FK order)
+
+// Deleting also respects FK constraints
+context.Customers.Remove(customer);  // Added first
+context.Orders.Remove(order);        // Added second
+await context.SaveChangesAsync();    // Order → Customer (deletes child first)
+```
+
+**How it works:**
+- **Inserts**: Parent entities (referenced by FKs) are inserted before children
+- **Deletes**: Child entities (with FKs) are deleted before parents
+- **Updates**: No reordering needed (FK values should not change)
+- **Circular dependencies**: Throws `InvalidOperationException` if detected
 
 **Notes:**
 - Primary keys are required for Update and Delete operations
 - Current implementation updates all non-key columns for Update (per-property change detection is planned)
-- For complex scenarios with foreign keys, ensure parents are inserted before children
 
 ## Workflow
 

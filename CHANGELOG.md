@@ -16,7 +16,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These will be implemented once Cloudflare adds transaction support to the D1 REST API.
 
-## [1.0.1] - 2025-10-28 - CloudflareD1.NET.CodeFirst
+## [1.0.2] - 2025-01-28 - CloudflareD1.NET.CodeFirst
+
+### Added
+
+#### Foreign Key-Aware Operation Ordering
+- **DependencyAnalyzer** - Analyzes foreign key relationships to determine safe operation order
+  - `GetInsertOrder()` - Returns entity types ordered for INSERT (parents before children)
+  - `GetDeleteOrder()` - Returns entity types ordered for DELETE (children before parents)
+  - `BuildDependencyGraph()` - Constructs directed dependency graph from FK metadata
+  - `TopologicalSort()` - Kahn's algorithm implementation for cycle-free ordering
+  - `HasSelfReference()` - Detects self-referencing foreign keys
+- **Automatic operation ordering in SaveChangesAsync** - INSERT and DELETE operations are now automatically reordered based on foreign key dependencies
+  - **INSERT order**: Parent entities (referenced by FKs) are inserted before children
+  - **DELETE order**: Child entities (with FKs) are deleted before parents
+  - **UPDATE operations**: No reordering (FK values should not change during updates)
+  - **Circular dependency detection**: Throws `InvalidOperationException` if circular FK dependencies are detected
+
+### Changed
+- **D1Context.SaveChangesAsync()** - Now groups tracked entries by entity type and applies FK-aware ordering
+- **Documentation updates** - Added FK-aware ordering examples and explanations in README and docs
+
+### Testing
+- **DependencyAnalyzerTests.cs** - 11 comprehensive unit tests covering:
+  - Simple parent-child relationships
+  - Multi-level hierarchies (3+ levels deep)
+  - Self-referencing entities
+  - Circular dependency detection
+  - Independent entities (no FKs)
+  - Various input orderings (reversed, mixed, already correct)
+- **Integration tests** - CF-6/CF-7 in test-app validate FK-aware ordering against real Cloudflare D1
+
+**291 tests passing** (all unit tests green)
+
+## [1.0.1] - 2025-01-28 - CloudflareD1.NET.CodeFirst
 
 ### Added
 

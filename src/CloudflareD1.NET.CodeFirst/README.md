@@ -147,6 +147,32 @@ context.Users.Remove(user);
 await context.SaveChangesAsync();
 ```
 
+#### Foreign Key-Aware Operation Ordering
+
+`SaveChangesAsync` automatically orders INSERT and DELETE operations based on foreign key dependencies to prevent constraint violations:
+
+```csharp
+// Example: Adding related entities in any order
+var customer = new Customer { Name = "Acme Corp", Email = "contact@acme.com" };
+var order = new Order { OrderNumber = "ORD-001", CustomerId = customer.Id, Total = 99.99m };
+
+// Add in any order - SaveChanges will insert Customer first
+context.Orders.Add(order);
+context.Customers.Add(customer);  // Added second, but will be inserted first!
+await context.SaveChangesAsync();  // Customer → Order (correct FK order)
+
+// Deleting also respects FK constraints
+context.Customers.Remove(customer);  // Added first
+context.Orders.Remove(order);        // Added second
+await context.SaveChangesAsync();    // Order → Customer (deletes child first)
+```
+
+**How it works:**
+- **Inserts**: Parent entities (referenced by FKs) are inserted before children
+- **Deletes**: Child entities (with FKs) are deleted before parents
+- **Updates**: No reordering (FK values should not change during updates)
+- **Circular dependencies**: If detected, an `InvalidOperationException` is thrown
+
 Notes:
 - Primary keys are required for updates and deletes.
 - For auto-increment keys, if you don't set the key before insert, it will be populated from the database.
@@ -230,6 +256,7 @@ dotnet d1 migrations apply
 - ✅ Code-first migration generation (snapshot-based)
 - ✅ Foreign keys via Fluent API
 - ✅ Basic change tracking (Add/Update/Remove) and SaveChanges
+- ✅ Foreign key-aware operation ordering (automatic INSERT/DELETE ordering)
 - ⏳ Index configuration helpers
 - ⏳ Data annotations validation
 

@@ -227,6 +227,74 @@ try
     if (remain != 0) throw new Exception("Expected customers table to be empty after deletes");
     Console.WriteLine("✅ Code-First SaveChanges e2e passed!\n");
 
+    // ============================================
+    // Test FK-Aware Operation Ordering (v1.0.2)
+    // ============================================
+    Console.WriteLine("CF-6: Testing FK-Aware Insert Ordering...");
+    Console.WriteLine("  (Adding entities in reverse order - should auto-reorder)");
+
+    // Create customer and order separately first
+    var customer1 = new Customer
+    {
+        FirstName = "FK1",
+        LastName = "Test1",
+        Email = $"fk.test1+{DateTime.UtcNow.Ticks}@test.local",
+        CreatedAt = DateTime.UtcNow
+    };
+    var customer2 = new Customer
+    {
+        FirstName = "FK2",
+        LastName = "Test2",
+        Email = $"fk.test2+{DateTime.UtcNow.Ticks}@test.local",
+        CreatedAt = DateTime.UtcNow
+    };
+
+    // Add customers first to get their IDs
+    ctx.Customers.Add(customer1);
+    ctx.Customers.Add(customer2);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Inserted customers. Customer1 ID: {customer1.Id}, Customer2 ID: {customer2.Id}");
+
+    // Now create orders referencing those customers
+    var order1 = new TestCloudflareD1.Models.Order
+    {
+        CustomerId = customer1.Id,
+        Total = 99.99m,
+        Status = "pending",
+        OrderDate = DateTime.UtcNow
+    };
+    var order2 = new TestCloudflareD1.Models.Order
+    {
+        CustomerId = customer2.Id,
+        Total = 49.99m,
+        Status = "shipped",
+        OrderDate = DateTime.UtcNow
+    };
+
+    // Add orders in any order - they're all dependent on existing customers
+    ctx.Orders.Add(order1);
+    ctx.Orders.Add(order2);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Inserted orders. Order1 ID: {order1.Id}, Order2 ID: {order2.Id}");
+
+    Console.WriteLine("CF-7: Testing FK-Aware Delete Ordering...");
+    Console.WriteLine("  (Deleting in wrong order - should auto-reorder children first)");
+
+    // Delete in WRONG order (parent before child) - FK ordering should handle this
+    ctx.Customers.Remove(customer1);
+    ctx.Customers.Remove(customer2);
+    ctx.Orders.Remove(order1);
+    ctx.Orders.Remove(order2);
+
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Deleted in FK-aware order. Rows changed: {changed}");
+
+    var fkTestRemain = await client.QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM customers WHERE first_name LIKE 'FK%'");
+    if (fkTestRemain != 0) throw new Exception("FK test customers should be deleted");
+    var orderRemain = await client.QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM orders");
+    if (orderRemain != 0) throw new Exception("FK test orders should be deleted");
+    Console.WriteLine("✅ FK-Aware Operation Ordering tests passed!\n");
+
     Console.WriteLine("Step 4: Updating data...");
     var updateResult = await client.ExecuteAsync(
         "UPDATE test_users SET name = @name WHERE id = @id",

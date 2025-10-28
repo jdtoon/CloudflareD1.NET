@@ -171,6 +171,7 @@ public abstract class D1Context
     /// <summary>
     /// Saves all tracked changes to the database.
     /// Returns the number of affected rows.
+    /// Operations are automatically ordered based on foreign key dependencies to prevent constraint violations.
     /// </summary>
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -178,25 +179,47 @@ public abstract class D1Context
         var statements = new List<CloudflareD1.NET.Models.D1Statement>();
         var postProcessors = new List<Action<CloudflareD1.NET.Models.D1QueryResult>>();
 
-        // Order operations: INSERT, UPDATE, DELETE
         var entries = _changeTracker.Entries.ToList();
 
-        // INSERTS
-        foreach (var entry in entries.Where(e => e.State == EntityState.Added))
+        // Order operations: INSERT (FK-aware), UPDATE, DELETE (FK-aware reverse)
+        var analyzer = new DependencyAnalyzer(Model);
+
+        // INSERTS - ordered by FK dependencies (parents before children)
+        var insertEntries = entries.Where(e => e.State == EntityState.Added).ToList();
+        if (insertEntries.Any())
         {
-            BuildInsert(entry, statements, postProcessors);
+            var insertTypes = insertEntries.Select(e => e.EntityType).Distinct().ToList();
+            var orderedInsertTypes = analyzer.GetInsertOrder(insertTypes);
+
+            foreach (var entityType in orderedInsertTypes)
+            {
+                foreach (var entry in insertEntries.Where(e => e.EntityType == entityType))
+                {
+                    BuildInsert(entry, statements, postProcessors);
+                }
+            }
         }
 
-        // UPDATES
+        // UPDATES - no ordering needed (not creating/removing FK relationships)
         foreach (var entry in entries.Where(e => e.State == EntityState.Modified))
         {
             BuildUpdate(entry, statements);
         }
 
-        // DELETES
-        foreach (var entry in entries.Where(e => e.State == EntityState.Deleted))
+        // DELETES - ordered by FK dependencies (children before parents)
+        var deleteEntries = entries.Where(e => e.State == EntityState.Deleted).ToList();
+        if (deleteEntries.Any())
         {
-            BuildDelete(entry, statements);
+            var deleteTypes = deleteEntries.Select(e => e.EntityType).Distinct().ToList();
+            var orderedDeleteTypes = analyzer.GetDeleteOrder(deleteTypes);
+
+            foreach (var entityType in orderedDeleteTypes)
+            {
+                foreach (var entry in deleteEntries.Where(e => e.EntityType == entityType))
+                {
+                    BuildDelete(entry, statements);
+                }
+            }
         }
 
         if (statements.Count == 0)
