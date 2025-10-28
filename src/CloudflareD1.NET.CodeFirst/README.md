@@ -137,20 +137,58 @@ context.Users.Add(user);
 await context.SaveChangesAsync();
 // user.Id is populated if it's an auto-increment key
 
-// Update
-user.Email = "new@example.com";
+// Update - only changed properties
+user.Email = "new@example.com";  // Only Email changed
 context.Users.Update(user);
-await context.SaveChangesAsync();
+await context.SaveChangesAsync();  // Generates: UPDATE users SET email = ? WHERE id = ?
+
+// Update multiple properties
+user.Email = "another@example.com";
+user.Username = "jane_doe";
+context.Users.Update(user);
+await context.SaveChangesAsync();  // Generates: UPDATE users SET email = ?, username = ? WHERE id = ?
+
+// No changes - no UPDATE generated
+context.Users.Update(user);  // No properties modified
+await context.SaveChangesAsync();  // 0 rows affected, no SQL executed
 
 // Delete
 context.Users.Remove(user);
 await context.SaveChangesAsync();
 ```
 
+**Per-Property Change Detection**: `Update` intelligently detects which properties have changed since the entity was last saved (via snapshot comparison). Only changed columns are included in the UPDATE statement, improving performance and reducing unnecessary writes.
+
+#### Foreign Key-Aware Operation Ordering
+
+`SaveChangesAsync` automatically orders INSERT and DELETE operations based on foreign key dependencies to prevent constraint violations:
+
+```csharp
+// Example: Adding related entities in any order
+var customer = new Customer { Name = "Acme Corp", Email = "contact@acme.com" };
+var order = new Order { OrderNumber = "ORD-001", CustomerId = customer.Id, Total = 99.99m };
+
+// Add in any order - SaveChanges will insert Customer first
+context.Orders.Add(order);
+context.Customers.Add(customer);  // Added second, but will be inserted first!
+await context.SaveChangesAsync();  // Customer → Order (correct FK order)
+
+// Deleting also respects FK constraints
+context.Customers.Remove(customer);  // Added first
+context.Orders.Remove(order);        // Added second
+await context.SaveChangesAsync();    // Order → Customer (deletes child first)
+```
+
+**How it works:**
+- **Inserts**: Parent entities (referenced by FKs) are inserted before children
+- **Deletes**: Child entities (with FKs) are deleted before parents
+- **Updates**: No reordering (FK values should not change during updates)
+- **Circular dependencies**: If detected, an `InvalidOperationException` is thrown
+
 Notes:
 - Primary keys are required for updates and deletes.
 - For auto-increment keys, if you don't set the key before insert, it will be populated from the database.
-- Current implementation updates all non-key columns for `Update` (no per-property change detection yet).
+- **Per-property change detection**: `Update` only modifies columns that have changed since the entity was last saved. If no properties change, no UPDATE statement is generated.
 - Insert/Update/Delete are executed sequentially when you call `SaveChangesAsync` (to satisfy the Cloudflare D1 API semantics).
 
 ## Attributes
@@ -230,6 +268,7 @@ dotnet d1 migrations apply
 - ✅ Code-first migration generation (snapshot-based)
 - ✅ Foreign keys via Fluent API
 - ✅ Basic change tracking (Add/Update/Remove) and SaveChanges
+- ✅ Foreign key-aware operation ordering (automatic INSERT/DELETE ordering)
 - ⏳ Index configuration helpers
 - ⏳ Data annotations validation
 

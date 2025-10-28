@@ -180,9 +180,10 @@ var context = new AppDbContext(client);
 var user = new User { Name = "Bob", Email = "bob@example.com" };
 context.Users.Add(user);
 
-// Track an update
-user.Email = "bob.new@example.com";
+// Track an update - only changed properties are updated
+user.Email = "bob.new@example.com";  // Only Email property changed
 context.Users.Update(user);
+// Generates: UPDATE users SET email = ? WHERE id = ?
 
 // Track a deletion
 context.Users.Remove(user);
@@ -191,15 +192,71 @@ context.Users.Remove(user);
 int rowsAffected = await context.SaveChangesAsync();
 ```
 
+### Per-Property Change Detection
+
+`Update` intelligently tracks which properties have changed:
+
+```csharp
+// Insert a product
+var product = new Product { Name = "Widget", Price = 19.99m, Stock = 100 };
+context.Products.Add(product);
+await context.SaveChangesAsync();
+// product.Id is now populated
+
+// Update only the Price - only that column is updated
+product.Price = 24.99m;
+context.Products.Update(product);
+await context.SaveChangesAsync();
+// SQL: UPDATE products SET price = ? WHERE id = ?
+// (Name and Stock are NOT in the SET clause)
+
+// No changes - no UPDATE statement generated
+context.Products.Update(product);  // No properties modified
+await context.SaveChangesAsync();  // Returns 0 rows affected
+```
+
+**How it works:**
+- When an entity is first saved, a snapshot of all property values is captured
+- On subsequent `Update()` calls, current values are compared with the snapshot
+- Only properties with different values are included in the UPDATE statement
+- If no properties changed, the UPDATE is skipped entirely
+
 **Features:**
 - Automatically populates auto-increment primary keys after INSERT
 - Executes operations sequentially to satisfy Cloudflare D1 API semantics
+- **Per-Property Change Detection**: Only updates columns that changed (via snapshot comparison)
+- **Foreign Key-Aware Ordering**: Automatically orders INSERT and DELETE operations based on FK dependencies
 - Navigation properties and collections are ignored (not mapped to columns)
+
+### Foreign Key-Aware Operation Ordering
+
+`SaveChangesAsync` automatically analyzes foreign key relationships and orders operations to prevent constraint violations:
+
+```csharp
+// Example: Adding related entities in any order
+var customer = new Customer { Name = "Acme Corp", Email = "contact@acme.com" };
+var order = new Order { OrderNumber = "ORD-001", CustomerId = customer.Id, Total = 99.99m };
+
+// Add in any order - SaveChanges will insert Customer first automatically
+context.Orders.Add(order);
+context.Customers.Add(customer);  // Added second, but will be inserted first!
+await context.SaveChangesAsync();  // Customer → Order (correct FK order)
+
+// Deleting also respects FK constraints
+context.Customers.Remove(customer);  // Added first
+context.Orders.Remove(order);        // Added second
+await context.SaveChangesAsync();    // Order → Customer (deletes child first)
+```
+
+**How it works:**
+- **Inserts**: Parent entities (referenced by FKs) are inserted before children
+- **Deletes**: Child entities (with FKs) are deleted before parents
+- **Updates**: No reordering needed (FK values should not change)
+- **Circular dependencies**: Throws `InvalidOperationException` if detected
 
 **Notes:**
 - Primary keys are required for Update and Delete operations
-- Current implementation updates all non-key columns for Update (per-property change detection is planned)
-- For complex scenarios with foreign keys, ensure parents are inserted before children
+- **Per-property change detection**: Update only modifies columns that changed since the entity was last saved (via snapshot comparison). If no properties change, no UPDATE statement is generated.
 
 ## Workflow
 
