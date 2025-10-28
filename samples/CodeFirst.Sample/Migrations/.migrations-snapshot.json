@@ -1,0 +1,174 @@
+{
+  "Tables": [
+    {
+      "Name": "users",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "username",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "email",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "full_name",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "is_active",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "created_at",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "blog_posts",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": []
+    },
+    {
+      "Name": "blog_posts",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "title",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "content",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "author_id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "published_at",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "created_at",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "author",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "comments",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": [
+        {
+          "Column": "author_id",
+          "ReferencedTable": "users",
+          "ReferencedColumn": "id"
+        }
+      ]
+    },
+    {
+      "Name": "comments",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "content",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "post_id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "author_id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "created_at",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "blog_post",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        },
+        {
+          "Name": "author",
+          "Type": "TEXT",
+          "NotNull": false,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": [
+        {
+          "Column": "post_id",
+          "ReferencedTable": "blog_posts",
+          "ReferencedColumn": "id"
+        },
+        {
+          "Column": "author_id",
+          "ReferencedTable": "users",
+          "ReferencedColumn": "id"
+        }
+      ]
+    }
+  ]
+}

@@ -36,7 +36,8 @@ Console.WriteLine("Step 1: Check for Pending Model Changes");
 Console.WriteLine("════════════════════════════════════════════════════════════════");
 Console.WriteLine();
 
-var generator = new CodeFirstMigrationGenerator(client);
+var migrationsPath = Path.Combine(AppContext.BaseDirectory, "Migrations");
+var generator = new CodeFirstMigrationGenerator(migrationsPath);
 var summary = await generator.GetChangesSummaryAsync(context);
 
 if (!string.IsNullOrEmpty(summary))
@@ -67,7 +68,6 @@ Console.WriteLine("Step 2: Apply Migrations");
 Console.WriteLine("════════════════════════════════════════════════════════════════");
 Console.WriteLine();
 
-var migrationsPath = Path.Combine(AppContext.BaseDirectory, "Migrations");
 if (Directory.Exists(migrationsPath) && Directory.GetFiles(migrationsPath, "*.cs").Length > 0)
 {
     Console.WriteLine("📁 Found migration files:");

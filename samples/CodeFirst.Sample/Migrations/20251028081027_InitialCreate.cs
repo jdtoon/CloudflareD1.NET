@@ -4,12 +4,12 @@ namespace YourApp.Migrations;
 
 /// <summary>
 /// Migration: Initialcreate
-/// Created: 2025-10-28 08:05:51 UTC
+/// Created: 2025-10-28 08:10:27 UTC
 /// Scaffolded from database schema
 /// </summary>
-public class Migration20251028080551_Initialcreate : Migration
+public class Migration20251028081027_Initialcreate : Migration
 {
-    public override string Id => "20251028080551";
+    public override string Id => "20251028081027";
     public override string Name => "Initialcreate";
 
     public override void Up(MigrationBuilder builder)

@@ -7,50 +7,49 @@ using CloudflareD1.NET.Migrations;
 namespace CloudflareD1.NET.CodeFirst.MigrationGeneration;
 
 /// <summary>
-/// Compares model metadata with the current database schema to detect changes
+/// Compares model metadata with the last migration snapshot to detect changes
 /// </summary>
 public class ModelDiffer
 {
-    private readonly D1Client _client;
+    private readonly string? _snapshotDirectory;
 
     /// <summary>
     /// Initializes a new instance of ModelDiffer
     /// </summary>
-    /// <param name="client">The D1 client to use for schema introspection</param>
-    public ModelDiffer(D1Client client)
+    /// <param name="snapshotDirectory">Directory containing the snapshot file (optional, defaults to current directory)</param>
+    public ModelDiffer(string? snapshotDirectory = null)
     {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _snapshotDirectory = snapshotDirectory;
     }
 
     /// <summary>
-    /// Compares the model metadata with the current database schema
+    /// Compares the model metadata with the last migration snapshot
     /// </summary>
     /// <param name="modelMetadata">The model metadata from D1Context</param>
-    /// <returns>A tuple containing the old database schema and the new model schema</returns>
-    public async Task<(DatabaseSchema CurrentSchema, DatabaseSchema ModelSchema)> CompareAsync(ModelMetadata modelMetadata)
+    /// <returns>A tuple containing the last snapshot schema and the new model schema</returns>
+    public async Task<(DatabaseSchema LastSnapshot, DatabaseSchema ModelSchema)> CompareAsync(ModelMetadata modelMetadata)
     {
         if (modelMetadata == null)
             throw new ArgumentNullException(nameof(modelMetadata));
 
-        // Get current database schema using SchemaIntrospector
-        var introspector = new SchemaIntrospector(_client);
-        var currentSchema = await introspector.GetSchemaAsync();
+        // Load the last snapshot (if it exists)
+        var lastSnapshot = await SchemaSnapshot.LoadAsync(_snapshotDirectory) ?? new DatabaseSchema { Tables = new() };
 
         // Convert model metadata to database schema
         var modelSchema = ModelSchemaConverter.ToDatabaseSchema(modelMetadata);
 
-        return (currentSchema, modelSchema);
+        return (lastSnapshot, modelSchema);
     }
 
     /// <summary>
-    /// Determines if there are any differences between the model and database
+    /// Determines if there are any differences between the model and last snapshot
     /// </summary>
     /// <param name="modelMetadata">The model metadata from D1Context</param>
     /// <returns>True if there are differences, false otherwise</returns>
     public async Task<bool> HasChangesAsync(ModelMetadata modelMetadata)
     {
-        var (currentSchema, modelSchema) = await CompareAsync(modelMetadata);
-        return HasDifferences(currentSchema, modelSchema);
+        var (lastSnapshot, modelSchema) = await CompareAsync(modelMetadata);
+        return HasDifferences(lastSnapshot, modelSchema);
     }
 
     private bool HasDifferences(DatabaseSchema current, DatabaseSchema model)

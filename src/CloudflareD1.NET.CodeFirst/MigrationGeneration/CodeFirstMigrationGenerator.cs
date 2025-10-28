@@ -11,18 +11,16 @@ namespace CloudflareD1.NET.CodeFirst.MigrationGeneration;
 /// </summary>
 public class CodeFirstMigrationGenerator
 {
-    private readonly D1Client _client;
     private readonly ModelDiffer _differ;
     private readonly MigrationScaffolder _scaffolder;
 
     /// <summary>
     /// Initializes a new instance of CodeFirstMigrationGenerator
     /// </summary>
-    /// <param name="client">The D1 client to use for schema introspection</param>
-    public CodeFirstMigrationGenerator(D1Client client)
+    /// <param name="snapshotDirectory">Directory for snapshot files (optional, defaults to current directory)</param>
+    public CodeFirstMigrationGenerator(string? snapshotDirectory = null)
     {
-        _client = client ?? throw new ArgumentNullException(nameof(client));
-        _differ = new ModelDiffer(client);
+        _differ = new ModelDiffer(snapshotDirectory);
         _scaffolder = new MigrationScaffolder();
     }
 
@@ -47,11 +45,11 @@ public class CodeFirstMigrationGenerator
         // Get model metadata from context
         var modelMetadata = context.GetModelMetadata();
 
-        // Compare with current database schema
-        var (currentSchema, modelSchema) = await _differ.CompareAsync(modelMetadata);
+        // Compare with last migration snapshot
+        var (lastSnapshot, modelSchema) = await _differ.CompareAsync(modelMetadata);
 
         // Generate migration code
-        var migrationCode = _scaffolder.GenerateMigration(currentSchema, modelSchema, migrationName);
+        var migrationCode = _scaffolder.GenerateMigration(lastSnapshot, modelSchema, migrationName);
 
         // Create output directory if it doesn't exist
         Directory.CreateDirectory(outputDirectory);
@@ -63,6 +61,9 @@ public class CodeFirstMigrationGenerator
 
         // Write migration file
         await File.WriteAllTextAsync(filePath, migrationCode);
+
+        // Save the new snapshot
+        await SchemaSnapshot.SaveAsync(modelSchema, outputDirectory);
 
         return filePath;
     }

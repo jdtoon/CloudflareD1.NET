@@ -321,8 +321,16 @@ class Program
                 return;
             }
 
+            // Find Migrations directory or create it
+            var migrationsDir = FindOrCreateMigrationsDirectory();
+            if (migrationsDir == null)
+            {
+                Console.WriteLine("Error: Could not find or create Migrations directory.");
+                return;
+            }
+
             // Generate migration using CodeFirstMigrationGenerator
-            var generator = new CloudflareD1.NET.CodeFirst.MigrationGeneration.CodeFirstMigrationGenerator(client);
+            var generator = new CloudflareD1.NET.CodeFirst.MigrationGeneration.CodeFirstMigrationGenerator(migrationsDir);
 
             // Show pending changes
             var changesSummary = await generator.GetChangesSummaryAsync(d1Context);
@@ -334,14 +342,6 @@ class Program
             if (!hasPendingChanges)
             {
                 Console.WriteLine("✓ No model changes detected. No migration needed.");
-                return;
-            }
-
-            // Find Migrations directory or create it
-            var migrationsDir = FindOrCreateMigrationsDirectory();
-            if (migrationsDir == null)
-            {
-                Console.WriteLine("Error: Could not find or create Migrations directory.");
                 return;
             }
 

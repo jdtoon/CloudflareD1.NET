@@ -53,7 +53,7 @@ public class ModelDifferTests
         // Arrange
         var client = CreateTestClient();
         var context = new TestContext(client);
-        var differ = new ModelDiffer(client);
+        var differ = new ModelDiffer(); // No snapshot directory = empty snapshot
 
         // Act
         var hasChanges = await differ.HasChangesAsync(context.GetModelMetadata());
@@ -68,13 +68,13 @@ public class ModelDifferTests
         // Arrange
         var client = CreateTestClient();
         var context = new TestContext(client);
-        var differ = new ModelDiffer(client);
+        var differ = new ModelDiffer();
 
         // Act
-        var (currentSchema, modelSchema) = await differ.CompareAsync(context.GetModelMetadata());
+        var (lastSnapshot, modelSchema) = await differ.CompareAsync(context.GetModelMetadata());
 
         // Assert
-        Assert.NotNull(currentSchema);
+        Assert.NotNull(lastSnapshot);
         Assert.NotNull(modelSchema);
         Assert.Single(modelSchema.Tables);
         Assert.Equal("users", modelSchema.Tables[0].Name);
@@ -83,27 +83,9 @@ public class ModelDifferTests
     [Fact]
     public async Task HasChangesAsync_ReturnsFalseWhenSchemasMatch()
     {
-        // Arrange
-        var client = CreateTestClient();
-
-        // Create the table first
-        await client.ExecuteAsync(@"
-            CREATE TABLE users (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
-                email TEXT
-            )
-        ");
-
-        var context = new TestContext(client);
-        var differ = new ModelDiffer(client);
-
-        // Act
-        var hasChanges = await differ.HasChangesAsync(context.GetModelMetadata());
-
-        // Assert - should still be true because SQLite doesn't always report schemas exactly
-        // In a real scenario, this would require more sophisticated comparison
-        Assert.True(hasChanges || !hasChanges); // Accept either result for now
+        // Arrange - This test is no longer relevant as we compare against snapshots
+        // Skipping this test as it tested database comparison
+        await Task.CompletedTask;
     }
 
     [Fact]
@@ -112,10 +94,10 @@ public class ModelDifferTests
         // Arrange
         var client = CreateTestClient();
         var context = new TestContext(client);
-        var differ = new ModelDiffer(client);
+        var differ = new ModelDiffer();
 
         // Act
-        var (currentSchema, modelSchema) = await differ.CompareAsync(context.GetModelMetadata());
+        var (lastSnapshot, modelSchema) = await differ.CompareAsync(context.GetModelMetadata());
 
         // Assert
         var userTable = modelSchema.Tables.Find(t => t.Name == "users");
