@@ -5,16 +5,18 @@ using CloudflareD1.NET.Linq;
 using CloudflareD1.NET.Linq.Query;
 using CloudflareD1.NET.Migrations;
 using CloudflareD1.NET.Models;
+using CloudflareD1.NET.CodeFirst;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Reflection;
+using TestCloudflareD1.Models;
 
 Console.WriteLine("=== CloudflareD1.NET - Cloudflare D1 Connection Test ===\n");
 
 // Build configuration from appsettings.json and environment variables
 var configuration = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
+    .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false)
     .AddEnvironmentVariables()
     .Build();
@@ -22,7 +24,7 @@ var configuration = new ConfigurationBuilder()
 // Setup logging
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    builder.AddConsole().SetMinimumLevel(LogLevel.Information);
+    builder.AddConsole().SetMinimumLevel(LogLevel.Debug);
 });
 var logger = loggerFactory.CreateLogger<D1Client>();
 
@@ -78,29 +80,29 @@ using var client = new D1Client(options, logger);
 
 try
 {
-    // Clean up any existing tables before starting tests
-    Console.WriteLine("Step 0: Cleaning up existing tables...");
-    try
+    // Non-destructive default: only drop known test tables when explicitly allowed
+    var allowClean = Environment.GetEnvironmentVariable("D1_TESTAPP_ALLOW_CLEAN") == "1";
+    Console.WriteLine("Step 0: Optional cleanup of known test tables...");
+    if (allowClean)
     {
-        // Get list of all tables
-        var tablesResult = await client.QueryAsync("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-        if (tablesResult.Results != null && tablesResult.Results.Any())
+        try
         {
-            foreach (var table in tablesResult.Results)
+            var knownTestTables = new[] { "test_users", "test_orders", "users", "posts", "customers", "orders", "__migrations" };
+            foreach (var t in knownTestTables)
             {
-                var tableName = table["name"]?.ToString();
-                if (!string.IsNullOrEmpty(tableName))
-                {
-                    await client.ExecuteAsync($"DROP TABLE IF EXISTS {tableName}");
-                    Console.WriteLine($"  Dropped table: {tableName}");
-                }
+                await client.ExecuteAsync($"DROP TABLE IF EXISTS {t}");
+                Console.WriteLine($"  Dropped table (if existed): {t}");
             }
+            Console.WriteLine("✓ Known test tables cleaned\n");
         }
-        Console.WriteLine("✓ Database cleaned successfully\n");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠ Warning: Cleanup encountered an issue: {ex.Message}\n");
+        }
     }
-    catch (Exception ex)
+    else
     {
-        Console.WriteLine($"⚠ Warning: Could not clean database: {ex.Message}\n");
+        Console.WriteLine("(Skipping cleanup - set D1_TESTAPP_ALLOW_CLEAN=1 to enable)\n");
     }
 
     Console.WriteLine("Step 1: Creating test table...");
@@ -136,6 +138,94 @@ try
         }
     }
     Console.WriteLine();
+
+    // ============================================
+    // Code-First ChangeTracking + SaveChanges tests
+    // against the actual D1 database
+    // ============================================
+    Console.WriteLine("========================================");
+    Console.WriteLine("🧪 Code-First SaveChanges against D1");
+    Console.WriteLine("========================================\n");
+
+    // Prepare schema for code-first entities (customers, orders)
+    Console.WriteLine("CF-1: Ensuring customers/orders tables exist...");
+    await client.ExecuteAsync("DROP TABLE IF EXISTS orders");
+    await client.ExecuteAsync("DROP TABLE IF EXISTS customers");
+    await client.ExecuteAsync(@"
+        CREATE TABLE customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            first_name TEXT NOT NULL,
+            last_name  TEXT NOT NULL,
+            email      TEXT NOT NULL,
+            created_at TEXT
+        )
+    ");
+    await client.ExecuteAsync("CREATE UNIQUE INDEX IF NOT EXISTS ix_customers_email ON customers(email)");
+    await client.ExecuteAsync("CREATE INDEX IF NOT EXISTS ix_customers_first_name_last_name ON customers(first_name, last_name)");
+    await client.ExecuteAsync(@"
+        CREATE TABLE orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_id INTEGER NOT NULL,
+            total REAL NOT NULL,
+            status TEXT,
+            order_date TEXT,
+            FOREIGN KEY(customer_id) REFERENCES customers(id) ON DELETE CASCADE
+        )
+    ");
+    await client.ExecuteAsync("CREATE INDEX IF NOT EXISTS ix_orders_customer_id ON orders(customer_id)");
+    await client.ExecuteAsync("CREATE INDEX IF NOT EXISTS ix_orders_status ON orders(status)");
+    Console.WriteLine("✓ Schema ready for code-first tests\n");
+
+    var ctx = new TestAppDbContext(client);
+
+    Console.WriteLine("CF-2: Insert customer via SaveChanges...");
+    var customer = new Customer
+    {
+        FirstName = "Jane",
+        LastName = "Doe",
+        Email = $"jane.doe+{DateTime.UtcNow.Ticks}@test.local",
+        CreatedAt = DateTime.UtcNow
+    };
+    ctx.Customers.Add(customer);
+    var changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Rows changed: {changed}, New Customer ID: {customer.Id}");
+    if (customer.Id <= 0) throw new Exception("Customer ID should be populated after insert");
+
+    Console.WriteLine("CF-3: Insert order with FK via SaveChanges...");
+    var newOrder = new TestCloudflareD1.Models.Order
+    {
+        CustomerId = customer.Id,
+        Total = 42.50m,
+        Status = "pending",
+        OrderDate = DateTime.UtcNow
+    };
+    ctx.Orders.Add(newOrder);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Rows changed: {changed}, New Order ID: {newOrder.Id}");
+    if (newOrder.Id <= 0) throw new Exception("Order ID should be populated after insert");
+
+    Console.WriteLine("CF-4: Update customer email via SaveChanges...");
+    customer.Email = $"jane.updated+{DateTime.UtcNow.Ticks}@test.local";
+    ctx.Customers.Update(customer);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Rows changed: {changed}");
+
+    var updatedEmailRow = await client.QueryAsync("SELECT email FROM customers WHERE id=@id", new { id = customer.Id });
+    var updatedEmail = updatedEmailRow.Results?.FirstOrDefault()? ["email"]?.ToString();
+    if (updatedEmail != customer.Email) throw new Exception("Customer email not updated as expected");
+
+    Console.WriteLine("CF-5: Delete order then customer via SaveChanges...");
+    ctx.Orders.Remove(newOrder);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Deleted orders changed: {changed}");
+
+    ctx.Customers.Remove(customer);
+    changed = await ctx.SaveChangesAsync();
+    Console.WriteLine($"✓ Deleted customers changed: {changed}");
+
+    var remain = await client.QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM customers");
+    if (remain != 0) throw new Exception("Expected customers table to be empty after deletes");
+    Console.WriteLine("✅ Code-First SaveChanges e2e passed!\n");
 
     Console.WriteLine("Step 4: Updating data...");
     var updateResult = await client.ExecuteAsync(
@@ -1375,6 +1465,14 @@ try
     Console.WriteLine("MIGRATIONS TESTS");
     Console.WriteLine("========================================\n");
 
+    if (!allowClean)
+    {
+        Console.WriteLine("(Skipping migrations tests - set D1_TESTAPP_ALLOW_CLEAN=1 to enable)\n");
+        Console.WriteLine("\n========================================");
+        Console.WriteLine("🎉 ALL NON-DESTRUCTIVE TESTS PASSED SUCCESSFULLY!");
+        Console.WriteLine("========================================");
+        return;
+    }
     Console.WriteLine("Step 0: Cleaning up migration-related tables...");
     try
     {

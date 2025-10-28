@@ -166,9 +166,10 @@ public class ModelBuilder
             TableName = builder.GetTableName() ?? GetDefaultTableName(entityType)
         };
 
-        // Discover properties
+        // Discover properties: include only supported scalar types and exclude navigations/collections unless explicitly marked
         var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanRead && p.CanWrite && !p.GetCustomAttributes<NotMappedAttribute>().Any());
+            .Where(p => p.CanRead && p.CanWrite && !p.GetCustomAttributes<NotMappedAttribute>().Any())
+            .Where(p => IsSupportedColumnType(p.PropertyType));
 
         foreach (var prop in properties)
         {
@@ -459,6 +460,12 @@ public class ModelBuilder
     {
         var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
 
+        if (underlyingType.IsEnum)
+        {
+            // Store enums as TEXT by default (name); numeric also works in SQLite, but TEXT is clearer
+            return "TEXT";
+        }
+
         if (underlyingType == typeof(int) || underlyingType == typeof(long) ||
             underlyingType == typeof(short) || underlyingType == typeof(byte) ||
             underlyingType == typeof(bool))
@@ -524,5 +531,43 @@ public class ModelBuilder
         }
 
         return result.ToString();
+    }
+
+    /// <summary>
+    /// Determines if a CLR type is supported as a simple column mapping.
+    /// Excludes navigation properties (reference types other than string/byte[]) and collections.
+    /// </summary>
+    private bool IsSupportedColumnType(Type type)
+    {
+        // Unwrap Nullable<T>
+        var t = Nullable.GetUnderlyingType(type) ?? type;
+
+        // Allow byte[] explicitly
+        if (t == typeof(byte[])) return true;
+
+        // Exclude collections (IEnumerable) except string and byte[]
+        if (typeof(System.Collections.IEnumerable).IsAssignableFrom(t) && t != typeof(string) && t != typeof(byte[]))
+        {
+            return false;
+        }
+
+        // Exclude non-string class types (likely navigations/value objects)
+        if (t.IsClass && t != typeof(string))
+        {
+            return false;
+        }
+
+        // Allow enums and primitive/value types commonly stored
+        if (t.IsEnum) return true;
+
+        if (t.IsPrimitive) return true; // includes bool, integral, floating point
+
+        if (t == typeof(decimal) || t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(Guid) || t == typeof(string))
+        {
+            return true;
+        }
+
+        // Fallback: not supported
+        return false;
     }
 }

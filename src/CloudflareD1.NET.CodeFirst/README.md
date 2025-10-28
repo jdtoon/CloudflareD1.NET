@@ -151,7 +151,7 @@ Notes:
 - Primary keys are required for updates and deletes.
 - For auto-increment keys, if you don't set the key before insert, it will be populated from the database.
 - Current implementation updates all non-key columns for `Update` (no per-property change detection yet).
-- Insert/Update/Delete are executed in a single transaction via batch when you call `SaveChangesAsync`.
+- Insert/Update/Delete are executed sequentially when you call `SaveChangesAsync` (to satisfy the Cloudflare D1 API semantics).
 
 ## Attributes
 
@@ -179,6 +179,7 @@ If you don't use attributes, the framework follows these conventions:
   - `double`, `float`, `decimal` → `REAL`
   - `string`, `DateTime`, `Guid` → `TEXT`
   - `byte[]` → `BLOB`
+ - **Navigation properties & collections**: Reference navigations (e.g., `Order.Customer`) and collections (e.g., `User.Orders`) are ignored by default and are not mapped to columns. You can also explicitly exclude any property with `[NotMapped]`.
 
 ## Fluent API
 

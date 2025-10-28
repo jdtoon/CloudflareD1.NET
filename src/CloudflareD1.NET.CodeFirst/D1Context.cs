@@ -204,13 +204,14 @@ public abstract class D1Context
             return 0;
         }
 
-        var results = await _client.BatchAsync(statements, cancellationToken).ConfigureAwait(false);
-
-        // Apply post-processors in order for statements that need it (e.g., LastRowId -> entity key)
+        // Execute statements sequentially to support remote D1 API (which doesn't support parameterized batch)
+        var results = new List<CloudflareD1.NET.Models.D1QueryResult>();
         int totalChanges = 0;
-        for (int i = 0; i < results.Length; i++)
+        for (int i = 0; i < statements.Count; i++)
         {
-            var res = results[i];
+            var st = statements[i];
+            var res = await _client.ExecuteAsync(st.Sql, st.Params, cancellationToken).ConfigureAwait(false);
+            results.Add(res);
             if (res.Meta?.Changes != null)
             {
                 totalChanges += (int)res.Meta.Changes.Value;
@@ -231,7 +232,7 @@ public abstract class D1Context
     {
         var meta = entry.Metadata;
         var entity = entry.EntityObject;
-        var paramDict = new Dictionary<string, object?>();
+        var paramList = new List<object?>();
 
         var columns = new List<string>();
         foreach (var prop in meta.Properties)
@@ -247,14 +248,14 @@ public abstract class D1Context
             }
 
             columns.Add(prop.ColumnName);
-            paramDict[$"p_{prop.ColumnName}"] = value;
+            paramList.Add(value);
         }
 
         var columnList = string.Join(", ", columns);
-        var valuesList = string.Join(", ", columns.Select(c => $"@p_{c}"));
+        var valuesList = string.Join(", ", columns.Select(_ => "?"));
         var sql = $"INSERT INTO {meta.TableName} ({columnList}) VALUES ({valuesList})";
 
-        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramDict });
+        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramList.ToArray() });
 
         // If we have a single auto-increment key and we didn't include it, capture LastRowId
         if (meta.PrimaryKey.Count == 1 && meta.PrimaryKey[0].IsAutoIncrement)
@@ -293,24 +294,24 @@ public abstract class D1Context
             throw new InvalidOperationException($"Entity {meta.ClrType.Name} does not have a primary key configured.");
 
         var setColumns = new List<string>();
-        var paramDict = new Dictionary<string, object?>();
+        var paramList = new List<object?>();
 
         foreach (var prop in meta.Properties)
         {
             if (prop.IsPrimaryKey) continue;
-            setColumns.Add($"{prop.ColumnName} = @p_{prop.ColumnName}");
-            paramDict[$"p_{prop.ColumnName}"] = prop.PropertyInfo.GetValue(entity);
+            setColumns.Add($"{prop.ColumnName} = ?");
+            paramList.Add(prop.PropertyInfo.GetValue(entity));
         }
 
         var whereParts = new List<string>();
         foreach (var pk in meta.PrimaryKey)
         {
-            whereParts.Add($"{pk.ColumnName} = @k_{pk.ColumnName}");
-            paramDict[$"k_{pk.ColumnName}"] = pk.PropertyInfo.GetValue(entity);
+            whereParts.Add($"{pk.ColumnName} = ?");
+            paramList.Add(pk.PropertyInfo.GetValue(entity));
         }
 
         var sql = $"UPDATE {meta.TableName} SET {string.Join(", ", setColumns)} WHERE {string.Join(" AND ", whereParts)}";
-        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramDict });
+        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramList.ToArray() });
     }
 
     private void BuildDelete(ITrackedEntry entry, List<CloudflareD1.NET.Models.D1Statement> statements)
@@ -321,15 +322,15 @@ public abstract class D1Context
             throw new InvalidOperationException($"Entity {meta.ClrType.Name} does not have a primary key configured.");
 
         var whereParts = new List<string>();
-        var paramDict = new Dictionary<string, object?>();
+        var paramList = new List<object?>();
         foreach (var pk in meta.PrimaryKey)
         {
-            whereParts.Add($"{pk.ColumnName} = @k_{pk.ColumnName}");
-            paramDict[$"k_{pk.ColumnName}"] = pk.PropertyInfo.GetValue(entity);
+            whereParts.Add($"{pk.ColumnName} = ?");
+            paramList.Add(pk.PropertyInfo.GetValue(entity));
         }
 
         var sql = $"DELETE FROM {meta.TableName} WHERE {string.Join(" AND ", whereParts)}";
-        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramDict });
+        statements.Add(new CloudflareD1.NET.Models.D1Statement { Sql = sql, Params = paramList.ToArray() });
     }
 
     private static bool IsDefaultValue(object? value, Type type)
