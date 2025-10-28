@@ -30,6 +30,29 @@ A minimal Web API built with ASP.NET Core demonstrating:
 
 [View Sample →](./WebApi.Sample/)
 
+### 3. MigrationScenarios
+Comprehensive snapshot-based migration tests that validate:
+- Initial schema creation
+- Adding/dropping tables and columns
+- Foreign keys, indexes
+- Multiple changes in a single migration
+- Snapshot stability
+
+Run:
+```bash
+cd samples/MigrationScenarios
+dotnet run
+```
+
+### 4. DropColumnTest
+Demonstrates generated DROP COLUMN migrations using the SQLite table recreation pattern and validates the output.
+
+Run:
+```bash
+cd samples/DropColumnTest
+dotnet run
+```
+
 ## Running the Samples
 
 ### Prerequisites

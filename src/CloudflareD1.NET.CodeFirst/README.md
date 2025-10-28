@@ -10,9 +10,9 @@ Code-First ORM for CloudflareD1.NET. Define your database schema using C# classe
 - **Entity Attributes**: Define tables, columns, keys, and relationships using attributes
 - **DbContext Pattern**: Familiar API for developers coming from Entity Framework
 - **Type-Safe Queries**: LINQ support through integration with CloudflareD1.NET.Linq
-- **Automatic Migration Generation**: Generate migrations from your model classes with `dotnet d1 migrations add --code-first`
+- **Automatic Migration Generation**: Generate migrations from your model classes with `dotnet d1 migrations add --code-first` (snapshot-based, no DB required at generation time)
 - **Fluent API**: Configure entities using the fluent configuration API
-- **Schema Introspection**: Compare model with database to detect changes
+- **Snapshot-Based Diffs**: Compare your model with the last saved migration snapshot to detect changes
 
 ## Installation
 
@@ -60,7 +60,6 @@ public class Order
     public string OrderNumber { get; set; } = string.Empty;
 
     [Column("user_id")]
-    [ForeignKey("User")]
     public int UserId { get; set; }
 
     // Navigation property
@@ -84,7 +83,7 @@ public class MyDbContext : D1Context
     public D1Set<User> Users { get; set; } = null!;
     public D1Set<Order> Orders { get; set; } = null!;
 
-    // Optional: Configure entities with fluent API
+    // Recommended: Configure relationships with Fluent API
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>()
@@ -93,7 +92,8 @@ public class MyDbContext : D1Context
 
         modelBuilder.Entity<Order>()
             .ToTable("orders")
-            .HasKey(o => o.Id);
+            .HasKey(o => o.Id)
+            .HasForeignKey(o => o.UserId);
     }
 }
 ```
@@ -168,18 +168,22 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-## Running Migrations
+## Generating Migrations (Code-First)
 
-Apply migrations to your database:
+Build your project, then generate a migration from your models:
 
-```csharp
-var context = new MyDbContext(client);
-var appliedMigrations = await context.MigrateAsync();
+```bash
+dotnet d1 migrations add InitialCreate --code-first \
+    --context MyNamespace.MyDbContext \
+    --assembly bin/Release/net8.0/MyApp.dll
+```
 
-foreach (var migration in appliedMigrations)
-{
-    Console.WriteLine($"Applied migration: {migration}");
-}
+This compares your model against the JSON snapshot at `Migrations/.migrations-snapshot.json` and generates only the delta.
+
+To apply migrations, use the CLI:
+
+```bash
+dotnet d1 migrations apply
 ```
 
 ## Related Packages
@@ -190,14 +194,14 @@ foreach (var migration in appliedMigrations)
 
 ## Roadmap
 
-- ✅ Entity attributes (Table, Column, Key, ForeignKey, Required, NotMapped)
+- ✅ Entity attributes (Table, Column, Key, Required, NotMapped)
 - ✅ D1Context base class
 - ✅ D1Set entity collections
 - ✅ ModelBuilder and metadata system
 - ✅ Fluent configuration API
-- ⏳ Code-first migration generation
-- ⏳ Relationship configuration (one-to-many, many-to-one)
-- ⏳ Index configuration
+- ✅ Code-first migration generation (snapshot-based)
+- ✅ Foreign keys via Fluent API
+- ⏳ Index configuration helpers
 - ⏳ Data annotations validation
 
 ## License

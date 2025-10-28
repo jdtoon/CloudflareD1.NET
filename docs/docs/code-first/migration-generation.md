@@ -5,10 +5,12 @@ One of the most powerful features of CloudflareD1.NET's Code-First approach is *
 ## Overview
 
 The migration generation feature:
-- **Compares** your Code-First models with the current database schema
+- **Compares** your Code-First models with the last migration snapshot (not the database)
 - **Detects** changes automatically (new tables, columns, indexes, foreign keys)
 - **Generates** timestamped migration files with Up/Down methods
-- **Maintains** migration history for version control
+- **Maintains** migration history and a JSON snapshot alongside your migrations
+
+How it works (EF-style): after each migration is generated, we save a snapshot file `Migrations/.migrations-snapshot.json`. Future migrations are diffed against this snapshot so only the delta is generated—no more full re-creation on every change.
 
 ## Quick Start
 
@@ -47,8 +49,8 @@ public class BlogPost
     
     public string Content { get; set; }
     
-    [ForeignKey(typeof(User), nameof(User.Id))]
     public int AuthorId { get; set; }
+    // Tip: configure the relationship via Fluent API (recommended)
     
     public DateTime CreatedAt { get; set; }
 }
@@ -83,8 +85,7 @@ Then generate the migration:
 ```bash
 dotnet d1 migrations add CreateBlogTables --code-first \
     --context YourNamespace.BlogDbContext \
-    --assembly bin/Release/net8.0/YourApp.dll \
-    --connection blog.db
+    --assembly bin/Release/net8.0/YourApp.dll
 ```
 
 ### 4. Review Generated Migration
@@ -140,7 +141,7 @@ dotnet d1 migrations apply
 
 ### `migrations add` with `--code-first`
 
-Generates a migration from Code-First models.
+Generates a migration from Code-First models (snapshot-based, no DB connection required).
 
 **Syntax:**
 ```bash
@@ -158,7 +159,7 @@ dotnet d1 migrations add <MigrationName> --code-first \
 | `--code-first` | Yes | Enable Code-First migration generation |
 | `--context` | Yes | Full type name of your `D1Context` (e.g., `MyApp.Data.BlogDbContext`) |
 | `--assembly` | Yes | Path to the compiled assembly containing your models and context |
-| `--connection` | Yes | Path to the SQLite database file |
+| `--connection` | No | Not required for generation (used only when applying migrations) |
 
 **Example:**
 ```bash
@@ -199,7 +200,7 @@ The migration generator automatically detects:
 
 ### Column Changes
 - ✅ New columns
-- ✅ Dropped columns
+- ✅ Dropped columns (uses SQLite table recreation pattern under the hood)
 - ✅ Type changes (future)
 - ✅ Constraint changes (future)
 
@@ -218,9 +219,10 @@ You can programmatically check if there are pending model changes:
 ```csharp
 using CloudflareD1.NET.CodeFirst.MigrationGeneration;
 
-var generator = new CodeFirstMigrationGenerator(client);
+// Point the generator at your migrations directory (where the snapshot lives)
+var generator = new CodeFirstMigrationGenerator("Migrations");
 
-// Get a summary of changes
+// Get a summary of changes (diff: current model vs last snapshot)
 var summary = await generator.GetChangesSummaryAsync(context);
 if (!string.IsNullOrEmpty(summary))
 {
@@ -234,16 +236,17 @@ Or use the `ModelDiffer` for more control:
 ```csharp
 using CloudflareD1.NET.CodeFirst.MigrationGeneration;
 
-var differ = new ModelDiffer(client);
+// Diff against the last saved snapshot
+var differ = new ModelDiffer("Migrations");
 var metadata = context.GetModelMetadata();
 
 // Quick check
 if (await differ.HasChangesAsync(metadata))
 {
-    Console.WriteLine("Your models differ from the database!");
-    
-    // Get detailed comparison
-    var (currentSchema, modelSchema) = await differ.CompareAsync(metadata);
+    Console.WriteLine("Your models differ from the last snapshot!");
+
+    // Get detailed comparison (lastSnapshot, modelSchema)
+    var (lastSnapshot, modelSchema) = await differ.CompareAsync(metadata);
     // Analyze differences...
 }
 ```
@@ -344,15 +347,26 @@ Ensure the database path exists or use `:memory:` for in-memory databases:
 --connection :memory:
 ```
 
-### Navigation Properties in Generated Code
+### Navigation Properties
 
-Currently, navigation properties (like `List<BlogPost>` on `User`) appear in generated migrations as `TEXT` columns. This is expected - they're stored in metadata but not persisted as actual database columns. Future versions will filter these automatically.
+Navigation properties should be configured via the Fluent API to establish relationships. For example:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<BlogPost>()
+        .HasOne<User>()
+        .WithMany()
+        .HasForeignKey(p => p.AuthorId);
+}
+```
+
+Note: Navigation properties themselves are not stored as separate columns; the foreign key column (e.g., `author_id`) is what gets persisted.
 
 ## Limitations
 
-Current limitations (to be addressed in future releases):
+Current limitations (we're improving these):
 
-- ❌ Navigation properties appear in schema (will be filtered)
 - ❌ Column type changes not detected (will require manual migration)
 - ❌ Column renames not detected (appears as drop + add)
 - ❌ Complex types (owned entities, value objects)
