@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Sanitized sample configuration files to remove realistic-looking IDs and tokens:
+  - `test-app/appsettings.json`
+  - `samples/NuGetTest/appsettings.json`
+- Added `samples/NuGetTest/appsettings.example.json` with placeholders.
+- Added `SECURITY.md` with vulnerability reporting process and secrets handling guidance.
+
 ### Future Enhancements (Pending Cloudflare API Support)
 ## [Docs v2.0] - 2025-10-28 - Documentation
 

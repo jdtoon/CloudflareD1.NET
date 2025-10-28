@@ -392,4 +392,4 @@ MIT License - https://github.com/jdtoon/CloudflareD1.NET/blob/master/LICENSE
 
 This file is designed for AI assistants and LLMs to quickly understand the CloudflareD1.NET project structure, features, and documentation. All documentation URLs point to the official Docusaurus site hosted at GitHub Pages.
 
-Last Updated: 2024 (v1.11.3 - Production Features Release)
+Last Updated: 2025-10-28 (Docs v2.0; Core 1.12.0)

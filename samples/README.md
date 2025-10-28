@@ -97,6 +97,21 @@ SampleName/
 
 ## Configuration Examples
 
+### Secrets and Configuration Safety
+
+- Do not commit real API tokens or secrets. This repository ignores `appsettings.json` by default, but previously committed files may remain tracked.
+- Use the provided `appsettings.example.json` files as a template and create your own `appsettings.json` locally.
+- Prefer environment variables or .NET User Secrets for development:
+    - Environment variables: `CloudflareD1__AccountId`, `CloudflareD1__DatabaseId`, `CloudflareD1__ApiToken`
+    - User Secrets: `dotnet user-secrets set "CloudflareD1:ApiToken" "..."`
+
+For example, in `samples/NuGetTest/` copy the example file:
+
+```bash
+cp appsettings.example.json appsettings.json
+# Then edit appsettings.json with your values (do not commit)
+```
+
 ### Local Mode (Development)
 ```csharp
 builder.Services.AddCloudflareD1Local("myapp.db");
