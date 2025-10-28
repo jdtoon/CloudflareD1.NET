@@ -42,7 +42,7 @@ jobs:
       run: |
         dotnet pack ${{ env.CORE_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
         dotnet pack ${{ env.LINQ_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
-        dotnet pack ${{ env.CODEFIRST_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
+        dotnet pack ${{ env.CODEFIRST_PROJECT_PATH }} --configuration Release --output ./artifacts
         dotnet pack ${{ env.MIGRATIONS_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
         dotnet pack ${{ env.CLI_PROJECT_PATH }} --configuration Release --output ./artifacts
 
