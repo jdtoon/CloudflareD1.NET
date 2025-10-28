@@ -157,7 +157,8 @@ namespace CloudflareD1.NET.Providers
             _logger.LogDebug("Executing D1 query: {Url}", url);
             _logger.LogDebug("Request payload: {Payload}", json);
 
-            try
+            // Execute with retry logic if enabled
+            return await ExecuteWithRetryAsync(async () =>
             {
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
                 using var response = await _httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
@@ -194,23 +195,85 @@ namespace CloudflareD1.NET.Providers
                     throw new D1ApiException("D1 API returned unsuccessful response", apiResponse?.Errors);
                 }
 
+                _logger.LogInformation("D1 query executed successfully, returned {Count} result(s) (Duration: {Duration}ms)",
+                    apiResponse.Result.Length,
+                    apiResponse.Result.FirstOrDefault()?.Meta?.Duration ?? 0);
+
                 return apiResponse.Result;
-            }
-            catch (HttpRequestException ex)
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Executes an operation with automatic retry logic for transient failures.
+        /// </summary>
+        private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
+        {
+            if (!_options.EnableRetry)
             {
-                _logger.LogError(ex, "HTTP request to D1 API failed");
-                throw new D1ApiException("Failed to communicate with D1 API", ex);
+                return await operation().ConfigureAwait(false);
             }
-            catch (TaskCanceledException ex) when (ex.CancellationToken == cancellationToken)
+
+            var attempt = 0;
+            var delay = _options.InitialRetryDelayMs;
+
+            while (true)
             {
-                _logger.LogWarning("D1 API request was cancelled");
-                throw;
+                try
+                {
+                    return await operation().ConfigureAwait(false);
+                }
+                catch (D1ApiException ex) when (ShouldRetry(ex, attempt))
+                {
+                    attempt++;
+                    _logger.LogWarning("D1 API request failed (Attempt {Attempt}/{MaxRetries}): {Message}. Retrying in {Delay}ms...",
+                        attempt, _options.MaxRetries, ex.Message, delay);
+
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    delay *= 2; // Exponential backoff
+                }
+                catch (HttpRequestException ex) when (attempt < _options.MaxRetries)
+                {
+                    attempt++;
+                    _logger.LogWarning(ex, "HTTP request failed (Attempt {Attempt}/{MaxRetries}). Retrying in {Delay}ms...",
+                        attempt, _options.MaxRetries, delay);
+
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    delay *= 2; // Exponential backoff
+                }
+                catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("D1 API request was cancelled");
+                    throw;
+                }
+                catch (TaskCanceledException ex) when (attempt < _options.MaxRetries)
+                {
+                    attempt++;
+                    _logger.LogWarning(ex, "D1 API request timed out (Attempt {Attempt}/{MaxRetries}). Retrying in {Delay}ms...",
+                        attempt, _options.MaxRetries, delay);
+
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    delay *= 2;
+                }
+                catch (TaskCanceledException ex)
+                {
+                    _logger.LogError(ex, "D1 API request timed out after {Attempts} attempts", attempt);
+                    throw new D1ApiException("D1 API request timed out", ex);
+                }
             }
-            catch (TaskCanceledException ex)
+        }
+
+        /// <summary>
+        /// Determines if an exception should trigger a retry.
+        /// </summary>
+        private bool ShouldRetry(D1ApiException ex, int attempt)
+        {
+            if (attempt >= _options.MaxRetries)
             {
-                _logger.LogError(ex, "D1 API request timed out");
-                throw new D1ApiException("D1 API request timed out", ex);
+                return false;
             }
+
+            // Retry on rate limit (429) or service unavailable (503)
+            return ex.StatusCode == 429 || ex.StatusCode == 503;
         }
 
         /// <summary>
@@ -413,6 +476,55 @@ namespace CloudflareD1.NET.Providers
             catch (HttpRequestException ex)
             {
                 throw new D1ApiException("Failed to execute time travel query", ex);
+            }
+        }
+
+        /// <summary>
+        /// Checks the health of the D1 database connection.
+        /// </summary>
+        public async Task<D1HealthStatus> CheckHealthAsync(CancellationToken cancellationToken)
+        {
+            var startTime = DateTime.UtcNow;
+            var healthStatus = new D1HealthStatus
+            {
+                Mode = "Remote",
+                Timestamp = startTime
+            };
+
+            try
+            {
+                _logger.LogDebug("Performing health check against Cloudflare D1...");
+
+                // Execute a simple query to verify connectivity
+                var result = await QueryAsync("SELECT 1 as health_check", null, cancellationToken).ConfigureAwait(false);
+
+                var latencyMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+                healthStatus.IsHealthy = result.Success;
+                healthStatus.LatencyMs = latencyMs;
+                healthStatus.Metadata = new Dictionary<string, object>
+                {
+                    ["account_id"] = _options.AccountId ?? "unknown",
+                    ["database_id"] = _options.DatabaseId ?? "unknown",
+                    ["query_duration_ms"] = result.Meta?.Duration ?? 0
+                };
+
+                _logger.LogInformation("Health check completed: {Status} (Latency: {Latency}ms)",
+                    healthStatus.IsHealthy ? "Healthy" : "Unhealthy", latencyMs);
+
+                return healthStatus;
+            }
+            catch (Exception ex)
+            {
+                var latencyMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+                healthStatus.IsHealthy = false;
+                healthStatus.LatencyMs = latencyMs;
+                healthStatus.ErrorMessage = ex.Message;
+
+                _logger.LogError(ex, "Health check failed after {Latency}ms", latencyMs);
+
+                return healthStatus;
             }
         }
 

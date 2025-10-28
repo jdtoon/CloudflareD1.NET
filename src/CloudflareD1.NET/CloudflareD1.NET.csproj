@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET</PackageId>
-    <Version>1.11.2</Version>
+    <Version>1.11.3</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.11.2: Documentation improvements and related package links. v1.11.1: Removed transaction and batch operation features that require Cloudflare D1 REST API support (currently only available in Workers). Library now aligns with actual D1 REST API capabilities. All features fully tested against real Cloudflare D1. 230 tests passing.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.11.3: Production-ready features - Health check API (CheckHealthAsync), automatic retry with exponential backoff for transient failures (429, 503), enhanced structured logging with query duration and metadata. v1.11.2: Documentation improvements. v1.11.1: Removed transaction features requiring Workers-only API support. 296 tests passing.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

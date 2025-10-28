@@ -413,6 +413,55 @@ namespace CloudflareD1.NET.Providers
             return result.ToString();
         }
 
+        /// <summary>
+        /// Checks the health of the local SQLite database connection.
+        /// </summary>
+        public async Task<D1HealthStatus> CheckHealthAsync(CancellationToken cancellationToken)
+        {
+            var startTime = DateTime.UtcNow;
+            var healthStatus = new D1HealthStatus
+            {
+                Mode = "Local",
+                Timestamp = startTime
+            };
+
+            try
+            {
+                _logger.LogDebug("Performing health check against local SQLite database...");
+
+                // Execute a simple query to verify connectivity
+                var result = await QueryAsync("SELECT 1 as health_check", null, cancellationToken).ConfigureAwait(false);
+
+                var latencyMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+                healthStatus.IsHealthy = result.Success;
+                healthStatus.LatencyMs = latencyMs;
+                healthStatus.Metadata = new Dictionary<string, object>
+                {
+                    ["database_path"] = _options.LocalDatabasePath,
+                    ["connection_state"] = _connection?.State.ToString() ?? "Unknown",
+                    ["query_duration_ms"] = result.Meta?.Duration ?? 0
+                };
+
+                _logger.LogInformation("Health check completed: {Status} (Latency: {Latency}ms)",
+                    healthStatus.IsHealthy ? "Healthy" : "Unhealthy", latencyMs);
+
+                return healthStatus;
+            }
+            catch (Exception ex)
+            {
+                var latencyMs = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+                healthStatus.IsHealthy = false;
+                healthStatus.LatencyMs = latencyMs;
+                healthStatus.ErrorMessage = ex.Message;
+
+                _logger.LogError(ex, "Health check failed after {Latency}ms", latencyMs);
+
+                return healthStatus;
+            }
+        }
+
         public void Dispose()
         {
             _connection?.Dispose();

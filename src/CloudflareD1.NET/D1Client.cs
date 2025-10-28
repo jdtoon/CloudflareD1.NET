@@ -177,6 +177,23 @@ namespace CloudflareD1.NET
             return await BatchAsync(statements, CancellationToken.None).ConfigureAwait(false);
         }
 
+        /// <inheritdoc/>
+        public async Task<D1HealthStatus> CheckHealthAsync(CancellationToken cancellationToken = default)
+        {
+            ThrowIfDisposed();
+
+            _logger.LogDebug("Performing health check in {Mode} mode", _options.UseLocalMode ? "local" : "remote");
+
+            if (_options.UseLocalMode)
+            {
+                return await _localProvider!.CheckHealthAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await _remoteProvider!.CheckHealthAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         #endregion
 
         #region ID1ManagementClient Implementation

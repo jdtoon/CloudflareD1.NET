@@ -45,6 +45,14 @@ namespace CloudflareD1.NET
         /// <param name="sqlStatements">The SQL statements to execute.</param>
         /// <returns>An array of results, one for each statement.</returns>
         Task<D1QueryResult[]> BatchAsync(params string[] sqlStatements);
+
+        /// <summary>
+        /// Checks the health of the database connection.
+        /// Executes a simple query to verify connectivity and measure latency.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Health status information including latency and connection state.</returns>
+        Task<D1HealthStatus> CheckHealthAsync(CancellationToken cancellationToken = default);
     }
 
     /// <summary>

@@ -16,6 +16,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These will be implemented once Cloudflare adds transaction support to the D1 REST API.
 
+## [1.11.3] - 2025-10-28 - CloudflareD1.NET
+
+### Added - Production-Ready Features
+
+#### Health Check API
+- **CheckHealthAsync()** - New method on ID1Client for production monitoring and health checks
+  - Returns `D1HealthStatus` with IsHealthy, Latency, Mode, ErrorMessage, Metadata
+  - Works in both Local (SQLite) and Remote (Cloudflare D1) modes
+  - Executes simple SELECT 1 query to verify connectivity
+  - Measures end-to-end latency including network and database time
+  - Ideal for Kubernetes liveness/readiness probes, load balancer health checks, monitoring systems
+
+#### Automatic Retry Policy
+- **EnableRetry** - Configurable retry logic in D1Options (default: true)
+  - Automatically retries transient failures: 429 (rate limit), 503 (service unavailable)
+  - Also retries HttpRequestException and timeout errors
+- **MaxRetries** - Maximum retry attempts (default: 3)
+- **InitialRetryDelayMs** - Starting delay for exponential backoff (default: 100ms)
+- **Exponential backoff** - Delay doubles with each retry (100ms → 200ms → 400ms → 800ms...)
+- **ShouldRetry()** - Smart retry logic that only retries appropriate error codes
+- **ExecuteWithRetryAsync()** - Internal helper wrapping HTTP operations with retry logic
+
+#### Enhanced Structured Logging
+- **Query execution logging** - Logs SQL, parameters, duration, and result count at Information level
+  - "D1 query executed successfully, returned X result(s) (Duration: Yms)"
+- **Retry logging** - Logs each retry attempt with attempt number, reason, and backoff delay
+  - "D1 API request failed (Attempt 2/3): Rate limit exceeded. Retrying in 200ms..."
+- **Health check logging** - Logs health check results with latency and status
+  - "Health check completed: Healthy (Latency: 123.45ms)"
+- **Debug logging** - Request/response payloads, status codes, and detailed execution flow
+
+### Changed
+- **CloudflareD1Provider** - HTTP requests now wrapped in retry logic when EnableRetry=true
+- **D1HealthStatus** - New model class in CloudflareD1.NET.Models namespace
+- **ID1Client interface** - Added CheckHealthAsync method
+
+### Testing
+- **Integration test** - Step 0.5 in test-app validates health check against real Cloudflare D1
+- **296 tests passing** - All existing unit tests still pass
+
+**Production Benefits:**
+- ✅ **Monitoring**: Health checks for uptime monitoring and alerting
+- ✅ **Resilience**: Automatic retry reduces impact of transient failures
+- ✅ **Observability**: Structured logging for debugging and performance analysis
+- ✅ **Kubernetes**: Native support for liveness/readiness probes
+- ✅ **Load Balancers**: Health endpoint for traffic routing decisions
+
 ## [1.0.3] - 2025-01-28 - CloudflareD1.NET.CodeFirst
 
 ### Added

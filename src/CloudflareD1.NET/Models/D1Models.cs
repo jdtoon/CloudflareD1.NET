@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -273,5 +274,41 @@ namespace CloudflareD1.NET.Models
         /// </summary>
         [JsonPropertyName("total_count")]
         public int TotalCount { get; set; }
+    }
+
+    /// <summary>
+    /// Represents the health status of a D1 database connection.
+    /// </summary>
+    public class D1HealthStatus
+    {
+        /// <summary>
+        /// Gets or sets a value indicating whether the connection is healthy.
+        /// </summary>
+        public bool IsHealthy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the latency of the health check in milliseconds.
+        /// </summary>
+        public double LatencyMs { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mode (Local or Remote).
+        /// </summary>
+        public string Mode { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the error message if the health check failed.
+        /// </summary>
+        public string? ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Gets or sets additional metadata about the health check.
+        /// </summary>
+        public Dictionary<string, object>? Metadata { get; set; }
+
+        /// <summary>
+        /// Gets or sets the timestamp when the health check was performed.
+        /// </summary>
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 }
