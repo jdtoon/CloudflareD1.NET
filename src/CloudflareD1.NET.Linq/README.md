@@ -871,6 +871,7 @@ var expensiveElectronics = await client.AsQueryable<Product>("products")
 ## Related Packages
 
 - **[CloudflareD1.NET](https://www.nuget.org/packages/CloudflareD1.NET/)** - Core database client
+- **[CloudflareD1.NET.CodeFirst](https://www.nuget.org/packages/CloudflareD1.NET.CodeFirst/)** - Code-First ORM with DbContext pattern and entity relationships
 - **[CloudflareD1.NET.Migrations](https://www.nuget.org/packages/CloudflareD1.NET.Migrations/)** - Database migration system
 - **[dotnet-d1](https://www.nuget.org/packages/dotnet-d1/)** - CLI tool for managing migrations
 

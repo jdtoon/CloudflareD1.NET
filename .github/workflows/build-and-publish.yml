@@ -12,6 +12,7 @@ env:
   DOTNET_VERSION: '8.0.x'
   CORE_PROJECT_PATH: 'src/CloudflareD1.NET/CloudflareD1.NET.csproj'
   LINQ_PROJECT_PATH: 'src/CloudflareD1.NET.Linq/CloudflareD1.NET.Linq.csproj'
+  CODEFIRST_PROJECT_PATH: 'src/CloudflareD1.NET.CodeFirst/CloudflareD1.NET.CodeFirst.csproj'
   MIGRATIONS_PROJECT_PATH: 'src/CloudflareD1.NET.Migrations/CloudflareD1.NET.Migrations.csproj'
   CLI_PROJECT_PATH: 'tools/dotnet-d1/dotnet-d1.csproj'
 
@@ -41,6 +42,7 @@ jobs:
       run: |
         dotnet pack ${{ env.CORE_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
         dotnet pack ${{ env.LINQ_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
+        dotnet pack ${{ env.CODEFIRST_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
         dotnet pack ${{ env.MIGRATIONS_PROJECT_PATH }} --configuration Release --no-build --output ./artifacts
         dotnet pack ${{ env.CLI_PROJECT_PATH }} --configuration Release --output ./artifacts
 

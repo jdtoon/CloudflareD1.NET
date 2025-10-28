@@ -124,6 +124,7 @@ dotnet d1 migrations rollback
 
 - **[CloudflareD1.NET](https://www.nuget.org/packages/CloudflareD1.NET/)** - Core database client
 - **[CloudflareD1.NET.Linq](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)** - LINQ query builder
+- **[CloudflareD1.NET.CodeFirst](https://www.nuget.org/packages/CloudflareD1.NET.CodeFirst/)** - Code-First ORM with DbContext pattern and entity relationships
 - **[dotnet-d1](https://www.nuget.org/packages/dotnet-d1/)** - CLI tool for migrations
 
 ## Documentation

@@ -2,6 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/CloudflareD1.NET.svg)](https://www.nuget.org/packages/CloudflareD1.NET/)
 [![NuGet - Linq](https://img.shields.io/nuget/v/CloudflareD1.NET.Linq.svg?label=Linq)](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)
+[![NuGet - CodeFirst](https://img.shields.io/nuget/v/CloudflareD1.NET.CodeFirst.svg?label=CodeFirst)](https://www.nuget.org/packages/CloudflareD1.NET.CodeFirst/)
 [![NuGet - Migrations](https://img.shields.io/nuget/v/CloudflareD1.NET.Migrations.svg?label=Migrations)](https://www.nuget.org/packages/CloudflareD1.NET.Migrations/)
 [![NuGet - CLI](https://img.shields.io/nuget/v/dotnet-d1.svg?label=CLI%20Tool)](https://www.nuget.org/packages/dotnet-d1/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -14,6 +15,7 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 |---------|-------------|---------|
 | **CloudflareD1.NET** | Core package with raw SQL support | `dotnet add package CloudflareD1.NET` |
 | **CloudflareD1.NET.Linq** | LINQ queries and object mapping | `dotnet add package CloudflareD1.NET.Linq` |
+| **CloudflareD1.NET.CodeFirst** | Code-First ORM with DbContext pattern | `dotnet add package CloudflareD1.NET.CodeFirst` |
 | **CloudflareD1.NET.Migrations** | Database migrations and schema management | `dotnet add package CloudflareD1.NET.Migrations` |
 | **dotnet-d1** | CLI tool for managing migrations | `dotnet tool install -g dotnet-d1` |
 
@@ -48,6 +50,17 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🎨 **Custom Mappers** - Implement `IEntityMapper` for custom logic
 - 📋 **LINQ Methods** - QueryFirstOrDefaultAsync, QuerySingleAsync, etc.
 
+### CodeFirst Package (CloudflareD1.NET.CodeFirst)
+- 🎯 **DbContext Pattern** - Familiar API similar to Entity Framework Core
+- 🏗️ **Entity Attributes** - Define tables, columns, keys using attributes
+- 🔗 **Relationships** - One-to-Many, Many-to-One navigation properties
+- 🔑 **Key Management** - Primary keys, foreign keys, composite keys
+- ✅ **Validation** - Required fields, data annotations
+- 🎨 **Fluent API** - Configure entities programmatically
+- 🔄 **Type-Safe Queries** - LINQ integration through D1Set&lt;T&gt;
+- 📦 **Model-Driven** - Database schema from C# classes
+- 🛠️ **Migration Generation** - Generate migrations from model changes
+
 ### Migrations Package (CloudflareD1.NET.Migrations)
 - 🔄 **Version Control** - Track database schema changes over time
 - 📝 **Fluent API** - Intuitive builder for creating tables and indexes
@@ -70,6 +83,11 @@ dotnet add package CloudflareD1.NET
 ### With LINQ Support  
 ```bash
 dotnet add package CloudflareD1.NET.Linq
+```
+
+### With Code-First ORM
+```bash
+dotnet add package CloudflareD1.NET.CodeFirst
 ```
 
 ### With Migrations Support

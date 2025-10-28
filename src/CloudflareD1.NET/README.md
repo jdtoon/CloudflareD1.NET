@@ -52,6 +52,7 @@ await client.ExecuteAsync(
 ## Related Packages
 
 - **[CloudflareD1.NET.Linq](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)** - LINQ query builder with IQueryable support, compiled queries, async streaming
+- **[CloudflareD1.NET.CodeFirst](https://www.nuget.org/packages/CloudflareD1.NET.CodeFirst/)** - Code-First ORM with DbContext pattern and entity relationships
 - **[CloudflareD1.NET.Migrations](https://www.nuget.org/packages/CloudflareD1.NET.Migrations/)** - Database migration system with version tracking
 - **[dotnet-d1](https://www.nuget.org/packages/dotnet-d1/)** - CLI tool for managing migrations
 
