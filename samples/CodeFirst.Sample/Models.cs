@@ -29,6 +29,10 @@ public class User
     [StringLength(200)]
     public string? FullName { get; set; }
 
+    [Column("bio")]
+    [StringLength(500)]
+    public string? Bio { get; set; }
+
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 

@@ -360,5 +360,5 @@ Current limitations (to be addressed in future releases):
 ## Next Steps
 
 - Learn about [Migration Management](../migrations/overview.md)
-- Explore [Code-First Attributes](./attributes.md)
-- See [DbContext Configuration](./dbcontext.md)
+- Explore Code-First attributes (see recipes)
+- See DbContext configuration (see overview)
