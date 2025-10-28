@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.CodeFirst</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.CodeFirst</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.0.0: Initial release with D1Context, model attributes, relationships, and code-first migration generation.</PackageReleaseNotes>
+    <PackageReleaseNotes>v1.0.1: Added change tracking (Add/Update/Remove) and SaveChangesAsync for persisting entities. Navigation properties now ignored by default.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

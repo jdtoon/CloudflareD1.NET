@@ -41,6 +41,33 @@ public class AppDbContext : D1Context
 }
 ```
 
+1b) Use your context to query and persist data
+
+```csharp
+var context = new AppDbContext(client);
+
+// Add entities
+var user = new User { Name = "Alice", Email = "alice@example.com" };
+context.Users.Add(user);
+await context.SaveChangesAsync();
+// user.Id is now populated
+
+// Update entities
+user.Name = "Alice Smith";
+context.Users.Update(user);
+await context.SaveChangesAsync();
+
+// Delete entities
+context.Users.Remove(user);
+await context.SaveChangesAsync();
+
+// Query with LINQ
+var users = await context.Users
+    .AsQueryable()
+    .Where("email LIKE ?", "%@example.com")
+    .ToListAsync();
+```
+
 2) Build your project and generate a migration
 
 ```bash
@@ -136,10 +163,43 @@ Notes:
 
 - Tables default to pluralized snake_case of the class name: `User` → `users`
 - Columns default to snake_case of the property name: `CreatedAt` → `created_at`
-- Default types: `string → TEXT`, `int → INTEGER`, `DateTime → TEXT`, `bool → INTEGER (0/1)`
+- Default types: `string → TEXT`, `int → INTEGER`, `DateTime → TEXT`, `bool → INTEGER (0/1)`, `enum → TEXT`
 - All properties are nullable unless marked `[Required]`
 - Relationships default to `{PrincipalName}Id` as the FK if not specified
 - Delete behavior defaults to `NO ACTION` unless configured via `.OnDelete(...)`
+- **Navigation properties** (reference types and collections) are ignored by default and not mapped to columns
+
+## Change Tracking & SaveChanges
+
+CloudflareD1.NET.CodeFirst includes automatic change tracking for Add/Update/Remove operations:
+
+```csharp
+var context = new AppDbContext(client);
+
+// Track a new entity
+var user = new User { Name = "Bob", Email = "bob@example.com" };
+context.Users.Add(user);
+
+// Track an update
+user.Email = "bob.new@example.com";
+context.Users.Update(user);
+
+// Track a deletion
+context.Users.Remove(user);
+
+// Persist all changes in order (INSERT → UPDATE → DELETE)
+int rowsAffected = await context.SaveChangesAsync();
+```
+
+**Features:**
+- Automatically populates auto-increment primary keys after INSERT
+- Executes operations sequentially to satisfy Cloudflare D1 API semantics
+- Navigation properties and collections are ignored (not mapped to columns)
+
+**Notes:**
+- Primary keys are required for Update and Delete operations
+- Current implementation updates all non-key columns for Update (per-property change detection is planned)
+- For complex scenarios with foreign keys, ensure parents are inserted before children
 
 ## Workflow
 

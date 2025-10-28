@@ -16,6 +16,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 These will be implemented once Cloudflare adds transaction support to the D1 REST API.
 
+## [1.0.1] - 2025-10-28 - CloudflareD1.NET.CodeFirst
+
+### Added
+
+#### Change Tracking & SaveChanges
+- **EntityState enum** - Track entity states: Detached, Unchanged, Added, Modified, Deleted
+- **EntityEntry<T>** - Represents a tracked entity with state and original values
+- **ChangeTracker** - Manages all tracked entity entries in a D1Context
+- **D1Set<T>.Add/Update/Remove** - Methods to track entity changes
+- **D1Context.SaveChangesAsync()** - Persists all tracked changes to the database
+  - Executes operations in order: INSERT → UPDATE → DELETE
+  - Sequential execution to satisfy Cloudflare D1 API semantics
+  - Automatically populates auto-increment primary keys after INSERT
+  - Returns the total number of rows affected
+
+#### Property Mapping Improvements
+- **Navigation property filtering** - Reference types and collections are now ignored by default and not mapped to columns
+- **Enum support** - Enums are stored as TEXT by default
+- **IsSupportedColumnType()** - Helper method to filter properties to supported scalar types
+
+### Changed
+- **ModelBuilder property discovery** - Now excludes navigation properties (non-string reference types) and collections automatically
+- **Documentation updates** - Added SaveChanges usage examples and conventions for navigation properties
+
+### Testing
+- **SaveChangesTests.cs** - Unit tests for Add/Update/Delete with local SQLite
+- **NavigationPropertyTests.cs** - Regression test ensuring navigation properties aren't mapped
+- **Integration tests** - E2E SaveChanges validation against real Cloudflare D1 in test-app
+
+**280 tests passing** (all unit tests green)
+
 ## [1.11.1] - 2025-01-27
 
 ### Removed
