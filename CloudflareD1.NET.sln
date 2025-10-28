@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-d1", "tools\dotnet-d
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudflareD1.NET.CodeFirst.Tests", "tests\CloudflareD1.NET.CodeFirst.Tests\CloudflareD1.NET.CodeFirst.Tests.csproj", "{63437234-AE98-4115-AC56-00DA4D9EC728}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeFirst.Sample", "samples\CodeFirst.Sample\CodeFirst.Sample.csproj", "{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,18 @@ Global
 		{63437234-AE98-4115-AC56-00DA4D9EC728}.Release|x64.Build.0 = Release|Any CPU
 		{63437234-AE98-4115-AC56-00DA4D9EC728}.Release|x86.ActiveCfg = Release|Any CPU
 		{63437234-AE98-4115-AC56-00DA4D9EC728}.Release|x86.Build.0 = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|x64.Build.0 = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Debug|x86.Build.0 = Debug|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|x64.ActiveCfg = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|x64.Build.0 = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|x86.ActiveCfg = Release|Any CPU
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -191,5 +205,6 @@ Global
 		{5A5A4235-28CE-47E9-B385-82BD81EAF483} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{D93E14E4-6F6B-4D61-A7C0-A1F805009215} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{63437234-AE98-4115-AC56-00DA4D9EC728} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{6753B4C9-4F08-4988-ABEB-376D1D2C6CF7} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 	EndGlobalSection
 EndGlobal

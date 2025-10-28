@@ -5,6 +5,7 @@ using CloudflareD1.NET.CodeFirst.Attributes;
 using CloudflareD1.NET.CodeFirst.MigrationGeneration;
 using CloudflareD1.NET.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using Xunit;
 

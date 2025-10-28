@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Code-First (Models → Migrations)
 
-CloudflareD1.NET.CodeFirst lets you define your database schema using C# classes and attributes, plus an optional fluent API for relationships and indexes. The CLI can diff your model against a saved snapshot and generate migrations.
+CloudflareD1.NET.CodeFirst lets you define your database schema using C# classes and attributes, plus an optional fluent API for relationships and indexes. The framework can **automatically generate migrations** from your models by comparing them with the current database schema.
 
 ## Quick start
 
@@ -19,6 +19,7 @@ using CloudflareD1.NET.CodeFirst.Attributes;
 public class User
 {
     [Key]
+    [AutoIncrement]
     [Column("id")] public int Id { get; set; }
 
     [Required]
@@ -32,24 +33,59 @@ public class AppDbContext : D1Context
     public AppDbContext(D1Client client) : base(client) {}
 
     public D1Set<User> Users { get; set; } = null!;
+    
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>();
+    }
 }
 ```
 
-2) Build your project and run the CLI diff
+2) Build your project and generate a migration
 
 ```bash
 # build your app (produces your dll)
-dotnet build
+dotnet build --configuration Release
 
-# generate a migration from your model
+# generate a migration from your Code-First models
 # --context: fully qualified context type name
 # --assembly: path to compiled dll with your context
- dotnet d1 migrations diff InitialFromModel \
+# --connection: path to your SQLite database
+dotnet d1 migrations add InitialCreate --code-first \
   --context MyApp.Data.AppDbContext \
-  --assembly bin/Debug/net8.0/MyApp.dll
+  --assembly bin/Release/net8.0/MyApp.dll \
+  --connection database.db
 ```
 
-The command saves a migration to your project's `Migrations/` folder and a `.migrations-snapshot.json` used for subsequent diffs.
+The command generates a timestamped migration file in your project's `Migrations/` folder with `Up()` and `Down()` methods.
+
+3) Apply the migration
+
+```bash
+dotnet d1 migrations apply
+```
+
+## Automatic Migration Generation
+
+CloudflareD1.NET can **automatically detect changes** between your Code-First models and the current database schema, then generate the appropriate migration code.
+
+**How it works:**
+1. The CLI loads your `D1Context` and extracts model metadata
+2. It introspects the current database schema
+3. It compares the two and detects differences
+4. It generates a timestamped migration with SQL operations
+
+**Supported change detection:**
+- ✅ New tables
+- ✅ Dropped tables
+- ✅ New columns
+- ✅ Dropped columns
+- ✅ New indexes
+- ✅ Dropped indexes
+- ✅ New foreign keys
+- ✅ Dropped foreign keys
+
+See the [Migration Generation](./migration-generation.md) guide for detailed usage and examples.
 
 ## Attributes
 
@@ -105,11 +141,28 @@ Notes:
 - Relationships default to `{PrincipalName}Id` as the FK if not specified
 - Delete behavior defaults to `NO ACTION` unless configured via `.OnDelete(...)`
 
-## CLI Diff Workflow
+## Workflow
 
-- First run creates both a migration and `.migrations-snapshot.json`
-- Later runs diff your model vs snapshot and generate only the changes
-- The snapshot is updated after each diff so you can iterate safely
+### Initial Setup
+
+1. **Define models** with Code-First attributes
+2. **Create DbContext** with `OnModelCreating` configuration
+3. **Build** your project (`dotnet build --configuration Release`)
+4. **Generate migration**: `dotnet d1 migrations add InitialCreate --code-first ...`
+5. **Review** the generated migration file
+6. **Apply** migration: `dotnet d1 migrations apply`
+
+### Iterating on Models
+
+After changing your models:
+
+1. **Update** your entity classes or DbContext configuration
+2. **Rebuild** your project
+3. **Generate new migration**: `dotnet d1 migrations add DescriptiveName --code-first ...`
+4. **Review** the changes in the generated file
+5. **Apply**: `dotnet d1 migrations apply`
+
+The framework automatically detects what changed and generates only the necessary SQL operations.
 
 See also:
 - Migrations overview: [Database Migrations](../migrations/overview.md)
