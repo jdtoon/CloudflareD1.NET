@@ -49,6 +49,41 @@ await client.ExecuteAsync(
 );
 ```
 
+## Performance & Limitations
+
+### Connection Modes
+
+- **Local Mode (SQLite)** - For development, testing, and offline scenarios
+- **Remote Mode (D1 REST API)** - For production on Cloudflare's edge network
+
+### REST API Rate Limits
+
+When using Remote Mode:
+- **~1200 requests per 5 minutes** (Cloudflare API global limit)
+- **~2.8 requests/second sustained** (tested in practice)
+- **~240,000 requests/day** (if sustained)
+
+### Best Suited For
+
+✅ **Ideal Use Cases:**
+- Small to medium applications (<10K requests/hour)
+- Admin dashboards and internal tools
+- Database migrations and DevOps workflows
+- Development and testing (Local Mode)
+- Batch processing and scheduled jobs
+
+⚠️ **Consider Alternatives For:**
+- High-traffic APIs (>10K requests/hour sustained)
+- Real-time applications requiring >3 req/s
+- Large-scale SaaS platforms with thousands of concurrent users
+
+### Optimization Tips
+
+1. Use `BatchAsync()` to pack multiple SQL statements (10x capacity boost)
+2. Implement caching layers (Redis, MemoryCache)
+3. Enable automatic retry (on by default)
+4. Use compiled queries (`CloudflareD1.NET.Linq` package)
+
 ## Related Packages
 
 - **[CloudflareD1.NET.Linq](https://www.nuget.org/packages/CloudflareD1.NET.Linq/)** - LINQ query builder with IQueryable support, compiled queries, async streaming

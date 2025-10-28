@@ -462,6 +462,69 @@ The following features are planned for future releases, pending Cloudflare D1 RE
 
 **Note:** While basic batch execution is supported via `BatchAsync()`, advanced batch operations with automatic entity mapping require transaction support from Cloudflare's REST API.
 
+## ⚡ Performance & Limitations
+
+### Connection Modes
+
+CloudflareD1.NET supports two connection modes:
+
+1. **Local Mode (SQLite)** - Uses a local SQLite database file
+2. **Remote Mode (D1 REST API)** - Connects to Cloudflare D1 via REST API
+
+### REST API Rate Limits
+
+When using **Remote Mode**, be aware of Cloudflare's API rate limits:
+
+- **Rate Limit**: ~1200 requests per 5 minutes (global Cloudflare API limit)
+- **Sustained Throughput**: ~2.8 requests/second tested in practice
+- **Daily Capacity**: ~240,000 requests/day (if sustained)
+
+> 📊 **Real-world testing**: Our rate limit tests achieved 2000 consecutive requests over 12 minutes with zero rate limit errors, demonstrating consistent throughput of 2.8 req/s.
+
+### When to Use Each Mode
+
+#### ✅ Local Mode (Recommended for)
+- **Development & Testing** - Fast, reliable, no API calls
+- **CI/CD Pipelines** - Consistent test environment
+- **Offline Applications** - No internet dependency
+- **Personal Projects** - Simple, zero-cost solution
+- **Prototyping** - Rapid iteration without infrastructure
+
+#### ✅ Remote Mode (Recommended for)
+- **Production Deployments** - Leverage Cloudflare's edge network
+- **Small to Medium Apps** - <10,000 requests/hour sustained
+- **Admin Dashboards** - Low-frequency CRUD operations
+- **Internal Tools** - <1000 active users
+- **Batch Processing** - Scheduled jobs and background workers
+- **Database Migrations** - Schema management and DevOps tasks
+
+#### ⚠️ Consider Alternatives For
+- **High-Traffic APIs** - >10,000 requests/hour sustained
+- **Real-Time Applications** - Chat, gaming, live updates requiring >3 req/s
+- **Large SaaS Platforms** - Thousands of concurrent users
+- **Heavy Read/Write Workloads** - Applications with minimal caching
+
+### Optimization Strategies
+
+To maximize your Remote Mode capacity:
+
+1. **Use Batch Operations** - Pack multiple SQL statements into single `BatchAsync()` calls (10x capacity boost)
+2. **Implement Caching** - Redis, MemoryCache for frequently accessed data
+3. **Enable Retry Policy** - Built-in automatic retry with exponential backoff (enabled by default)
+4. **Compiled Queries** - Use `CompiledQuery` for 95% faster repeated queries
+5. **Connection Pooling** - Reuse D1Client instances via dependency injection
+
+### Package Dependencies
+
+Each package has specific dependencies:
+
+- **CloudflareD1.NET** (Core) - Standalone, no dependencies on other CloudflareD1 packages
+- **CloudflareD1.NET.Linq** - Requires Core package
+- **CloudflareD1.NET.Migrations** - Requires Core package
+- **CloudflareD1.NET.CodeFirst** - Requires Core, Linq, and Migrations packages
+
+Choose the packages that fit your needs - you don't need all of them!
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
