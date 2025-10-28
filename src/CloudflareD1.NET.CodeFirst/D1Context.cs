@@ -52,6 +52,12 @@ public abstract class D1Context
     }
 
     /// <summary>
+    /// Gets the model metadata for this context (for migration generation)
+    /// </summary>
+    /// <returns>The model metadata</returns>
+    public ModelMetadata GetModelMetadata() => Model;
+
+    /// <summary>
     /// Override this method to configure the model using the fluent API
     /// </summary>
     /// <param name="modelBuilder">The model builder</param>

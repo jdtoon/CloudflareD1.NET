@@ -10,8 +10,9 @@ Code-First ORM for CloudflareD1.NET. Define your database schema using C# classe
 - **Entity Attributes**: Define tables, columns, keys, and relationships using attributes
 - **DbContext Pattern**: Familiar API for developers coming from Entity Framework
 - **Type-Safe Queries**: LINQ support through integration with CloudflareD1.NET.Linq
-- **Migration Generation**: Generate migrations from your model classes (coming soon)
+- **Automatic Migration Generation**: Generate migrations from your model classes with `dotnet d1 migrations add --code-first`
 - **Fluent API**: Configure entities using the fluent configuration API
+- **Schema Introspection**: Compare model with database to detect changes
 
 ## Installation
 

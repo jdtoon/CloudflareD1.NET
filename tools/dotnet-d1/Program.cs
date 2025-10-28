@@ -5,6 +5,7 @@ using CloudflareD1.NET.Configuration;
 using CloudflareD1.NET.Migrations;
 using CloudflareD1.NET.CodeFirst;
 using CloudflareD1.NET.CodeFirst.Converters;
+using CloudflareD1.NET.CodeFirst.MigrationGeneration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,8 +20,18 @@ class Program
         // migrations add command
         var addCommand = new Command("add", "Create a new migration file");
         var nameArgument = new Argument<string>("name", "Name of the migration (e.g., CreateUsersTable)");
+        var codeFirstOption = new Option<bool>("--code-first", "Generate migration from Code-First model changes");
+        var addContextOption = new Option<string?>("--context", "Fully qualified DbContext type name (required for --code-first)");
+        var addAssemblyOption = new Option<string?>("--assembly", "Path to the assembly (.dll) containing the context (required for --code-first)");
+        var addConnectionOption = new Option<string>("--connection", () => ".migrations.db", "Database connection for schema introspection (for --code-first)");
         addCommand.AddArgument(nameArgument);
-        addCommand.SetHandler(async (string name) => await AddMigration(name), nameArgument);
+        addCommand.AddOption(codeFirstOption);
+        addCommand.AddOption(addContextOption);
+        addCommand.AddOption(addAssemblyOption);
+        addCommand.AddOption(addConnectionOption);
+        addCommand.SetHandler(async (string name, bool codeFirst, string? context, string? assembly, string connection) =>
+            await AddMigration(name, codeFirst, context, assembly, connection),
+            nameArgument, codeFirstOption, addContextOption, addAssemblyOption, addConnectionOption);
 
         // migrations list command
         var listCommand = new Command("list", "List all migrations and their status");
@@ -202,7 +213,7 @@ class Program
             }
         }
     }
-    static async Task AddMigration(string name)
+    static async Task AddMigration(string name, bool codeFirst = false, string? context = null, string? assembly = null, string connection = ".migrations.db")
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -210,6 +221,26 @@ class Program
             return;
         }
 
+        // Code-First migration generation
+        if (codeFirst)
+        {
+            if (string.IsNullOrWhiteSpace(context))
+            {
+                Console.WriteLine("Error: --context is required when using --code-first");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(assembly))
+            {
+                Console.WriteLine("Error: --assembly is required when using --code-first");
+                return;
+            }
+
+            await AddCodeFirstMigration(name, context, assembly, connection);
+            return;
+        }
+
+        // Regular empty migration generation
         // Generate migration ID (timestamp: YYYYMMDDHHMMSS)
         var migrationId = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
         var className = ToPascalCase(name);
@@ -232,6 +263,106 @@ class Program
 
         Console.WriteLine($"✓ Created migration: {fileName}");
         Console.WriteLine($"  Location: {filePath}");
+    }
+
+    static async Task AddCodeFirstMigration(string name, string contextTypeName, string assemblyPath, string connection)
+    {
+        try
+        {
+            Console.WriteLine("🧮 Generating Code-First migration...");
+            Console.WriteLine();
+
+            if (!File.Exists(assemblyPath))
+            {
+                Console.WriteLine($"❌ Assembly not found: {assemblyPath}");
+                return;
+            }
+
+            // Create a local D1Client for schema introspection
+            var options = Options.Create(new D1Options
+            {
+                UseLocalMode = true,
+                LocalDatabasePath = connection
+            });
+            using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Warning));
+            var logger = loggerFactory.CreateLogger<D1Client>();
+            var client = new D1Client(options, logger);
+
+            // Load the user's assembly and context type
+            var asm = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.GetFullPath(assemblyPath));
+            var ctxType = asm.GetType(contextTypeName, throwOnError: false);
+            if (ctxType == null)
+            {
+                Console.WriteLine($"❌ Could not find context type: {contextTypeName}");
+                Console.WriteLine($"Available types in assembly:");
+                foreach (var t in asm.GetTypes().Where(t => t.IsSubclassOf(typeof(D1Context))))
+                {
+                    Console.WriteLine($"  - {t.FullName}");
+                }
+                return;
+            }
+
+            // Create context instance
+            Console.WriteLine($"Loading context: {contextTypeName}...");
+            object? ctxInstance;
+            try
+            {
+                ctxInstance = Activator.CreateInstance(ctxType, client);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Failed to create context instance: {ex.Message}");
+                return;
+            }
+
+            if (ctxInstance == null || ctxInstance is not D1Context d1Context)
+            {
+                Console.WriteLine($"❌ Context must inherit from D1Context");
+                return;
+            }
+
+            // Generate migration using CodeFirstMigrationGenerator
+            var generator = new CloudflareD1.NET.CodeFirst.MigrationGeneration.CodeFirstMigrationGenerator(client);
+
+            // Show pending changes
+            var changesSummary = await generator.GetChangesSummaryAsync(d1Context);
+            Console.WriteLine(changesSummary);
+            Console.WriteLine();
+
+            // Check if there are changes
+            var hasPendingChanges = await generator.HasPendingChangesAsync(d1Context);
+            if (!hasPendingChanges)
+            {
+                Console.WriteLine("✓ No model changes detected. No migration needed.");
+                return;
+            }
+
+            // Find Migrations directory or create it
+            var migrationsDir = FindOrCreateMigrationsDirectory();
+            if (migrationsDir == null)
+            {
+                Console.WriteLine("Error: Could not find or create Migrations directory.");
+                return;
+            }
+
+            // Generate migration
+            var filePath = await generator.GenerateMigrationAsync(d1Context, name, migrationsDir);
+
+            Console.WriteLine($"✓ Created migration: {Path.GetFileName(filePath)}");
+            Console.WriteLine($"  Location: {filePath}");
+            Console.WriteLine();
+            Console.WriteLine("Next steps:");
+            Console.WriteLine("  1. Review the generated migration");
+            Console.WriteLine("  2. Run 'dotnet d1 database update' to apply it");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   {ex.InnerException.Message}");
+            }
+        }
     }
 
     static async Task ListMigrations()
