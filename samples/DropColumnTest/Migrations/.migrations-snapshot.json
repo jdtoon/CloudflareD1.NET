@@ -1,0 +1,23 @@
+{
+  "Tables": [
+    {
+      "Name": "products",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "name",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": []
+    }
+  ]
+}

@@ -152,16 +152,65 @@ public class MigrationScaffolder
 
                 upOps.Add(colDef.ToString());
 
-                // SQLite doesn't support DROP COLUMN easily
-                downOps.Add($"// Note: SQLite doesn't support DROP COLUMN. " +
-                           $"To remove '{newCol.Name}' from '{newTable.Name}', recreate the table.");
+                // Down operation: drop column via table recreation
+                downOps.Add(GenerateDropColumn(newTable.Name, newCol.Name, oldTable));
             }
         }
 
-        // Note: We don't detect removed columns automatically since SQLite can't drop them
-        // Users would need to manually handle table recreation
+        // Find removed columns
+        foreach (var oldCol in oldTable.Columns)
+        {
+            if (!newTable.Columns.Any(c => c.Name == oldCol.Name))
+            {
+                // Up operation: drop column via table recreation
+                upOps.Add(GenerateDropColumn(oldTable.Name, oldCol.Name, newTable));
+
+                // Down operation: add the column back
+                var colDef = new StringBuilder();
+                colDef.Append($"builder.AlterTable(\"{newTable.Name}\", t =>");
+                colDef.AppendLine();
+                colDef.AppendLine("        {");
+                colDef.Append($"            t.{MapType(oldCol.Type)}(\"{oldCol.Name}\")");
+
+                if (oldCol.NotNull)
+                    colDef.Append(".NotNull()");
+
+                if (!string.IsNullOrEmpty(oldCol.DefaultValue))
+                    colDef.Append($".Default({FormatDefaultValue(oldCol.DefaultValue)})");
+
+                colDef.AppendLine(";");
+                colDef.Append("        });");
+
+                downOps.Add(colDef.ToString());
+            }
+        }
 
         return (upOps, downOps);
+    }
+
+    private string GenerateDropColumn(string tableName, string columnName, TableSchema targetSchema)
+    {
+        // SQLite doesn't support ALTER TABLE DROP COLUMN directly
+        // We need to use the table recreation pattern with RenameTable
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"// SQLite doesn't support DROP COLUMN directly. Using table recreation pattern.");
+        sb.AppendLine($"        builder.RenameTable(\"{tableName}\", \"{tableName}_old\");");
+        sb.AppendLine();
+
+        // Create new table with target schema (without the dropped column)
+        sb.AppendLine($"        {GenerateCreateTable(targetSchema)}");
+        sb.AppendLine();
+
+        // Copy data from old table to new table
+        var columnList = string.Join(", ", targetSchema.Columns.Select(c => c.Name));
+        sb.AppendLine($"        builder.Sql(\"INSERT INTO {tableName} ({columnList}) SELECT {columnList} FROM {tableName}_old\");");
+        sb.AppendLine();
+
+        // Drop old table
+        sb.Append($"        builder.DropTable(\"{tableName}_old\");");
+
+        return sb.ToString();
     }
 
     private (List<string> UpOperations, List<string> DownOperations) CompareIndexes(

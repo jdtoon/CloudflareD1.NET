@@ -1,0 +1,42 @@
+{
+  "Tables": [
+    {
+      "Name": "products",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "stock",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": []
+    },
+    {
+      "Name": "reviews",
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "INTEGER",
+          "NotNull": true,
+          "IsPrimaryKey": true
+        },
+        {
+          "Name": "text",
+          "Type": "TEXT",
+          "NotNull": true,
+          "IsPrimaryKey": false
+        }
+      ],
+      "Indexes": [],
+      "ForeignKeys": []
+    }
+  ]
+}

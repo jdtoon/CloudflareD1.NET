@@ -52,15 +52,9 @@ CloudflareD1.NET is a comprehensive, production-ready library that provides seam
 
 ## Key Features
 
-- ✅ **Query Execution**: Execute SELECT, INSERT, UPDATE, DELETE queries
-- ✅ **Batch Operations**: Run multiple queries as atomic transactions
-- ✅ **Parameterized Queries**: Safe SQL execution with named or positional parameters
-- ✅ **Time Travel**: Query data at any point in time (Cloudflare D1 feature)
-- ✅ **Database Management**: Create, list, and delete D1 databases programmatically
-- ✅ **Local & Remote**: Develop locally with SQLite, deploy to Cloudflare D1
-- ✅ **DI Integration**: First-class ASP.NET Core dependency injection support
-- ✅ **Flexible Auth**: Support for API Token and API Key authentication
-
+    - JSON snapshot: `Migrations/.migrations-snapshot.json`
+    - Incremental diffs vs last snapshot (not the DB)
+    - DROP COLUMN supported via table recreation pattern
 ## Quick Example
 
 ```csharp

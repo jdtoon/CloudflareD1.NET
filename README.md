@@ -59,7 +59,7 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 🎨 **Fluent API** - Configure entities programmatically
 - 🔄 **Type-Safe Queries** - LINQ integration through D1Set&lt;T&gt;
 - 📦 **Model-Driven** - Database schema from C# classes
-- 🛠️ **Migration Generation** - Generate migrations from model changes
+- 🛠️ **Migration Generation** - Generate migrations from model changes (snapshot-based)
 
 ### Migrations Package (CloudflareD1.NET.Migrations)
 - 🔄 **Version Control** - Track database schema changes over time
@@ -68,7 +68,7 @@ A complete .NET adapter for **Cloudflare D1** - the serverless SQL database runn
 - 📜 **Migration History** - Automatic tracking of applied migrations
 - 🛠️ **CLI Tool** - dotnet-d1 command-line tool for migration management
 - 🎯 **Type-Safe** - Strongly typed schema definitions
-- 🔧 **Schema Operations** - CREATE/DROP tables, ADD/DROP columns, indexes
+- 🔧 **Schema Operations** - CREATE/DROP tables, ADD/DROP columns (DROP uses SQLite table recreation), indexes
 - 🔑 **Constraints** - Primary keys, foreign keys, unique, check constraints
 - 📦 **Programmatic API** - Apply migrations from code
 - ✅ **Well Tested** - Comprehensive unit test coverage
@@ -340,7 +340,12 @@ options.Email = "your-email@example.com";
 
 ## 📖 Documentation
 
-Full documentation is available at [https://your-docs-site.com](https://your-docs-site.com) (coming soon)
+Docs: https://jdtoon.github.io/CloudflareD1.NET
+
+Highlights:
+- Code-First snapshot-based migrations with JSON snapshot stored at `Migrations/.migrations-snapshot.json`
+- Incremental migration generation that only includes deltas
+- DROP COLUMN support via SQLite table recreation pattern
 
 ## 🧪 Testing
 
@@ -350,7 +355,7 @@ The library includes a comprehensive test suite. Run tests with:
 dotnet test
 ```
 
-## � Database Migrations
+## 🧱 Database Migrations
 
 CloudflareD1.NET.Migrations provides a complete database migration system for managing schema changes over time.
 
@@ -364,7 +369,7 @@ dotnet tool install -g dotnet-d1
 dotnet d1 migrations add CreateUsersTable
 
 # Apply migrations
-dotnet d1 database update
+dotnet d1 migrations apply
 
 # Rollback last migration
 dotnet d1 database rollback
@@ -436,7 +441,7 @@ var rolledBack = await runner.RollbackAsync();
 - ✅ **Schema Operations** - CREATE/DROP tables, ADD/DROP columns, indexes
 - ✅ **Constraints** - Primary keys, foreign keys, unique, check constraints
 
-For complete documentation, see the [Migrations Guide](https://cloudflareb1-net-docs.pages.dev/docs/migrations/overview).
+For complete documentation, see the [Migrations Guide](https://jdtoon.github.io/CloudflareD1.NET/docs/migrations/overview).
 
 ## �🔮 Future Enhancements
 
