@@ -3,14 +3,14 @@ using CloudflareD1.NET.Migrations;
 namespace YourApp.Migrations;
 
 /// <summary>
-/// Migration: Initialcreate
-/// Created: 2025-10-28 08:18:58 UTC
+/// Migration: Addproducts
+/// Created: 2025-10-28 08:36:22 UTC
 /// Scaffolded from database schema
 /// </summary>
-public class Migration20251028081858_Initialcreate : Migration
+public class Migration20251028083622_Addproducts : Migration
 {
-    public override string Id => "20251028081858";
-    public override string Name => "Initialcreate";
+    public override string Id => "20251028083622";
+    public override string Name => "Addproducts";
 
     public override void Up(MigrationBuilder builder)
     {

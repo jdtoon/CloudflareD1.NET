@@ -3,18 +3,18 @@ using CloudflareD1.NET.Migrations;
 namespace YourApp.Migrations;
 
 /// <summary>
-/// Migration: Initialcreate
-/// Created: 2025-10-28 08:18:58 UTC
+/// Migration: Addcategories
+/// Created: 2025-10-28 08:36:22 UTC
 /// Scaffolded from database schema
 /// </summary>
-public class Migration20251028081858_Initialcreate : Migration
+public class Migration20251028083622_Addcategories : Migration
 {
-    public override string Id => "20251028081858";
-    public override string Name => "Initialcreate";
+    public override string Id => "20251028083622";
+    public override string Name => "Addcategories";
 
     public override void Up(MigrationBuilder builder)
     {
-        builder.CreateTable("products", t =>
+        builder.CreateTable("categories", t =>
         {
             t.Integer("id").PrimaryKey();
             t.Text("name").NotNull();
@@ -24,7 +24,7 @@ public class Migration20251028081858_Initialcreate : Migration
 
     public override void Down(MigrationBuilder builder)
     {
-        builder.DropTable("products");
+        builder.DropTable("categories");
 
     }
 }

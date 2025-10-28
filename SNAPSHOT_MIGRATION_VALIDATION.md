@@ -167,18 +167,21 @@ Duration: 2.0s
 
 ## Known Limitations
 
-### MigrationScaffolder ALTER TABLE Support
+@@### ~~MigrationScaffolder ALTER TABLE Support~~ ✅ FIXED
 
-**Issue**: Change detection works, but code generation limited
-- ✅ Change summary correctly shows: `- Drop column 'users.bio'`
-- ✅ Snapshot updates correctly
-- ⚠️ Generated migration file shows: "No changes detected"
+@@**Previous Issue**: DROP COLUMN wasn't generating migration code
+@@**Resolution**: Implemented SQLite table recreation pattern
 
-**Cause**: MigrationScaffolder doesn't generate ALTER TABLE DROP COLUMN statements yet
+@@**Generated Code**:
+@@```csharp
+@@// SQLite doesn't support DROP COLUMN directly. Using table recreation pattern.
+@@builder.RenameTable("products", "products_old");
+@@builder.CreateTable("products", t => { /* new schema */ });
+@@builder.Sql("INSERT INTO products (...) SELECT ... FROM products_old");
+@@builder.DropTable("products_old");
+@@```
 
-**Workaround**: Manual migration editing or table recreation
-
-**Future Enhancement**: Implement full ALTER TABLE statement generation
+@@**Status**: ✅ Fully functional - DROP COLUMN now generates proper migration code
 
 ### Navigation Properties
 
@@ -198,7 +201,7 @@ Duration: 2.0s
 | Add Table | ✅ | ✅ | ✅ |
 | Drop Table | ✅ | ✅ | ✅ |
 | Add Column | ✅ | ✅ | ✅ |
-| Drop Column | ✅ | ⚠️ Scaffolder | ✅ |
+| Drop Column | ✅ | ✅ | ✅ |
 | Add Index | ✅ | ✅ | ✅ |
 | Drop Index | ✅ | ✅ | ✅ |
 | Add FK | ✅ | ✅ | ✅ |
