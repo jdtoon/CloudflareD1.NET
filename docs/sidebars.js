@@ -57,6 +57,15 @@ const sidebars = {
         'linq/entity-mapping',
       ],
     },
+    {
+      type: 'category',
+      label: 'Production',
+      items: [
+        'production/deployment',
+        'production/troubleshooting',
+        'production/performance',
+      ],
+    },
   ],
 };
 

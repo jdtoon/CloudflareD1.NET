@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>CloudflareD1.NET.CodeFirst</PackageId>
-    <Version>1.0.3</Version>
+  <Version>1.1.0</Version>
     <Authors>Junaid Desai</Authors>
     <Company>CloudflareD1.NET</Company>
     <Product>CloudflareD1.NET.CodeFirst</Product>
@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>v1.0.3: Added per-property change detection in SaveChangesAsync. UPDATE operations now only modify columns that changed, improving performance and reducing unnecessary writes.</PackageReleaseNotes>
+  <PackageReleaseNotes>v1.1.0: Minor release aligned with Docs v2.0; code-first docs and guidance updated. v1.0.3: Added per-property change detection in SaveChangesAsync. UPDATE operations now only modify columns that changed, improving performance and reducing unnecessary writes.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

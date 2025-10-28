@@ -1,0 +1,395 @@
+# CloudflareD1.NET
+
+> A complete .NET adapter for Cloudflare D1 - the serverless SQL database running on Cloudflare's edge network.
+
+## Overview
+
+CloudflareD1.NET is a comprehensive toolkit for working with Cloudflare D1 databases from .NET applications. It provides seamless integration supporting both local SQLite development and remote D1 production deployments.
+
+Docs status: Stable documentation is now versioned at v2.0 (as of 2025-10-28). Links under /docs/ resolve to v2.0. Unreleased docs are available at /docs/next.
+
+## Packages
+
+- **CloudflareD1.NET** - Core package with raw SQL support
+  - NuGet: https://www.nuget.org/packages/CloudflareD1.NET/
+  - Install: `dotnet add package CloudflareD1.NET`
+
+- **CloudflareD1.NET.Linq** - LINQ queries and object mapping
+  - NuGet: https://www.nuget.org/packages/CloudflareD1.NET.Linq/
+  - Install: `dotnet add package CloudflareD1.NET.Linq`
+
+- **CloudflareD1.NET.CodeFirst** - Code-First ORM with DbContext pattern
+  - NuGet: https://www.nuget.org/packages/CloudflareD1.NET.CodeFirst/
+  - Install: `dotnet add package CloudflareD1.NET.CodeFirst`
+
+- **CloudflareD1.NET.Migrations** - Database migrations and schema management
+  - NuGet: https://www.nuget.org/packages/CloudflareD1.NET.Migrations/
+  - Install: `dotnet add package CloudflareD1.NET.Migrations`
+
+- **dotnet-d1** - CLI tool for managing migrations
+  - NuGet: https://www.nuget.org/packages/dotnet-d1/
+  - Install: `dotnet tool install -g dotnet-d1`
+
+Current package versions (semantic):
+- CloudflareD1.NET (core): 1.12.0
+- CloudflareD1.NET.Linq: 1.11.0
+- CloudflareD1.NET.CodeFirst: 1.1.0
+- CloudflareD1.NET.Migrations: 1.1.0
+- dotnet-d1 (CLI): 1.1.0
+
+## Repository
+
+- GitHub: https://github.com/jdtoon/CloudflareD1.NET
+- Issues: https://github.com/jdtoon/CloudflareD1.NET/issues
+- Discussions: https://github.com/jdtoon/CloudflareD1.NET/discussions
+- License: MIT - https://github.com/jdtoon/CloudflareD1.NET/blob/master/LICENSE
+
+## Documentation
+
+Full documentation site: https://jdtoon.github.io/CloudflareD1.NET/
+
+### Getting Started
+- Introduction: https://jdtoon.github.io/CloudflareD1.NET/docs/intro
+- Installation: https://jdtoon.github.io/CloudflareD1.NET/docs/getting-started/installation
+- Quick Start: https://jdtoon.github.io/CloudflareD1.NET/docs/getting-started/quick-start
+
+### Core Package (CloudflareD1.NET)
+- Raw SQL queries and batch operations
+- Local SQLite mode for development
+- Remote Cloudflare D1 mode for production
+- Time travel queries (historical data)
+- Database management (create, list, delete)
+- ASP.NET Core integration
+
+### LINQ Package (CloudflareD1.NET.Linq)
+- Overview: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/intro
+- Installation: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/installation
+- IQueryable Support: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/iqueryable
+- Query Builder API: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/query-builder
+- GroupBy & Aggregations: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/groupby
+- Having Clause: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/having
+- Join Operations: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/joins
+- Set Operations: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/set-operations
+- Existence Checks: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/existence-checks
+- Async Streaming: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/async-streaming
+- Expression Trees: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/expression-trees
+- Entity Mapping: https://jdtoon.github.io/CloudflareD1.NET/docs/linq/entity-mapping
+
+### CodeFirst Package (CloudflareD1.NET.CodeFirst)
+- Overview: https://jdtoon.github.io/CloudflareD1.NET/docs/code-first/overview
+- Migration Generation: https://jdtoon.github.io/CloudflareD1.NET/docs/code-first/migration-generation
+- Recipes & Examples: https://jdtoon.github.io/CloudflareD1.NET/docs/code-first/recipes
+- DbContext pattern (similar to Entity Framework)
+- Entity attributes (Table, Column, Key, ForeignKey)
+- Fluent API configuration
+- Change tracking and SaveChanges
+- Per-property change detection (v1.0.3+)
+- Foreign key-aware operation ordering (v1.0.2+)
+- Snapshot-based migration generation
+
+### Migrations Package (CloudflareD1.NET.Migrations)
+- Overview: https://jdtoon.github.io/CloudflareD1.NET/docs/migrations/overview
+- Fluent migration API
+- Up/Down migration support
+- Version tracking
+- CLI tool: dotnet-d1
+- CREATE/DROP tables, indexes
+- ADD/DROP columns (via table recreation)
+- Constraints: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK
+
+### Production Guides
+- **Deployment Guide**: https://jdtoon.github.io/CloudflareD1.NET/docs/production/deployment
+  - Environment configuration (local vs remote)
+  - Security best practices (API tokens, secrets management)
+  - Health check integration (ASP.NET Core, Kubernetes, Docker)
+  - Monitoring & observability (structured logging, metrics, tracing)
+  - Performance configuration (retry policy, timeouts, batch operations)
+  - High availability patterns
+  - Container deployment examples
+
+- **Troubleshooting Guide**: https://jdtoon.github.io/CloudflareD1.NET/docs/production/troubleshooting
+  - Connection issues (401 Unauthorized, 404 Not Found, timeouts)
+  - Query failures (SQL syntax, parameter mismatch)
+  - Migration problems (conflicts, rollback failures)
+  - Performance issues (slow queries, N+1 problem)
+  - Code-First issues (FK violations, change detection)
+  - Debug logging configuration
+
+- **Performance Tuning Guide**: https://jdtoon.github.io/CloudflareD1.NET/docs/production/performance
+  - Query optimization (indexes, EXPLAIN, SELECT projections)
+  - Compiled queries (95% faster for repeated queries)
+  - Batch operations (reduce API round trips)
+  - Code-First optimizations (per-property updates, FK ordering)
+  - Caching strategies (in-memory, distributed)
+  - Connection management (retry policy, timeouts)
+  - Monitoring & metrics
+  - Benchmarking techniques
+
+## Key Features
+
+### Core Features (v1.11.3)
+- ✅ Full D1 API support
+- ✅ Local SQLite mode for development
+- ✅ Remote Cloudflare D1 mode for production
+- ✅ Batch operations and transactions
+- ✅ Time travel queries
+- ✅ Database management
+- ✅ **Health checks** (CheckHealthAsync with latency measurement)
+- ✅ **Automatic retry policy** with exponential backoff
+- ✅ **Enhanced structured logging** (query duration, result count, retry warnings)
+- ✅ ASP.NET Core dependency injection
+- ✅ Comprehensive error handling
+
+### LINQ Features (v1.8.0)
+- ✅ IQueryable<T> with deferred execution
+- ✅ Type-safe queries with IntelliSense
+- ✅ Select() projections to DTOs
+- ✅ GroupBy with aggregations (Count, Sum, Average, Min, Max)
+- ✅ Having clause for filtered aggregations
+- ✅ Join operations (INNER JOIN, LEFT JOIN)
+- ✅ Set operations (UNION, INTERSECT, EXCEPT)
+- ✅ Distinct() and Contains()/IN clause
+- ✅ Async streaming for large result sets
+- ✅ Expression tree compilation
+- ✅ Automatic snake_case to PascalCase mapping
+- ✅ Custom entity mappers
+
+### CodeFirst Features (v1.0.3)
+- ✅ DbContext pattern
+- ✅ Entity attributes and fluent API
+- ✅ Change tracking and SaveChanges
+- ✅ **Per-property change detection** - Only UPDATE changed columns
+- ✅ **Foreign key-aware operation ordering** - Automatic INSERT/DELETE sequencing
+- ✅ Snapshot-based migration generation
+- ✅ One-to-Many and Many-to-One relationships
+- ✅ Composite keys support
+- ✅ Required fields and validation
+
+### Migration Features
+- ✅ Fluent migration API
+- ✅ Up/Down migrations with rollback
+- ✅ Automatic version tracking
+- ✅ CLI tool (dotnet-d1)
+- ✅ Schema operations (tables, columns, indexes)
+- ✅ Constraints (PK, FK, UNIQUE, CHECK)
+- ✅ Programmatic and CLI usage
+
+## Quick Start Examples
+
+### Core Package - Raw SQL
+
+```csharp
+var options = new D1Options
+{
+    UseLocalMode = true,
+    LocalDatabasePath = "myapp.db"
+};
+var client = new D1Client(Options.Create(options), logger);
+
+// Query
+var result = await client.QueryAsync("SELECT * FROM users WHERE age > ?", 18);
+
+// Insert
+await client.ExecuteAsync("INSERT INTO users (name, email) VALUES (?, ?)", "John", "john@example.com");
+
+// Health check (v1.11.3+)
+var health = await client.CheckHealthAsync();
+Console.WriteLine($"Healthy: {health.IsHealthy}, Latency: {health.LatencyMs}ms");
+```
+
+### LINQ Package - Type-Safe Queries
+
+```csharp
+// IQueryable with deferred execution
+var adults = await client.AsQueryable<User>("users")
+    .Where(u => u.Age >= 18)
+    .OrderBy(u => u.Name)
+    .ToListAsync();
+
+// GroupBy with aggregations
+var usersByAge = await client.Query<User>("users")
+    .GroupBy(u => u.Age)
+    .Select(g => new { Age = g.Key, Count = g.Count() })
+    .ToListAsync();
+
+// Joins
+var ordersWithCustomers = await client.Query<Order>("orders")
+    .Join(client.Query<Customer>("customers"), o => o.CustomerId, c => c.Id)
+    .Select((order, customer) => new { order.Id, customer.Name })
+    .ToListAsync();
+```
+
+### CodeFirst Package - DbContext
+
+```csharp
+[Table("users")]
+public class User
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public string Name { get; set; }
+
+    public string? Email { get; set; }
+}
+
+public class MyDbContext : D1Context
+{
+    public D1Set<User> Users { get; set; }
+}
+
+// Usage
+var context = new MyDbContext(client);
+var user = new User { Name = "John", Email = "john@example.com" };
+context.Users.Add(user);
+await context.SaveChangesAsync();
+
+// Per-property updates (v1.0.3+)
+user.Email = "newemail@example.com";  // Only Email changed
+context.Users.Update(user);
+await context.SaveChangesAsync();  // UPDATE users SET email = ? WHERE id = ?
+```
+
+### Migrations - Schema Management
+
+```csharp
+public class CreateUsersTable : Migration
+{
+    public override void Up(MigrationBuilder builder)
+    {
+        builder.CreateTable("users", t =>
+        {
+            t.Integer("id").PrimaryKey().AutoIncrement();
+            t.Text("name").NotNull();
+            t.Text("email").NotNull().Unique();
+        });
+
+        builder.CreateIndex("idx_users_email", "users", "email");
+    }
+
+    public override void Down(MigrationBuilder builder)
+    {
+        builder.DropTable("users");
+    }
+}
+```
+
+## Configuration
+
+### D1Options Properties
+- `UseLocalMode` (bool) - Use local SQLite vs remote D1
+- `LocalDatabasePath` (string) - Path to SQLite file
+- `AccountId` (string) - Cloudflare Account ID
+- `DatabaseId` (string) - D1 Database ID
+- `ApiToken` (string) - API token for authentication
+- `ApiBaseUrl` (string) - Cloudflare API endpoint
+- `TimeoutSeconds` (int) - HTTP timeout (default: 30)
+- **`EnableRetry` (bool, v1.11.3+)** - Enable automatic retry (default: true)
+- **`MaxRetries` (int, v1.11.3+)** - Max retry attempts (default: 3)
+- **`InitialRetryDelayMs` (int, v1.11.3+)** - Initial retry delay (default: 100ms)
+
+### ASP.NET Core Setup
+
+```csharp
+// appsettings.json
+{
+  "CloudflareD1": {
+    "UseLocalMode": false,
+    "AccountId": "your-account-id",
+    "DatabaseId": "your-database-id",
+    "ApiToken": "your-api-token",
+    "EnableRetry": true,
+    "MaxRetries": 5,
+    "TimeoutSeconds": 60
+  }
+}
+
+// Program.cs
+builder.Services.AddCloudflareD1(builder.Configuration.GetSection("CloudflareD1"));
+```
+
+## Production Features (v1.11.3)
+
+### Health Checks
+
+```csharp
+// Check database connectivity
+var health = await client.CheckHealthAsync();
+if (!health.IsHealthy)
+{
+    logger.LogError("D1 unhealthy: {Error}", health.ErrorMessage);
+}
+
+// ASP.NET Core Health Checks integration
+builder.Services.AddHealthChecks()
+    .AddCheck<D1HealthCheck>("d1_database");
+```
+
+### Automatic Retry Policy
+
+```csharp
+// Configure retry behavior
+services.AddCloudflareD1(options =>
+{
+    options.EnableRetry = true;      // Enable automatic retry
+    options.MaxRetries = 5;          // Retry up to 5 times
+    options.InitialRetryDelayMs = 100; // 100ms → 200ms → 400ms → 800ms → 1600ms
+});
+
+// Retries automatically on:
+// - 429 (rate limit)
+// - 503 (service unavailable)
+// - Network errors (HttpRequestException)
+// - Timeouts
+```
+
+### Structured Logging
+
+```csharp
+// Information-level logs
+// "D1 query executed successfully, returned 42 result(s) (Duration: 123ms)"
+
+// Warning-level retry logs
+// "D1 API request failed (Attempt 2/3): Rate limit exceeded. Retrying in 200ms..."
+
+// Configure log filtering
+builder.Logging.AddFilter("CloudflareD1", LogLevel.Information);
+```
+
+## Performance Tips
+
+1. **Use indexes** - Add indexes to frequently queried columns
+2. **Use compiled queries** - 95% faster for repeated queries
+3. **Batch operations** - Reduce API round trips
+4. **Select only needed columns** - Avoid SELECT *
+5. **Enable retry policy** - Handle rate limits and transient errors
+6. **Monitor health checks** - Track latency and availability
+7. **Use per-property updates** - Reduce UPDATE statement size (CodeFirst v1.0.3+)
+8. **Cache frequently accessed data** - In-memory or distributed caching
+
+## Support & Contributing
+
+- 📖 Documentation: https://jdtoon.github.io/CloudflareD1.NET/
+- 🐛 Report Issues: https://github.com/jdtoon/CloudflareD1.NET/issues
+- 💬 Discussions: https://github.com/jdtoon/CloudflareD1.NET/discussions
+- 🤝 Contributing: https://github.com/jdtoon/CloudflareD1.NET/blob/master/CONTRIBUTING.md
+- 📦 NuGet Packages: https://www.nuget.org/profiles/jdtoon
+- ⭐ GitHub: https://github.com/jdtoon/CloudflareD1.NET
+
+## External Resources
+
+- Cloudflare D1 Documentation: https://developers.cloudflare.com/d1/
+- Cloudflare D1 API Reference: https://developers.cloudflare.com/api/resources/d1/
+- Cloudflare Dashboard: https://dash.cloudflare.com/
+- Cloudflare API Tokens: https://dash.cloudflare.com/profile/api-tokens
+
+## License
+
+MIT License - https://github.com/jdtoon/CloudflareD1.NET/blob/master/LICENSE
+
+---
+
+This file is designed for AI assistants and LLMs to quickly understand the CloudflareD1.NET project structure, features, and documentation. All documentation URLs point to the official Docusaurus site hosted at GitHub Pages.
+
+Last Updated: 2024 (v1.11.3 - Production Features Release)
