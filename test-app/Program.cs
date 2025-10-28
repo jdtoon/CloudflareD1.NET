@@ -102,8 +102,34 @@ try
     }
     else
     {
-        Console.WriteLine("(Skipping cleanup - set D1_TESTAPP_ALLOW_CLEAN=1 to enable)\n");
+        Console.WriteLine("  Skipped (set D1_TESTAPP_ALLOW_CLEAN=1 to enable)\n");
     }
+
+    // Step 0.5: Health Check Test
+    Console.WriteLine("Step 0.5: Testing Health Check...");
+    var healthStatus = await client.CheckHealthAsync();
+    Console.WriteLine($"✓ Health Check Result:");
+    Console.WriteLine($"  - Status: {(healthStatus.IsHealthy ? "✅ Healthy" : "❌ Unhealthy")}");
+    Console.WriteLine($"  - Mode: {healthStatus.Mode}");
+    Console.WriteLine($"  - Latency: {healthStatus.LatencyMs:F2}ms");
+    Console.WriteLine($"  - Timestamp: {healthStatus.Timestamp:yyyy-MM-dd HH:mm:ss} UTC");
+    if (healthStatus.Metadata != null)
+    {
+        Console.WriteLine("  - Metadata:");
+        foreach (var kvp in healthStatus.Metadata)
+        {
+            Console.WriteLine($"    - {kvp.Key}: {kvp.Value}");
+        }
+    }
+    if (!string.IsNullOrEmpty(healthStatus.ErrorMessage))
+    {
+        Console.WriteLine($"  - Error: {healthStatus.ErrorMessage}");
+    }
+    if (!healthStatus.IsHealthy)
+    {
+        throw new Exception("Health check failed!");
+    }
+    Console.WriteLine();
 
     Console.WriteLine("Step 1: Creating test table...");
     // Drop existing table to add age column

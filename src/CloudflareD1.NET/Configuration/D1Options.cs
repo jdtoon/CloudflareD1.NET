@@ -63,6 +63,24 @@ namespace CloudflareD1.NET.Configuration
         public int TimeoutSeconds { get; set; } = 30;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to enable automatic retry for transient failures.
+        /// Default is true. Retries on 429 (rate limit), 503 (service unavailable), and network errors.
+        /// </summary>
+        public bool EnableRetry { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the maximum number of retry attempts for failed requests.
+        /// Default is 3. Only applies when <see cref="EnableRetry"/> is true.
+        /// </summary>
+        public int MaxRetries { get; set; } = 3;
+
+        /// <summary>
+        /// Gets or sets the initial retry delay in milliseconds.
+        /// Default is 100ms. Delay doubles with each retry (exponential backoff).
+        /// </summary>
+        public int InitialRetryDelayMs { get; set; } = 100;
+
+        /// <summary>
         /// Validates the configuration options.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when configuration is invalid.</exception>
